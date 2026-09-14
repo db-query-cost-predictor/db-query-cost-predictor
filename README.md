@@ -19,14 +19,12 @@ Most existing tools and research in this space stop at prediction. This project 
 
 ## Architecture
 
-┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
-│ Data Collection │ ──▶ │ Cost Prediction │ ──▶ │ Rewrite Engine │ ──▶ │ API & Dashboard │
-│ │ │ │ │ │ │ │
-│ TPC-H + Postgres │ │ XGBoost / GBM │ │ LLM-guided │ │ FastAPI + UI │
-│ EXPLAIN ANALYZE │ │ ensemble w/ │ │ rewrite + │ │ before/after │
-│ labeled dataset │ │ uncertainty │ │ verification │ │ cost comparison │
-└──────────────────┘ └──────────────────┘ └──────────────────┘ └──────────────────┘
-
+```mermaid
+flowchart LR
+    A[Data Collection<br/>TPC-H + Postgres<br/>EXPLAIN ANALYZE] --> B[Cost Prediction<br/>XGBoost / GBM<br/>ensemble w/ uncertainty]
+    B --> C[Rewrite Engine<br/>LLM-guided rewrite<br/>+ verification]
+    C --> D[API & Dashboard<br/>FastAPI + UI<br/>before/after comparison]
+```
 
 Each stage's output feeds directly into the next.
 
@@ -34,16 +32,17 @@ Each stage's output feeds directly into the next.
 
 ## Repository Structure
 
+```text
 db-query-cost-predictor/
-├── data_collection/ # TPC-H setup, query generation, EXPLAIN ANALYZE collection scripts
-├── cost_model/ # Feature extraction, model training, evaluation
-├── rewrite_engine/ # LLM-based rewrite generation and verification
-├── api/ # Prediction + rewrite API
-├── dashboard/ # Demo UI — cost prediction and rewrite comparison view
-├── notebooks/ # Exploratory analysis and evaluation notebooks
-├── docs/ # Design docs, research notes, evaluation reports
-└── README.md
-
+    data_collection/   # TPC-H setup, query generation, EXPLAIN ANALYZE collection scripts
+    cost_model/        # Feature extraction, model training, evaluation
+    rewrite_engine/     # LLM-based rewrite generation and verification
+    api/                # Prediction + rewrite API
+    dashboard/          # Demo UI - cost prediction and rewrite comparison view
+    notebooks/          # Exploratory analysis and evaluation notebooks
+    docs/               # Design docs, research notes, evaluation reports
+    README.md
+```
 
 ---
 
