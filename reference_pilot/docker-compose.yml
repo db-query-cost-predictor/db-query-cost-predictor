@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: tpch
+      POSTGRES_USER: tpch
+      POSTGRES_PASSWORD: tpch
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - track_io_timing=on
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tpch -d tpch"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - tpch_pgdata:/var/lib/postgresql/data
+
+volumes:
+  tpch_pgdata:
+

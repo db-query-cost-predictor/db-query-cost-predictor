@@ -1,0 +1,380 @@
+# Poster-smoke collection definition — NOT a dataset and NOT the final study.
+#
+# `smoke-manifest` expands this file into modeling keys only after the TPC-H
+# snapshots and database configurations have been registered. Expected
+# mechanisms below are hypotheses; only collected evidence decides whether a
+# query is fast, slow, spills or times out. Point/range probes here are single
+# queries, not an OLTP benchmark.
+version: 1
+
+protocol:
+  protocol_version: poster-smoke-v1
+  cache_protocol: warm
+  statement_timeout_ms: 15000          # approved poster-smoke timeout
+  planned_final_timeout_ms: 60000      # recorded only; used by the planned final study
+  lock_timeout_ms: 5000
+  warmup_probes: 1                     # one unmeasured probe per key
+  measured_repetitions: 3              # labels use measured runs only
+  order_seed: 20260923
+  watchdog_grace_ms: 10000             # client-side cancel if the server timeout does not fire
+  snapshot_check_every_n_keys: 10
+  max_transient_retries: 3
+  high_runtime_thresholds_ms: [1000, 10000]
+  explain_estimate_options: "SETTINGS, FORMAT JSON"
+  explain_measured_options: "ANALYZE, BUFFERS, WAL, TIMING OFF, SUMMARY ON, SETTINGS, FORMAT JSON"
+  min_keys: 20
+  max_keys: 50
+
+snapshots:
+  tpch_sf0_1: {database: tpch_sf0_1, workload: tpch, scale_factor: "0.1", required: true}
+  tpch_sf1: {database: tpch_sf1, workload: tpch, scale_factor: "1", required: false}
+
+# Row counts produced by TPC-H dbgen (SF 0.1 values match the pilot's validation summary).
+expected_row_counts:
+  "0.1": {region: 5, nation: 25, part: 20000, supplier: 1000, partsupp: 80000, customer: 15000, orders: 150000, lineitem: 600572}
+  "1": {region: 5, nation: 25, part: 200000, supplier: 10000, partsupp: 800000, customer: 150000, orders: 1500000, lineitem: 6001215}
+
+configurations:
+  C1_baseline:
+    description: "PostgreSQL 16 defaults; jit=off and track_io_timing=on at server level; normal parallel planning and execution"
+    session_settings: {jit: "off"}
+  C2_reduced_work_mem:
+    description: "C1 with reduced work_mem to expose sort/hash spill; poster-smoke value only - the final value is chosen by calibration"
+    session_settings: {jit: "off", work_mem: "256kB"}
+
+required_coverage:
+  - fast_indexed_lookup
+  - selective_range
+  - large_scan_aggregate
+  - join
+  - grouped_aggregate
+  - sort
+  - spill_candidate
+  - timeout_protected_risk
+  - rewrite_pair
+
+families:
+  - family: point_lookup_orderkey
+    semantic_group_id: sg_point_lookup_orderkey
+    template_id: tpl_point_lookup_orderkey_v1
+    coverage: [fast_indexed_lookup]
+    expected_mechanism: "Primary-key index lookup returning at most one row (8 is expected to be an absent key in dbgen's sparse order keys)."
+    sql: |
+      SELECT o_orderkey, o_custkey, o_orderstatus, o_orderdate, o_totalprice
+      FROM orders
+      WHERE o_orderkey = {order_key}
+    parameter_types: {order_key: int}
+    parameter_sets:
+      - {order_key: 1}
+      - {order_key: 32}
+      - {order_key: 8}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+
+  - family: selective_orderdate_range
+    semantic_group_id: sg_selective_orderdate_range
+    template_id: tpl_selective_orderdate_range_v1
+    coverage: [selective_range]
+    expected_mechanism: "One-week range on the indexed o_orderdate column; an index or bitmap scan is plausible, not guaranteed."
+    sql: |
+      SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+      FROM orders
+      WHERE o_orderdate >= DATE '{start_date}'
+        AND o_orderdate < DATE '{start_date}' + {days}
+    parameter_types: {start_date: date, days: int}
+    parameter_sets:
+      - {start_date: "1994-03-01", days: 7}
+      - {start_date: "1996-11-15", days: 7}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+
+  - family: selective_shipdate_range
+    semantic_group_id: sg_selective_shipdate_range
+    template_id: tpl_selective_shipdate_range_v1
+    coverage: [selective_range]
+    expected_mechanism: "Three-day range on the indexed l_shipdate column of the largest table."
+    sql: |
+      SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+      FROM lineitem
+      WHERE l_shipdate BETWEEN DATE '{start_date}' AND DATE '{start_date}' + {days}
+    parameter_types: {start_date: date, days: int}
+    parameter_sets:
+      - {start_date: "1995-06-01", days: 2}
+      - {start_date: "1997-02-10", days: 2}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+
+  - family: full_scan_pricing_summary
+    semantic_group_id: sg_full_scan_pricing_summary
+    template_id: tpl_full_scan_pricing_summary_v1
+    coverage: [large_scan_aggregate, grouped_aggregate]
+    expected_mechanism: "Near-full scan of lineitem with a low-cardinality grouped aggregate (TPC-H Q1 shape)."
+    sql: |
+      SELECT l_returnflag, l_linestatus, count(*) AS n_lines, sum(l_quantity) AS sum_qty,
+             sum(l_extendedprice * (1 - l_discount)) AS sum_disc_price, avg(l_discount) AS avg_disc
+      FROM lineitem
+      WHERE l_shipdate <= DATE '1998-12-01' - {delta_days}
+      GROUP BY l_returnflag, l_linestatus
+      ORDER BY l_returnflag, l_linestatus
+    parameter_types: {delta_days: int}
+    parameter_sets:
+      - {delta_days: 90}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+
+  - family: join_orders_customer_segment
+    semantic_group_id: sg_join_orders_customer_segment
+    template_id: tpl_join_orders_customer_segment_v1
+    coverage: [join, grouped_aggregate]
+    expected_mechanism: "Two-table join with a one-month order-date filter and a grouped aggregate by market segment."
+    sql: |
+      SELECT c.c_mktsegment, count(*) AS n_orders, sum(o.o_totalprice) AS total_price
+      FROM customer c
+      JOIN orders o ON o.o_custkey = c.c_custkey
+      WHERE o.o_orderdate >= DATE '{start_date}'
+        AND o.o_orderdate < DATE '{start_date}' + {days}
+      GROUP BY c.c_mktsegment
+    parameter_types: {start_date: date, days: int}
+    parameter_sets:
+      - {start_date: "1995-01-01", days: 31}
+      - {start_date: "1997-06-01", days: 31}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+
+  - family: grouped_supplier_quantity_having
+    semantic_group_id: sg_grouped_supplier_quantity_having
+    template_id: tpl_grouped_supplier_quantity_having_v1
+    coverage: [grouped_aggregate]
+    expected_mechanism: "Full scan of lineitem grouped by supplier with a HAVING filter."
+    sql: |
+      SELECT l_suppkey, sum(l_quantity) AS total_qty
+      FROM lineitem
+      GROUP BY l_suppkey
+      HAVING sum(l_quantity) > {min_qty}
+    parameter_types: {min_qty: int}
+    parameter_sets:
+      - {min_qty: 15000}
+      - {min_qty: 16000}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+
+  - family: wide_sort_no_limit
+    semantic_group_id: sg_wide_sort_no_limit
+    template_id: tpl_wide_sort_no_limit_v1
+    coverage: [sort, spill_candidate]
+    expected_mechanism: "Sort of many rows by a text column without LIMIT; may spill to disk when the sort exceeds work_mem (C1 versus C2)."
+    sql: |
+      SELECT l_orderkey, l_linenumber, l_comment
+      FROM lineitem
+      WHERE l_shipdate >= DATE '{start_date}'
+      ORDER BY l_comment, l_orderkey, l_linenumber
+    parameter_types: {start_date: date}
+    parameter_sets:
+      - {start_date: "1997-01-01"}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline, C2_reduced_work_mem]
+
+  - family: topn_sort_with_limit
+    semantic_group_id: sg_topn_sort_with_limit
+    template_id: tpl_topn_sort_with_limit_v1
+    coverage: [sort]
+    expected_mechanism: "Same input as wide_sort_no_limit but with LIMIT (top-N sort); a contrast family, not a rewrite (results differ)."
+    sql: |
+      SELECT l_orderkey, l_linenumber, l_comment
+      FROM lineitem
+      WHERE l_shipdate >= DATE '{start_date}'
+      ORDER BY l_comment, l_orderkey, l_linenumber
+      LIMIT {limit_rows}
+    parameter_types: {start_date: date, limit_rows: int}
+    parameter_sets:
+      - {start_date: "1997-01-01", limit_rows: 100}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline, C2_reduced_work_mem]
+
+  - family: high_cardinality_group_by
+    semantic_group_id: sg_high_cardinality_group_by
+    template_id: tpl_high_cardinality_group_by_v1
+    coverage: [spill_candidate, grouped_aggregate]
+    expected_mechanism: "Grouping by a high-cardinality text column; the hash aggregate or sort may spill under reduced work_mem."
+    sql: |
+      SELECT l_comment, count(*) AS n
+      FROM lineitem
+      WHERE l_shipdate >= DATE '{start_date}'
+      GROUP BY l_comment
+      HAVING count(*) > 1
+    parameter_types: {start_date: date}
+    parameter_sets:
+      - {start_date: "1996-01-01"}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline, C2_reduced_work_mem]
+
+  - family: leading_wildcard_part_name
+    semantic_group_id: sg_leading_wildcard_part_name
+    template_id: tpl_leading_wildcard_part_name_v1
+    coverage: [antipattern_leading_wildcard]
+    expected_mechanism: "Production anti-pattern: a leading wildcard prevents a B-tree prefix search, so the table is scanned."
+    sql: |
+      SELECT count(*) AS n_parts
+      FROM part
+      WHERE p_name LIKE '%{word}%'
+    parameter_types: {word: word}
+    parameter_sets:
+      - {word: green}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+
+  - family: correlated_repeated_scan
+    semantic_group_id: sg_correlated_repeated_scan
+    template_id: tpl_correlated_repeated_scan_v1
+    coverage: [timeout_protected_risk]
+    expected_mechanism: "Production anti-pattern: a correlated scalar subquery runs once per outer supplier; l_suppkey has no standalone index, so repeated large scans are plausible. Protected by the statement timeout; measurement decides between complete and censored."
+    sql: |
+      SELECT s.s_suppkey,
+             (SELECT sum(l.l_quantity) FROM lineitem l WHERE l.l_suppkey = s.s_suppkey) AS supplied_qty
+      FROM supplier s
+      WHERE s.s_nationkey = {nation_key}
+    parameter_types: {nation_key: int}
+    parameter_sets:
+      - {nation_key: 7}
+    snapshots: [tpch_sf0_1, tpch_sf1]
+    configurations: [C1_baseline]
+
+  - family: multiway_join_weak_filter
+    semantic_group_id: sg_multiway_join_weak_filter
+    template_id: tpl_multiway_join_weak_filter_v1
+    coverage: [join, timeout_protected_risk]
+    expected_mechanism: "Four-way join with a weak date filter and grouped aggregate over most of lineitem; resource-intensive at SF 1 and may spill under reduced work_mem."
+    sql: |
+      SELECT n.n_name, count(*) AS n_lines, sum(l.l_extendedprice * (1 - l.l_discount)) AS revenue
+      FROM lineitem l
+      JOIN orders o ON o.o_orderkey = l.l_orderkey
+      JOIN customer c ON c.c_custkey = o.o_custkey
+      JOIN nation n ON n.n_nationkey = c.c_nationkey
+      WHERE o.o_orderdate >= DATE '{start_date}'
+      GROUP BY n.n_name
+    parameter_types: {start_date: date}
+    parameter_sets:
+      - {start_date: "1993-01-01"}
+    snapshots: [tpch_sf1]
+    configurations: [C1_baseline, C2_reduced_work_mem]
+
+# Manual reference rewrites: written by hand, labelled MANUAL_REFERENCE_REWRITE,
+# never LLM output. Both forms are also collected as modeling keys.
+rewrite_pairs:
+  - pair_id: rp_nonsargable_year
+    family: nonsargable_date_function
+    semantic_group_id: sg_rp_nonsargable_year
+    role: reference_pair
+    rewrite_source: MANUAL_REFERENCE_REWRITE
+    expected_equivalent: true
+    ordering_required: false
+    coverage: [rewrite_pair]
+    expected_mechanism: "EXTRACT() on the indexed o_orderdate prevents an index range condition; the half-open date range can use the index."
+    equivalence_argument: >-
+      o_orderdate is DATE NOT NULL. For a DATE d and integer year Y, EXTRACT(YEAR FROM d) = Y holds exactly
+      when make_date(Y, 1, 1) <= d < make_date(Y + 1, 1, 1). Both queries aggregate the same rows with the same
+      expressions, so their results are identical for every database state that satisfies this schema.
+    preconditions:
+      - name: o_orderdate_is_date_not_null
+        sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_orderdate' AND data_type = 'date' AND is_nullable = 'NO'"
+    original:
+      template_id: tpl_rp_year_extract_original_v1
+      sql: |
+        SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+        FROM orders
+        WHERE EXTRACT(YEAR FROM o_orderdate) = {year}
+    rewrite:
+      template_id: tpl_rp_year_extract_rewrite_v1
+      sql: |
+        SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+        FROM orders
+        WHERE o_orderdate >= make_date({year}, 1, 1)
+          AND o_orderdate < make_date({year} + 1, 1, 1)
+    parameter_types: {year: int}
+    parameter_sets:
+      - {year: 1994}
+      - {year: 1996}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+    verification_snapshots: [tpch_sf0_1, tpch_sf1]
+
+  - pair_id: rp_correlated_sum
+    family: correlated_scalar_aggregate
+    semantic_group_id: sg_rp_correlated_sum
+    role: reference_pair
+    rewrite_source: MANUAL_REFERENCE_REWRITE
+    expected_equivalent: true
+    ordering_required: false
+    coverage: [rewrite_pair]
+    expected_mechanism: "Correlated scalar SUM per customer versus one set-based LEFT JOIN aggregation."
+    equivalence_argument: >-
+      c_custkey is the primary key of customer (unique, not null), so GROUP BY c.c_custkey yields exactly one row
+      per qualifying customer, matching the outer rows of the original. The LEFT JOIN keeps customers without
+      orders; SUM over their single NULL-extended row is NULL, matching the scalar subquery's NULL. No COALESCE
+      is added. Orders are joined only on o_custkey = c_custkey, the same predicate as the correlated subquery.
+    preconditions:
+      - name: customer_primary_key_on_c_custkey
+        sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.customer'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (c_custkey)'"
+    original:
+      template_id: tpl_rp_correlated_sum_original_v1
+      sql: |
+        SELECT c.c_custkey,
+               (SELECT sum(o.o_totalprice) FROM orders o WHERE o.o_custkey = c.c_custkey) AS total_spend
+        FROM customer c
+        WHERE c.c_nationkey = {nation_key}
+    rewrite:
+      template_id: tpl_rp_correlated_sum_rewrite_v1
+      sql: |
+        SELECT c.c_custkey, sum(o.o_totalprice) AS total_spend
+        FROM customer c
+        LEFT JOIN orders o ON o.o_custkey = c.c_custkey
+        WHERE c.c_nationkey = {nation_key}
+        GROUP BY c.c_custkey
+    parameter_types: {nation_key: int}
+    parameter_sets:
+      - {nation_key: 3}
+      - {nation_key: 11}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+    verification_snapshots: [tpch_sf0_1, tpch_sf1]
+
+  - pair_id: nc_union_vs_union_all
+    family: union_vs_union_all
+    semantic_group_id: sg_nc_union_vs_union_all
+    role: negative_control
+    rewrite_source: MANUAL_REFERENCE_REWRITE
+    expected_equivalent: false
+    ordering_required: false
+    coverage: [negative_control]
+    expected_mechanism: "Deliberately NOT equivalent (method check): UNION removes duplicate keys, UNION ALL keeps them."
+    equivalence_argument: >-
+      Not equivalent by design. nation contains several rows per region key, so UNION ALL returns duplicates that
+      UNION removes. The harness must reject this pair.
+    preconditions: []
+    original:
+      template_id: tpl_nc_union_original_v1
+      sql: |
+        SELECT n_regionkey AS region_key FROM nation WHERE n_nationkey < {max_nation}
+        UNION
+        SELECT r_regionkey FROM region
+    rewrite:
+      template_id: tpl_nc_union_all_rewrite_v1
+      sql: |
+        SELECT n_regionkey AS region_key FROM nation WHERE n_nationkey < {max_nation}
+        UNION ALL
+        SELECT r_regionkey FROM region
+    parameter_types: {max_nation: int}
+    parameter_sets:
+      - {max_nation: 25}
+    snapshots: [tpch_sf0_1]
+    configurations: [C1_baseline]
+    verification_snapshots: [tpch_sf0_1]
+
+rewrite_verification:
+  timing_pairs: 5                 # paired, order-alternated measurements per pair and parameter set
+  warmup_each: 1
+  min_speedup_to_recommend: 1.10  # median original/rewrite ratio required to recommend
+  max_result_rows: 200000         # larger result sets make the multiset check INCONCLUSIVE
+  statement_timeout_ms: 15000
+  order_seed: 20260923
+  configuration: C1_baseline

@@ -1,0 +1,50 @@
+# PLANNED final-study composition. Nothing here has been collected.
+# Totals are arithmetic from these multipliers (python -m query_cost_predictor final-plan).
+# They are not facts until a manifest-generation program for the final study
+# expands and validates them.
+version: 1
+status: PLANNED
+minimum_labeled_keys: 4000
+preferred_labeled_keys: [4500, 5000]
+minimum_groups: 150
+components:
+  - name: tpch_controlled_templates
+    groups: 22
+    variants_per_group: 12
+    snapshots: 2              # TPC-H SF 0.1 and SF 1
+    configurations: 2         # C1 baseline, C2 reduced work_mem
+    forms: 1
+    holdout_groups: 0
+    group_variant_overrides:
+      Q18: 4                  # the TPC-H domain for Q18's quantity has only four legal values (312-315)
+  - name: published_workload_groups
+    note: "audited published-query groups (for example STATS-CEB); source and license to be confirmed"
+    groups: 60
+    variants_per_group: 8
+    snapshots: 1
+    configurations: 2
+    forms: 1
+    holdout_groups: 0
+  - name: generated_structural_families
+    groups: 50
+    variants_per_group: 12
+    snapshots: 1
+    configurations: 2
+    forms: 1
+    holdout_groups: 0
+  - name: point_and_range_probe_families
+    note: "single-query probes; not an OLTP benchmark"
+    groups: 30
+    variants_per_group: 12
+    snapshots: 1
+    configurations: 2
+    forms: 1
+    holdout_groups: 0
+  - name: antipattern_rewrite_families
+    note: "original and reference-rewrite forms; five families fully held out for rewrite-policy evaluation"
+    groups: 25
+    variants_per_group: 8
+    snapshots: 1
+    configurations: 2
+    forms: 2
+    holdout_groups: 5

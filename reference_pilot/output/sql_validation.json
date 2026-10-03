@@ -1,0 +1,882 @@
+[
+  {
+    "query_file": "q01_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q01_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q02_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q03_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q04_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q05_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q06_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q07_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q08_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q09_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q10_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q11_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q12_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q13_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q14_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q15_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q16_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q17_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q18_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q19_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q20_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q21_s0010.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0001.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0002.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0003.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0004.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0005.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0006.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0007.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0008.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0009.sql",
+    "valid": true
+  },
+  {
+    "query_file": "q22_s0010.sql",
+    "valid": true
+  }
+]

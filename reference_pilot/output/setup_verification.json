@@ -1,0 +1,1 @@
+{"fresh_dbgen_scale_factor":0.1,"all_eight_normalized_files_match":true,"regenerated_directory":"/tmp/tpch-dbgen-check.zFikAp","setup_rerun_exit_code":0,"setup_rerun_reloaded_tables":false,"setup_rerun_dropped_tables":false,"note":"Observed successful verify_dbgen.sh and second setup_tpch.sh invocation after collection on 2026-09-13."}

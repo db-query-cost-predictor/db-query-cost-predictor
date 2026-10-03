@@ -1,0 +1,430 @@
+# Feature-availability registry — the single machine-readable source of truth.
+#
+# Classes:  A SQL structure | B schema/statistics | C environment/configuration |
+#           D plain pre-execution EXPLAIN | E execution-only outcome
+# Roles:    feature (model input; class A-D only) | identifier | group_key |
+#           split_control | provenance | annotation | label | diagnostic | feature_store
+#
+# Rules enforced by query_cost_predictor.contract:
+#   * only role=feature with a single class A-D may enter a model feature matrix;
+#   * class E never enters a model; identifiers/group keys never enter a model;
+#   * unregistered columns are rejected (fail closed).
+# Qualified names (table.column) cover every column of the evidence schema
+# (sql/evidence/V*.sql); unqualified names cover features and working columns.
+version: 1
+fields:
+  # ---------------------------------------------------------------- schema_migration (runner-managed)
+  - {name: schema_migration.version, class: C, role: provenance, description: "migration version number"}
+  - {name: schema_migration.filename, class: C, role: provenance, description: "migration file name"}
+  - {name: schema_migration.sha256, class: C, role: provenance, description: "SHA-256 of the applied migration file"}
+  - {name: schema_migration.applied_at, class: C, role: provenance, description: "time the migration was applied"}
+
+  # ---------------------------------------------------------------- semantic_group
+  - {name: semantic_group.semantic_group_id, class: A, role: group_key, description: "structural/semantic group used for grouped splits and reporting only"}
+  - {name: semantic_group.workload, class: B, role: group_key, description: "benchmark workload (tpch)"}
+  - {name: semantic_group.family, class: A, role: group_key, description: "query family name"}
+  - {name: semantic_group.description, class: A, role: annotation, description: "human description of the group"}
+  - {name: semantic_group.is_holdout_reserved, class: C, role: split_control, description: "true if the group is reserved for held-out rewrite evaluation"}
+  - {name: semantic_group.holdout_reason, class: C, role: annotation, description: "why the group is reserved"}
+  - {name: semantic_group.created_at, class: C, role: provenance, description: "registration time"}
+
+  # ---------------------------------------------------------------- query_definition
+  - {name: query_definition.template_id, class: A, role: group_key, description: "template identity; never a predictor"}
+  - {name: query_definition.semantic_group_id, class: A, role: group_key, description: "semantic group of the template"}
+  - {name: query_definition.workload, class: B, role: group_key, description: "benchmark workload"}
+  - {name: query_definition.family, class: A, role: group_key, description: "query family"}
+  - {name: query_definition.form, class: A, role: annotation, description: "standalone, original, reference_rewrite or negative_control_rewrite"}
+  - {name: query_definition.rewrite_source, class: A, role: annotation, description: "NOT_A_REWRITE or MANUAL_REFERENCE_REWRITE (LLM_REWRITE reserved, unused)"}
+  - {name: query_definition.rewrite_pair_id, class: A, role: group_key, description: "links original and rewrite forms"}
+  - {name: query_definition.sql_template, class: A, role: provenance, description: "SQL template with placeholders"}
+  - {name: query_definition.template_sha256, class: A, role: identifier, description: "hash of the template text"}
+  - {name: query_definition.parameter_types, class: A, role: provenance, description: "declared parameter types"}
+  - {name: query_definition.expected_mechanism, class: A, role: annotation, description: "designer's expected mechanism; never a predictor"}
+  - {name: query_definition.coverage_tags, class: A, role: annotation, description: "coverage tags; never a predictor"}
+  - {name: query_definition.source_config, class: C, role: provenance, description: "configuration file that defined the template"}
+  - {name: query_definition.created_at, class: C, role: provenance, description: "registration time"}
+
+  # ---------------------------------------------------------------- query_instance
+  - {name: query_instance.query_instance_id, class: A, role: identifier, description: "hash of template, parameters and SQL"}
+  - {name: query_instance.template_id, class: A, role: group_key, description: "template identity"}
+  - {name: query_instance.semantic_group_id, class: A, role: group_key, description: "semantic group"}
+  - {name: query_instance.parameter_values, class: A, role: provenance, description: "explicit parameter values"}
+  - {name: query_instance.sql_text, class: A, role: provenance, description: "exact SQL executed"}
+  - {name: query_instance.sql_sha256, class: A, role: identifier, description: "SHA-256 of the SQL text"}
+  - {name: query_instance.normalized_sql_sha256, class: A, role: identifier, description: "hash of the literal-sensitive token stream"}
+  - {name: query_instance.literal_fingerprint, class: A, role: group_key, description: "literal-insensitive structural fingerprint"}
+  - {name: query_instance.safety_status, class: A, role: provenance, description: "read-only single-statement validation result"}
+  - {name: query_instance.created_at, class: C, role: provenance, description: "registration time"}
+
+  # ---------------------------------------------------------------- benchmark_snapshot
+  - {name: benchmark_snapshot.snapshot_id, class: B, role: identifier, description: "snapshot hash"}
+  - {name: benchmark_snapshot.workload, class: B, role: group_key, description: "benchmark workload"}
+  - {name: benchmark_snapshot.database_name, class: B, role: identifier, description: "benchmark database name"}
+  - {name: benchmark_snapshot.scale_factor, class: B, role: group_key, description: "TPC-H scale factor (use snap_scale_factor as the feature)"}
+  - {name: benchmark_snapshot.server_version, class: C, role: provenance, description: "PostgreSQL version string"}
+  - {name: benchmark_snapshot.server_version_num, class: C, role: provenance, description: "PostgreSQL version number (16xxxx)"}
+  - {name: benchmark_snapshot.schema_sha256, class: B, role: provenance, description: "hash of columns and constraints"}
+  - {name: benchmark_snapshot.index_manifest_sha256, class: B, role: provenance, description: "hash of index definitions"}
+  - {name: benchmark_snapshot.statistics_sha256, class: B, role: provenance, description: "hash of pg_stats rows"}
+  - {name: benchmark_snapshot.data_sha256, class: B, role: provenance, description: "hash of the loader's per-table file hashes"}
+  - {name: benchmark_snapshot.table_row_counts, class: B, role: provenance, description: "row count per table"}
+  - {name: benchmark_snapshot.load_manifest, class: B, role: provenance, description: "loader manifest (row counts, file hashes, dbgen commit)"}
+  - {name: benchmark_snapshot.captured_at, class: C, role: provenance, description: "capture time"}
+
+  # ---------------------------------------------------------------- database_configuration
+  - {name: database_configuration.config_id, class: C, role: identifier, description: "configuration identity"}
+  - {name: database_configuration.configuration_name, class: C, role: group_key, description: "C1_baseline or C2_reduced_work_mem"}
+  - {name: database_configuration.session_settings, class: C, role: provenance, description: "settings applied per transaction"}
+  - {name: database_configuration.effective_settings, class: C, role: provenance, description: "captured pg_settings subset"}
+  - {name: database_configuration.effective_settings_sha256, class: C, role: identifier, description: "hash of effective settings"}
+  - {name: database_configuration.server_version, class: C, role: provenance, description: "PostgreSQL version string"}
+  - {name: database_configuration.server_version_num, class: C, role: provenance, description: "PostgreSQL version number"}
+  - {name: database_configuration.postgres_image, class: C, role: provenance, description: "configured image reference"}
+  - {name: database_configuration.postgres_image_digest, class: C, role: provenance, description: "repository digest captured by the start script"}
+  - {name: database_configuration.image_capture_status, class: C, role: provenance, description: "CAPTURED or NOT_CAPTURED"}
+  - {name: database_configuration.captured_at, class: C, role: provenance, description: "capture time"}
+
+  # ---------------------------------------------------------------- collection_manifest
+  - {name: collection_manifest.manifest_id, class: C, role: identifier, description: "manifest hash"}
+  - {name: collection_manifest.manifest_name, class: C, role: provenance, description: "manifest name"}
+  - {name: collection_manifest.protocol_version, class: C, role: provenance, description: "collection protocol version"}
+  - {name: collection_manifest.cache_protocol, class: C, role: provenance, description: "warm"}
+  - {name: collection_manifest.statement_timeout_ms, class: C, role: provenance, description: "statement timeout used for collection"}
+  - {name: collection_manifest.planned_final_timeout_ms, class: C, role: provenance, description: "timeout planned for the final study (recorded only)"}
+  - {name: collection_manifest.lock_timeout_ms, class: C, role: provenance, description: "lock timeout"}
+  - {name: collection_manifest.warmup_probes, class: C, role: provenance, description: "number of unmeasured probes (1)"}
+  - {name: collection_manifest.measured_repetitions, class: C, role: provenance, description: "planned measured repetitions (3)"}
+  - {name: collection_manifest.order_seed, class: C, role: provenance, description: "seed for the execution order"}
+  - {name: collection_manifest.config_file_sha256, class: C, role: provenance, description: "hash of config/poster_smoke.yaml"}
+  - {name: collection_manifest.manifest_file_sha256, class: C, role: provenance, description: "hash of the immutable manifest file"}
+  - {name: collection_manifest.manifest_json, class: C, role: provenance, description: "complete manifest"}
+  - {name: collection_manifest.created_at, class: C, role: provenance, description: "registration time"}
+
+  # ---------------------------------------------------------------- modeling_key
+  - {name: modeling_key.modeling_key, class: C, role: identifier, description: "hash of instance, snapshot, configuration, cache protocol, protocol version"}
+  - {name: modeling_key.query_instance_id, class: A, role: identifier, description: "query instance"}
+  - {name: modeling_key.snapshot_id, class: B, role: identifier, description: "benchmark snapshot"}
+  - {name: modeling_key.config_id, class: C, role: identifier, description: "database configuration"}
+  - {name: modeling_key.cache_protocol, class: C, role: provenance, description: "warm"}
+  - {name: modeling_key.protocol_version, class: C, role: provenance, description: "collection protocol version"}
+  - {name: modeling_key.template_id, class: A, role: group_key, description: "template identity; never a predictor"}
+  - {name: modeling_key.semantic_group_id, class: A, role: group_key, description: "semantic group; never a predictor"}
+  - {name: modeling_key.workload, class: B, role: group_key, description: "benchmark workload"}
+  - {name: modeling_key.scale_factor, class: B, role: group_key, description: "scale factor"}
+  - {name: modeling_key.configuration_name, class: C, role: group_key, description: "configuration name"}
+  - {name: modeling_key.created_at, class: C, role: provenance, description: "registration time"}
+
+  # ---------------------------------------------------------------- manifest_entry
+  - {name: manifest_entry.manifest_id, class: C, role: identifier, description: "manifest"}
+  - {name: manifest_entry.modeling_key, class: C, role: identifier, description: "modeling key"}
+  - {name: manifest_entry.execution_order, class: C, role: provenance, description: "seeded execution position; never a predictor"}
+
+  # ---------------------------------------------------------------- collection_session
+  - {name: collection_session.session_id, class: E, role: identifier, description: "collection session"}
+  - {name: collection_session.session_kind, class: E, role: provenance, description: "poster_smoke_collection or rewrite_verification"}
+  - {name: collection_session.manifest_id, class: C, role: identifier, description: "manifest collected"}
+  - {name: collection_session.started_at, class: E, role: provenance, description: "session start"}
+  - {name: collection_session.host_name, class: E, role: provenance, description: "collector host name"}
+  - {name: collection_session.process_id, class: E, role: provenance, description: "collector process id"}
+  - {name: collection_session.python_version, class: E, role: provenance, description: "Python version"}
+  - {name: collection_session.package_version, class: E, role: provenance, description: "package version"}
+  - {name: collection_session.raw_evidence_path, class: E, role: provenance, description: "raw JSONL file of the session"}
+  - {name: collection_session.order_seed, class: C, role: provenance, description: "execution-order seed"}
+  - {name: collection_session.created_at, class: E, role: provenance, description: "insertion time"}
+
+  # ---------------------------------------------------------------- collection_heartbeat
+  - {name: collection_heartbeat.heartbeat_id, class: E, role: identifier, description: "heartbeat row id"}
+  - {name: collection_heartbeat.session_id, class: E, role: identifier, description: "session"}
+  - {name: collection_heartbeat.emitted_at, class: E, role: provenance, description: "heartbeat time"}
+  - {name: collection_heartbeat.state, class: E, role: diagnostic, description: "started, running, stalled, interrupted, finished, failed"}
+  - {name: collection_heartbeat.keys_total, class: E, role: diagnostic, description: "keys in the manifest"}
+  - {name: collection_heartbeat.keys_done, class: E, role: diagnostic, description: "keys with a determined label"}
+  - {name: collection_heartbeat.keys_complete, class: E, role: diagnostic, description: "complete keys"}
+  - {name: collection_heartbeat.keys_censored, class: E, role: diagnostic, description: "right-censored keys"}
+  - {name: collection_heartbeat.keys_failed, class: E, role: diagnostic, description: "failed keys"}
+  - {name: collection_heartbeat.current_modeling_key, class: E, role: provenance, description: "key being processed"}
+  - {name: collection_heartbeat.note, class: E, role: provenance, description: "free-text note"}
+
+  # ---------------------------------------------------------------- raw_evidence_file
+  - {name: raw_evidence_file.session_id, class: E, role: identifier, description: "session that wrote the file"}
+  - {name: raw_evidence_file.file_path, class: E, role: provenance, description: "raw JSONL path"}
+  - {name: raw_evidence_file.file_sha256, class: E, role: provenance, description: "SHA-256 of the closed file"}
+  - {name: raw_evidence_file.byte_count, class: E, role: provenance, description: "file size"}
+  - {name: raw_evidence_file.record_count, class: E, role: provenance, description: "records in the file"}
+  - {name: raw_evidence_file.closed_at, class: E, role: provenance, description: "close time"}
+
+  # ---------------------------------------------------------------- estimated_plan (plain EXPLAIN, class D)
+  - {name: estimated_plan.modeling_key, class: C, role: identifier, description: "modeling key"}
+  - {name: estimated_plan.session_id, class: E, role: identifier, description: "session that captured the estimate"}
+  - {name: estimated_plan.captured_at, class: D, role: provenance, description: "capture time of the plain plan"}
+  - {name: estimated_plan.explain_options, class: D, role: provenance, description: "SETTINGS, FORMAT JSON"}
+  - {name: estimated_plan.plan_json, class: D, role: provenance, description: "complete plain EXPLAIN document"}
+  - {name: estimated_plan.plan_sha256, class: D, role: identifier, description: "hash of the plain plan"}
+  - {name: estimated_plan.plan_shape_sha256, class: D, role: group_key, description: "operator-structure hash"}
+  - {name: estimated_plan.settings_block, class: C, role: provenance, description: "non-default planner settings reported by EXPLAIN SETTINGS"}
+  - {name: estimated_plan.est_total_cost, class: D, role: feature, description: "root estimated total cost (planner units)"}
+  - {name: estimated_plan.est_startup_cost, class: D, role: feature, description: "root estimated startup cost"}
+  - {name: estimated_plan.est_plan_rows, class: D, role: feature, description: "root estimated rows"}
+  - {name: estimated_plan.est_plan_width, class: D, role: feature, description: "root estimated width"}
+  - {name: estimated_plan.est_node_count, class: D, role: feature, description: "plan node count"}
+  - {name: estimated_plan.est_workers_planned, class: D, role: feature, description: "planned parallel workers"}
+  - {name: estimated_plan.raw_record_sha256, class: D, role: provenance, description: "link to the raw JSONL record"}
+
+  # ---------------------------------------------------------------- query_execution (class E)
+  - {name: query_execution.run_id, class: E, role: identifier, description: "execution id"}
+  - {name: query_execution.modeling_key, class: C, role: identifier, description: "parent modeling key"}
+  - {name: query_execution.repeat_no, class: E, role: provenance, description: "0 = probe, 1..n = measured"}
+  - {name: query_execution.run_purpose, class: E, role: provenance, description: "probe or measured"}
+  - {name: query_execution.session_id, class: E, role: identifier, description: "session"}
+  - {name: query_execution.attempt_no, class: E, role: provenance, description: "attempt number of this terminal outcome"}
+  - {name: query_execution.started_at, class: E, role: provenance, description: "start time"}
+  - {name: query_execution.finished_at, class: E, role: provenance, description: "end time"}
+  - {name: query_execution.status, class: E, role: label, description: "completed, timeout or error (runtime status)"}
+  - {name: query_execution.is_censored, class: E, role: label, description: "right-censored by the statement timeout"}
+  - {name: query_execution.censoring_type, class: E, role: label, description: "right_statement_timeout"}
+  - {name: query_execution.timeout_ms, class: C, role: provenance, description: "statement timeout in force"}
+  - {name: query_execution.censor_lower_bound_ms, class: E, role: label, description: "lower bound for censored runs (= timeout)"}
+  - {name: query_execution.execution_time_ms, class: E, role: label, description: "instrumented EXPLAIN ANALYZE execution time; NULL unless completed"}
+  - {name: query_execution.planning_time_ms, class: E, role: diagnostic, description: "planning time reported with the execution"}
+  - {name: query_execution.client_elapsed_ms, class: E, role: diagnostic, description: "client-observed EXPLAIN ANALYZE round trip"}
+  - {name: query_execution.actual_rows, class: E, role: diagnostic, description: "root actual rows"}
+  - {name: query_execution.workers_planned, class: D, role: diagnostic, description: "planned workers in the executed plan"}
+  - {name: query_execution.workers_launched, class: E, role: diagnostic, description: "launched workers"}
+  - {name: query_execution.shared_hit_blocks, class: E, role: diagnostic, description: "shared buffer hits"}
+  - {name: query_execution.shared_read_blocks, class: E, role: diagnostic, description: "shared blocks read (disk or OS cache)"}
+  - {name: query_execution.shared_dirtied_blocks, class: E, role: diagnostic, description: "shared blocks dirtied"}
+  - {name: query_execution.shared_written_blocks, class: E, role: diagnostic, description: "shared blocks written"}
+  - {name: query_execution.temp_read_blocks, class: E, role: diagnostic, description: "temporary blocks read (spill)"}
+  - {name: query_execution.temp_written_blocks, class: E, role: diagnostic, description: "temporary blocks written (spill)"}
+  - {name: query_execution.io_read_time_ms, class: E, role: diagnostic, description: "I/O read time (track_io_timing=on)"}
+  - {name: query_execution.io_write_time_ms, class: E, role: diagnostic, description: "I/O write time"}
+  - {name: query_execution.wal_records, class: E, role: diagnostic, description: "WAL records"}
+  - {name: query_execution.wal_fpi, class: E, role: diagnostic, description: "WAL full-page images"}
+  - {name: query_execution.wal_bytes, class: E, role: diagnostic, description: "WAL bytes"}
+  - {name: query_execution.spill_detected, class: E, role: diagnostic, description: "temp blocks, disk sort, hash batches > 1 or hash-aggregate disk usage"}
+  - {name: query_execution.sqlstate, class: E, role: diagnostic, description: "SQLSTATE of a timeout or error"}
+  - {name: query_execution.error_message, class: E, role: diagnostic, description: "error text"}
+  - {name: query_execution.settings_block, class: C, role: provenance, description: "EXPLAIN SETTINGS block of the execution"}
+  - {name: query_execution.plan_json, class: E, role: provenance, description: "complete EXPLAIN ANALYZE document"}
+  - {name: query_execution.plan_sha256, class: E, role: identifier, description: "hash of the analyzed plan document"}
+  - {name: query_execution.plan_shape_sha256, class: E, role: diagnostic, description: "operator structure of the executed plan"}
+  - {name: query_execution.raw_record_sha256, class: E, role: provenance, description: "link to the raw JSONL record"}
+
+  # ---------------------------------------------------------------- collection_error
+  - {name: collection_error.error_id, class: E, role: identifier, description: "error id"}
+  - {name: collection_error.session_id, class: E, role: identifier, description: "session"}
+  - {name: collection_error.manifest_id, class: C, role: identifier, description: "manifest"}
+  - {name: collection_error.modeling_key, class: C, role: identifier, description: "modeling key (query identity preserved)"}
+  - {name: collection_error.query_instance_id, class: A, role: identifier, description: "query instance"}
+  - {name: collection_error.repeat_no, class: E, role: provenance, description: "repetition number"}
+  - {name: collection_error.attempt_no, class: E, role: provenance, description: "attempt number"}
+  - {name: collection_error.phase, class: E, role: diagnostic, description: "phase in which the error occurred"}
+  - {name: collection_error.error_class, class: E, role: diagnostic, description: "exception class"}
+  - {name: collection_error.sqlstate, class: E, role: diagnostic, description: "SQLSTATE"}
+  - {name: collection_error.message, class: E, role: diagnostic, description: "error message"}
+  - {name: collection_error.is_retryable, class: E, role: diagnostic, description: "transient (retried) or terminal"}
+  - {name: collection_error.occurred_at, class: E, role: provenance, description: "time of the error"}
+  - {name: collection_error.raw_record_sha256, class: E, role: provenance, description: "link to the raw JSONL record"}
+
+  # ---------------------------------------------------------------- rewrite_verification
+  - {name: rewrite_verification.verification_id, class: E, role: identifier, description: "verification id"}
+  - {name: rewrite_verification.session_id, class: E, role: identifier, description: "session"}
+  - {name: rewrite_verification.rewrite_pair_id, class: A, role: group_key, description: "rewrite pair"}
+  - {name: rewrite_verification.semantic_group_id, class: A, role: group_key, description: "semantic group"}
+  - {name: rewrite_verification.rewrite_source, class: A, role: annotation, description: "MANUAL_REFERENCE_REWRITE"}
+  - {name: rewrite_verification.pair_role, class: A, role: annotation, description: "reference_pair or negative_control"}
+  - {name: rewrite_verification.expected_equivalent, class: A, role: annotation, description: "designer expectation"}
+  - {name: rewrite_verification.snapshot_id, class: B, role: identifier, description: "snapshot used"}
+  - {name: rewrite_verification.config_id, class: C, role: identifier, description: "configuration used"}
+  - {name: rewrite_verification.parameter_values, class: A, role: provenance, description: "parameters of both forms"}
+  - {name: rewrite_verification.original_sql_sha256, class: A, role: identifier, description: "original SQL hash"}
+  - {name: rewrite_verification.rewrite_sql_sha256, class: A, role: identifier, description: "rewrite SQL hash"}
+  - {name: rewrite_verification.safety_status, class: A, role: provenance, description: "safety validation of both forms"}
+  - {name: rewrite_verification.precondition_status, class: B, role: provenance, description: "schema preconditions of the equivalence argument"}
+  - {name: rewrite_verification.original_row_count, class: E, role: diagnostic, description: "rows returned by the original"}
+  - {name: rewrite_verification.rewrite_row_count, class: E, role: diagnostic, description: "rows returned by the rewrite"}
+  - {name: rewrite_verification.multiset_equal, class: E, role: label, description: "exact multiset equality on the snapshot"}
+  - {name: rewrite_verification.ordering_required, class: A, role: annotation, description: "whether SQL semantics require ordering"}
+  - {name: rewrite_verification.ordering_status, class: E, role: label, description: "ordering check result"}
+  - {name: rewrite_verification.equivalence_status, class: E, role: label, description: "EQUIVALENT_ON_SNAPSHOT, NOT_EQUIVALENT, INCONCLUSIVE, ERROR"}
+  - {name: rewrite_verification.timing_status, class: E, role: diagnostic, description: "paired timing completeness"}
+  - {name: rewrite_verification.timing_pairs, class: E, role: diagnostic, description: "paired execution times"}
+  - {name: rewrite_verification.median_speedup, class: E, role: label, description: "median of original/rewrite time ratios"}
+  - {name: rewrite_verification.min_speedup_required, class: C, role: provenance, description: "recommendation threshold"}
+  - {name: rewrite_verification.recommendation, class: E, role: label, description: "RECOMMEND only if verified equivalent and faster"}
+  - {name: rewrite_verification.reason, class: E, role: diagnostic, description: "explanation of the decision"}
+  - {name: rewrite_verification.created_at, class: E, role: provenance, description: "time"}
+  - {name: rewrite_verification.raw_record_sha256, class: E, role: provenance, description: "link to the raw JSONL record"}
+
+  # ---------------------------------------------------------------- feature_record (derived, versioned)
+  - {name: feature_record.modeling_key, class: C, role: identifier, description: "modeling key"}
+  - {name: feature_record.feature_version, class: C, role: provenance, description: "feature version"}
+  - {name: feature_record.feature_name, class: C, role: provenance, description: "registered feature name"}
+  - {name: feature_record.availability_class, class: C, role: provenance, description: "A-D (E rejected by CHECK)"}
+  - {name: feature_record.value_numeric, class: [A, B, C, D], role: feature_store, description: "numeric feature value; class given per row"}
+  - {name: feature_record.value_text, class: [A, B, C, D], role: feature_store, description: "text feature value; class given per row"}
+  - {name: feature_record.inputs_sha256, class: E, role: provenance, description: "hash of the raw evidence the build used"}
+  - {name: feature_record.built_at, class: E, role: provenance, description: "build time"}
+
+  # ---------------------------------------------------------------- runtime_label (derived, versioned)
+  - {name: runtime_label.modeling_key, class: C, role: identifier, description: "modeling key"}
+  - {name: runtime_label.label_version, class: E, role: provenance, description: "label version"}
+  - {name: runtime_label.status, class: E, role: label, description: "complete, right_censored, failed, incomplete"}
+  - {name: runtime_label.measured_repetitions_planned, class: C, role: provenance, description: "planned measured repetitions"}
+  - {name: runtime_label.n_successful, class: E, role: label, description: "completed measured runs"}
+  - {name: runtime_label.n_censored, class: E, role: label, description: "timed-out measured runs"}
+  - {name: runtime_label.n_error, class: E, role: label, description: "errored measured runs"}
+  - {name: runtime_label.median_ms, class: E, role: label, description: "median measured runtime (primary regression label)"}
+  - {name: runtime_label.mad_ms, class: E, role: label, description: "median absolute deviation (no censored runs)"}
+  - {name: runtime_label.cv, class: E, role: label, description: "coefficient of variation when defined"}
+  - {name: runtime_label.p90_ms, class: E, role: label, description: "90th percentile of measured runs"}
+  - {name: runtime_label.min_ms, class: E, role: label, description: "minimum measured runtime"}
+  - {name: runtime_label.max_ms, class: E, role: label, description: "maximum measured runtime"}
+  - {name: runtime_label.censor_lower_bound_ms, class: E, role: label, description: "lower bound for right-censored labels"}
+  - {name: runtime_label.timeout_ms, class: C, role: provenance, description: "statement timeout in force"}
+  - {name: runtime_label.has_censored_runs, class: E, role: label, description: "at least one measured run timed out"}
+  - {name: runtime_label.probe_status, class: E, role: diagnostic, description: "outcome of the unmeasured probe"}
+  - {name: runtime_label.inputs_sha256, class: E, role: provenance, description: "hash of the raw evidence the build used"}
+  - {name: runtime_label.built_at, class: E, role: provenance, description: "build time"}
+
+  # ---------------------------------------------------------------- dataset_release (derived, versioned)
+  - {name: dataset_release.release_id, class: E, role: identifier, description: "release id"}
+  - {name: dataset_release.release_kind, class: E, role: provenance, description: "poster_smoke or final_study"}
+  - {name: dataset_release.manifest_id, class: C, role: identifier, description: "manifest"}
+  - {name: dataset_release.label_version, class: E, role: provenance, description: "label version"}
+  - {name: dataset_release.feature_version, class: E, role: provenance, description: "feature version"}
+  - {name: dataset_release.inputs_sha256, class: E, role: provenance, description: "hash of raw inputs"}
+  - {name: dataset_release.key_count, class: E, role: diagnostic, description: "keys in the manifest"}
+  - {name: dataset_release.labeled_key_count, class: E, role: diagnostic, description: "complete + right-censored keys"}
+  - {name: dataset_release.group_count, class: E, role: diagnostic, description: "semantic groups"}
+  - {name: dataset_release.template_count, class: E, role: diagnostic, description: "templates"}
+  - {name: dataset_release.measured_execution_count, class: E, role: diagnostic, description: "measured executions (not modeling keys)"}
+  - {name: dataset_release.status, class: E, role: provenance, description: "draft, validated or rejected"}
+  - {name: dataset_release.files, class: E, role: provenance, description: "derived files and SHA-256"}
+  - {name: dataset_release.created_at, class: E, role: provenance, description: "creation time"}
+  - {name: dataset_release.updated_at, class: E, role: provenance, description: "last status change"}
+
+  # ================================================================ model features (unqualified)
+  # --- A: SQL structure (query_cost_predictor.sqltext.SQL_FEATURE_NAMES)
+  - {name: sql_length_chars, class: A, role: feature, description: "characters in the normalized SQL"}
+  - {name: sql_token_count, class: A, role: feature, description: "significant tokens"}
+  - {name: sql_literal_count, class: A, role: feature, description: "string and numeric literals"}
+  - {name: sql_select_count, class: A, role: feature, description: "SELECT keywords (nesting proxy)"}
+  - {name: sql_subquery_count, class: A, role: feature, description: "parenthesized SELECT/WITH subqueries"}
+  - {name: sql_join_keyword_count, class: A, role: feature, description: "JOIN keywords"}
+  - {name: sql_where_count, class: A, role: feature, description: "WHERE keywords"}
+  - {name: sql_exists_count, class: A, role: feature, description: "EXISTS keywords"}
+  - {name: sql_in_count, class: A, role: feature, description: "IN keywords"}
+  - {name: sql_not_count, class: A, role: feature, description: "NOT keywords"}
+  - {name: sql_like_count, class: A, role: feature, description: "LIKE/ILIKE keywords"}
+  - {name: sql_group_by_count, class: A, role: feature, description: "GROUP BY clauses"}
+  - {name: sql_order_by_count, class: A, role: feature, description: "ORDER BY clauses"}
+  - {name: sql_has_limit, class: A, role: feature, description: "LIMIT present"}
+  - {name: sql_distinct_count, class: A, role: feature, description: "DISTINCT keywords"}
+  - {name: sql_has_cte, class: A, role: feature, description: "statement starts with WITH"}
+  - {name: sql_set_operation_count, class: A, role: feature, description: "UNION/INTERSECT/EXCEPT"}
+  - {name: sql_window_count, class: A, role: feature, description: "OVER clauses"}
+  - {name: sql_case_count, class: A, role: feature, description: "CASE expressions"}
+  - {name: sql_and_count, class: A, role: feature, description: "AND keywords"}
+  - {name: sql_or_count, class: A, role: feature, description: "OR keywords"}
+  - {name: sql_function_call_count, class: A, role: feature, description: "function calls"}
+  - {name: sql_aggregate_call_count, class: A, role: feature, description: "aggregate function calls"}
+  # --- B / C
+  - {name: snap_scale_factor, class: B, role: feature, description: "benchmark scale factor of the snapshot"}
+  - {name: cfg_work_mem_kb, class: C, role: feature, description: "work_mem in kB applied to the key's transactions"}
+  # --- D: plain-plan estimates (query_cost_predictor.plans.ESTIMATE_FEATURE_NAMES)
+  - {name: est_total_cost_log, class: D, role: feature, description: "ln(1 + root estimated total cost)"}
+  - {name: est_startup_cost_log, class: D, role: feature, description: "ln(1 + root estimated startup cost)"}
+  - {name: est_plan_rows_log, class: D, role: feature, description: "ln(1 + root estimated rows)"}
+  - {name: est_plan_width, class: D, role: feature, description: "root estimated width"}
+  - {name: est_node_count, class: D, role: feature, description: "plan nodes"}
+  - {name: est_max_depth, class: D, role: feature, description: "plan depth"}
+  - {name: est_sum_node_rows_log, class: D, role: feature, description: "ln(1 + sum of estimated rows over nodes)"}
+  - {name: est_max_node_rows_log, class: D, role: feature, description: "ln(1 + maximum estimated rows of any node)"}
+  - {name: est_join_count, class: D, role: feature, description: "join nodes"}
+  - {name: est_scan_count, class: D, role: feature, description: "scan nodes"}
+  - {name: est_subplan_count, class: D, role: feature, description: "SubPlan/InitPlan nodes"}
+  - {name: est_relation_count, class: D, role: feature, description: "distinct relations scanned"}
+  - {name: est_workers_planned, class: D, role: feature, description: "planned parallel workers"}
+  - {name: est_parallel_aware_count, class: D, role: feature, description: "parallel-aware nodes"}
+  - {name: est_hashed_aggregate_count, class: D, role: feature, description: "hashed or mixed aggregates"}
+  - {name: est_n_aggregate, class: D, role: feature, description: "Aggregate nodes"}
+  - {name: est_n_append, class: D, role: feature, description: "Append/Merge Append nodes"}
+  - {name: est_n_bitmap_combine, class: D, role: feature, description: "BitmapAnd/BitmapOr nodes"}
+  - {name: est_n_bitmap_heap_scan, class: D, role: feature, description: "Bitmap Heap Scan nodes"}
+  - {name: est_n_bitmap_index_scan, class: D, role: feature, description: "Bitmap Index Scan nodes"}
+  - {name: est_n_cte_scan, class: D, role: feature, description: "CTE Scan nodes"}
+  - {name: est_n_function_scan, class: D, role: feature, description: "Function Scan nodes"}
+  - {name: est_n_gather, class: D, role: feature, description: "Gather nodes"}
+  - {name: est_n_gather_merge, class: D, role: feature, description: "Gather Merge nodes"}
+  - {name: est_n_group, class: D, role: feature, description: "Group nodes"}
+  - {name: est_n_hash, class: D, role: feature, description: "Hash nodes"}
+  - {name: est_n_hash_join, class: D, role: feature, description: "Hash Join nodes"}
+  - {name: est_n_incremental_sort, class: D, role: feature, description: "Incremental Sort nodes"}
+  - {name: est_n_index_only_scan, class: D, role: feature, description: "Index Only Scan nodes"}
+  - {name: est_n_index_scan, class: D, role: feature, description: "Index Scan nodes"}
+  - {name: est_n_limit, class: D, role: feature, description: "Limit nodes"}
+  - {name: est_n_materialize, class: D, role: feature, description: "Materialize nodes"}
+  - {name: est_n_memoize, class: D, role: feature, description: "Memoize nodes"}
+  - {name: est_n_merge_join, class: D, role: feature, description: "Merge Join nodes"}
+  - {name: est_n_nested_loop, class: D, role: feature, description: "Nested Loop nodes"}
+  - {name: est_n_other, class: D, role: feature, description: "other node types"}
+  - {name: est_n_result, class: D, role: feature, description: "Result nodes"}
+  - {name: est_n_seq_scan, class: D, role: feature, description: "Seq Scan nodes"}
+  - {name: est_n_setop, class: D, role: feature, description: "SetOp nodes"}
+  - {name: est_n_sort, class: D, role: feature, description: "Sort nodes"}
+  - {name: est_n_subquery_scan, class: D, role: feature, description: "Subquery Scan nodes"}
+  - {name: est_n_unique, class: D, role: feature, description: "Unique nodes"}
+  - {name: est_n_values_scan, class: D, role: feature, description: "Values Scan nodes"}
+  - {name: est_n_window_agg, class: D, role: feature, description: "WindowAgg nodes"}
+  - {name: est_total_cost, class: D, role: feature, description: "raw root estimated total cost (planner units; baseline input)"}
+
+  # ================================================================ working columns (unqualified; never features)
+  - {name: template_id, class: A, role: group_key, description: "template identity"}
+  - {name: semantic_group_id, class: A, role: group_key, description: "semantic group"}
+  - {name: family, class: A, role: group_key, description: "query family"}
+  - {name: rewrite_pair_id, class: A, role: group_key, description: "rewrite pair"}
+  - {name: query_instance_id, class: A, role: identifier, description: "query instance"}
+  - {name: query_id, class: A, role: identifier, description: "pilot query instance id (qNN_sNNNN)"}
+  - {name: seed, class: A, role: identifier, description: "pilot qgen seed"}
+  - {name: sql_fingerprint, class: A, role: group_key, description: "literal-insensitive fingerprint"}
+  - {name: modeling_key, class: C, role: identifier, description: "modeling key"}
+  - {name: configuration_name, class: C, role: group_key, description: "configuration name"}
+  - {name: config_id, class: C, role: identifier, description: "configuration identity"}
+  - {name: workload, class: B, role: group_key, description: "workload"}
+  - {name: snapshot_id, class: B, role: identifier, description: "snapshot identity"}
+  - {name: plan_shape, class: D, role: group_key, description: "pilot plan-shape hash"}
+  - {name: run_number, class: E, role: provenance, description: "pilot measured run number"}
+  - {name: run_id, class: E, role: identifier, description: "execution id"}
+  - {name: repeat_no, class: E, role: provenance, description: "repetition number"}
+  - {name: run_status, class: E, role: label, description: "completed, timeout or error"}
+  - {name: label_status, class: E, role: label, description: "complete, right_censored, failed, incomplete"}
+  - {name: execution_time_ms, class: E, role: label, description: "measured execution time"}
+  - {name: median_ms, class: E, role: label, description: "median measured runtime"}
+  - {name: mean_ms, class: E, role: label, description: "mean measured runtime (pilot definition)"}
+  - {name: mad_ms, class: E, role: label, description: "median absolute deviation"}
+  - {name: cv, class: E, role: label, description: "coefficient of variation"}
+  - {name: p90_ms, class: E, role: label, description: "90th percentile of measured runs"}
+  - {name: is_censored, class: E, role: label, description: "right-censored"}
+  - {name: censor_lower_bound_ms, class: E, role: label, description: "censoring lower bound"}
+  - {name: n_successful, class: E, role: label, description: "completed measured runs"}
+  - {name: n_censored, class: E, role: label, description: "timed-out measured runs"}
+  - {name: n_error, class: E, role: label, description: "errored measured runs"}
+  - {name: has_censored_runs, class: E, role: label, description: "any measured run timed out"}
+  - {name: planning_time_ms, class: E, role: diagnostic, description: "planning time reported with an execution"}
+  - {name: client_elapsed_ms, class: E, role: diagnostic, description: "client-observed round trip"}
+  - {name: actual_rows, class: E, role: diagnostic, description: "actual rows"}
+  - {name: actual_loops, class: E, role: diagnostic, description: "actual loops"}
+  - {name: shared_hit_blocks, class: E, role: diagnostic, description: "shared buffer hits"}
+  - {name: shared_read_blocks, class: E, role: diagnostic, description: "shared blocks read"}
+  - {name: shared_dirtied_blocks, class: E, role: diagnostic, description: "shared blocks dirtied"}
+  - {name: shared_written_blocks, class: E, role: diagnostic, description: "shared blocks written"}
+  - {name: temp_read_blocks, class: E, role: diagnostic, description: "temporary blocks read"}
+  - {name: temp_written_blocks, class: E, role: diagnostic, description: "temporary blocks written"}
+  - {name: io_read_time_ms, class: E, role: diagnostic, description: "I/O read time"}
+  - {name: io_write_time_ms, class: E, role: diagnostic, description: "I/O write time"}
+  - {name: wal_records, class: E, role: diagnostic, description: "WAL records"}
+  - {name: wal_fpi, class: E, role: diagnostic, description: "WAL full-page images"}
+  - {name: wal_bytes, class: E, role: diagnostic, description: "WAL bytes"}
+  - {name: workers_launched, class: E, role: diagnostic, description: "launched workers"}
+  - {name: spill_detected, class: E, role: diagnostic, description: "spill evidence"}

@@ -1,0 +1,89 @@
+# Machine-readable poster claims (see docs/poster_claim_register.md).
+# Placeholders are filled only from generated evidence; a claim with a missing
+# value renders as EVIDENCE_MISSING. PROHIBITED claims are not listed here: they
+# are enforced by query_cost_predictor.claims.lint_text.
+version: 1
+claims:
+  # ---------------------------------------------------------------- RECOMPUTED_PILOT
+  - id: P-01
+    status: RECOMPUTED_PILOT
+    template: "The pilot contains {pilot.instances} query instances from {pilot.templates} TPC-H-derived templates at SF 0.1, with {pilot.raw_runs} measured executions (three per instance)."
+  - id: P-02
+    status: RECOMPUTED_PILOT
+    template: "Pilot per-instance median runtimes span {pilot.runtime_min_ms}-{pilot.runtime_max_ms} ms; {pilot.n_at_least_1s} instances reach 1 s."
+  - id: P-03
+    status: RECOMPUTED_PILOT
+    template: "Template identity accounts for {pilot.between_template_share_ms_pct}% of pilot per-instance runtime variance (raw ms), which is why evaluation must hold out whole templates."
+  - id: P-04
+    status: RECOMPUTED_PILOT
+    template: "Pilot repeated-run measurement noise (leave-one-run-out q-error): p50 {pilot.noise_q50}, p90 {pilot.noise_q90}, p95 {pilot.noise_q95}."
+  - id: P-05
+    status: RECOMPUTED_PILOT
+    template: "Nonlinear model median q-error on the pilot: {pilot.hgb_random_median_q} under random 5-fold (leakage diagnostic only) versus {pilot.hgb_grouped_median_q} under template-grouped 5-fold ({pilot.grouped_keys} keys, {pilot.grouped_groups} groups; identical folds for all models)."
+  - id: P-06
+    status: RECOMPUTED_PILOT
+    template: "PostgreSQL estimated total cost (planner units) has Spearman rho {pilot.cost_spearman} with pilot median runtime."
+  - id: P-07
+    status: RECOMPUTED_PILOT
+    template: "Under template-grouped 5-fold evaluation the calibrated PostgreSQL-cost baseline reaches median q-error {pilot.cost_grouped_median_q} and the nonlinear model {pilot.hgb_grouped_median_q} ({pilot.grouped_keys} keys, {pilot.grouped_groups} groups)."
+  - id: P-08
+    status: RECOMPUTED_PILOT
+    template: "In the pilot, {pilot.instances_with_disk_reads} instances read shared blocks, {pilot.instances_with_spill} spilled to temporary files and {pilot.instances_with_parallel_workers} launched parallel workers in at least one run."
+  - id: P-09
+    status: RECOMPUTED_PILOT
+    template: "The pilot has {pilot.distinct_sql} distinct SQL texts across {pilot.instances} instances."
+  - id: P-10
+    status: RECOMPUTED_PILOT
+    template: "The independent audit reproduced {pilot.claims_match} previously reported pilot values; {pilot.claims_mismatch} did not match and are shown in pilot_claim_check.md."
+
+  # ---------------------------------------------------------------- NEW_POSTER_SMOKE
+  - id: S-01
+    status: NEW_POSTER_SMOKE
+    template: "The poster smoke run labelled {smoke.keys_labeled} modeling keys ({smoke.keys_complete} complete, {smoke.keys_censored} right-censored; {smoke.keys_failed} failed) from {smoke.measured_executions} measured executions across {smoke.groups} semantic groups. Repeated executions are not counted as keys."
+  - id: S-02
+    status: NEW_POSTER_SMOKE
+    template: "Smoke median runtimes span {smoke.runtime_min_ms}-{smoke.runtime_max_ms} ms; {smoke.n_at_least_10s} keys reached 10 s and {smoke.keys_censored} were right-censored at the {smoke.timeout_s} s timeout."
+    zero_key: smoke.n_slow_or_censored
+    template_if_zero: "No smoke key reached 10 s or the {smoke.timeout_s} s timeout; observed median runtimes span {smoke.runtime_min_ms}-{smoke.runtime_max_ms} ms."
+  - id: S-03
+    status: NEW_POSTER_SMOKE
+    template: "{smoke.keys_with_spill} smoke keys wrote temporary files (spill) in a measured run; {smoke.keys_with_spill_c2} of them ran with reduced work_mem."
+    zero_key: smoke.keys_with_spill
+    template_if_zero: "No smoke key showed spill evidence in a measured run."
+  - id: S-04
+    status: NEW_POSTER_SMOKE
+    template: "{smoke.runs_workers_mismatch} measured smoke runs launched fewer parallel workers than planned."
+  - id: S-05
+    status: NEW_POSTER_SMOKE
+    template: "Manual reference rewrites (MANUAL_REFERENCE_REWRITE, not LLM output): {rewrite.reference_equivalent} of {rewrite.reference_checked} checks returned equal results as exact multisets on the tested snapshots, and {rewrite.recommended} met the {rewrite.min_speedup}x median paired-speedup threshold."
+  - id: S-06
+    status: NEW_POSTER_SMOKE
+    template: "The negative-control pair (UNION vs UNION ALL) was rejected in {rewrite.negative_rejected} of {rewrite.negative_checked} checks, confirming the equivalence check can fail."
+
+  # ---------------------------------------------------------------- PLANNED
+  - id: F-01
+    status: PLANNED
+    template: "Planned final study (not collected): approximately 4,704 modeling keys, about 4,544 for development and about 160 fully held-out rewrite/evaluation keys, across at least 150 structural/semantic groups."
+  - id: F-02
+    status: PLANNED
+    template: "Planned model comparison: global median, raw and calibrated PostgreSQL cost, Elastic Net, XGBoost or CatBoost regression and high-runtime classification, and timeout-aware XGBoost AFT; plan-tree models only as a later data-gated challenger."
+  - id: F-03
+    status: PLANNED
+    template: "Planned primary evaluation holds out unseen structural/semantic groups; random splits will be reported only as a leakage diagnostic."
+  - id: F-04
+    status: PLANNED
+    template: "Planned high-runtime classification metrics: PR-AUC, recall and false-negative rate first; precision, warnings per 100 queries, Brier score and calibration second; ROC-AUC secondary."
+  - id: F-05
+    status: PLANNED
+    template: "Planned RQ2 reporting uses the full denominator: generated, executable, verification attempted, verified equivalent, faster, recommended."
+
+  # ---------------------------------------------------------------- NOT_YET_EVALUABLE
+  - id: N-01
+    status: NOT_YET_EVALUABLE
+    template: "A 10 s high-runtime classifier is not yet evaluable: the pilot has {pilot.n_at_least_10s} positive examples and the smoke run is too small."
+  - id: N-02
+    status: NOT_YET_EVALUABLE
+    template: "RQ2 is not yet evaluable: no LLM has been run; only manual reference rewrites were verified."
+  - id: N-03
+    status: NOT_YET_EVALUABLE
+    template: "Prediction-interval coverage, cross-workload, cross-scale and cross-configuration generalization are not yet evaluable."

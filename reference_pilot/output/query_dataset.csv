@@ -1,0 +1,6301 @@
+query_id,query_file,template_id,seed,scale_factor,successful_runs,sql,execution_time_mean_ms,execution_time_median_ms,execution_time_std_ms,execution_time_p95_ms,optimizer_total_cost,optimizer_startup_cost,plan_rows,actual_rows,planning_time_ms,plan_node_count,join_count,scan_count,index_scan_count,sort_count,aggregate_count,max_plan_depth,shared_hit_blocks,shared_read_blocks,shared_dirtied_blocks,temp_read_blocks,temp_written_blocks,io_read_time_ms,io_write_time_ms,wal_records,wall_time_ms,postgres_version,host_os,collected_at_utc,quality_flag
+q01_s0001,q01_s0001.sql,1,1,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '68' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",246.70266666666666,242.616,7.155528934560558,253.7301,24416.07,24414.12,6,4,0.259,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,256.68038899993917,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:13.995030+00:00,ok
+q01_s0002,q01_s0002.sql,1,2,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '76' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",235.54133333333334,235.747,2.064198714594439,237.3202,24400.71,24398.75,6,4,0.338,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,239.46645400008038,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:14.954018+00:00,ok
+q01_s0003,q01_s0003.sql,1,3,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '84' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",227.278,227.581,0.9283571511008056,227.9734,24379.39,24377.44,6,4,0.252,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,229.43155800010118,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:15.904085+00:00,ok
+q01_s0004,q01_s0004.sql,1,4,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '92' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",234.51333333333332,234.3,7.629237336282931,241.4523,24358.11,24356.16,6,4,0.25,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,228.62979699993957,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:16.857451+00:00,ok
+q01_s0005,q01_s0005.sql,1,5,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '100' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",233.5583333333333,229.949,9.233190636683133,242.64079999999998,24336.8,24334.84,6,4,0.252,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,231.59644700001536,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:17.808865+00:00,ok
+q01_s0006,q01_s0006.sql,1,6,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '108' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",226.6353333333333,226.169,2.5506748780143154,229.0652,24311.98,24310.03,6,4,0.218,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,227.81689100008862,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:18.765819+00:00,ok
+q01_s0007,q01_s0007.sql,1,7,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '116' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",248.74900000000002,246.697,8.472466228908802,256.9228,24283.6,24281.64,6,4,0.228,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,243.24879099992813,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:19.753004+00:00,ok
+q01_s0008,q01_s0008.sql,1,8,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '63' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",238.21,237.658,3.1771699671248377,241.2301,24421.99,24420.03,6,4,0.263,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,243.7341769999648,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:20.718669+00:00,ok
+q01_s0009,q01_s0009.sql,1,9,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '71' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",247.31933333333333,239.656,17.072724104059457,264.15849999999995,24412.54,24410.58,6,4,0.242,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,241.43551800000296,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:21.710104+00:00,ok
+q01_s0010,q01_s0010.sql,1,10,0.1,3,"select
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
+from
+	lineitem
+where
+	l_shipdate <= date '1998-12-01' - interval '79' day
+group by
+	l_returnflag,
+	l_linestatus
+order by
+	l_returnflag,
+	l_linestatus",230.75300000000001,226.3,8.059079289844473,238.68040000000002,24392.69,24390.74,6,4,0.248,5,0,1,0,1,2,5,11622.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,227.6414109999223,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:22.678070+00:00,ok
+q02_s0001,q02_s0001.sql,2,1,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 38
+	and p_type like '%STEEL'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'ASIA'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'ASIA'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",33.224333333333334,34.515,4.091633088796371,36.315,5643.71,5643.71,1,54,1.353,22,7,10,4,1,1,9,5667.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.397006999910445,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:22.845360+00:00,ok
+q02_s0002,q02_s0002.sql,2,2,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 26
+	and p_type like '%BRASS'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AFRICA'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'AFRICA'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",32.345666666666666,30.463,3.495538489751375,35.7874,5688.33,5688.33,1,50,1.214,22,7,10,4,1,1,9,5612.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,33.45106299991585,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:23.002483+00:00,ok
+q02_s0003,q02_s0003.sql,2,3,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 14
+	and p_type like '%NICKEL'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'ASIA'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'ASIA'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",34.93566666666667,35.765,1.8013742901832857,36.132200000000005,5442.93,5442.93,1,58,0.976,22,7,10,4,1,1,9,5610.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,38.862689999973554,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:23.170122+00:00,ok
+q02_s0004,q02_s0004.sql,2,4,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 2
+	and p_type like '%TIN'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AFRICA'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'AFRICA'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",31.362333333333336,31.591,2.1461559433865305,33.2056,5643.71,5643.71,1,41,1.029,22,7,10,4,1,1,9,5401.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,36.975722999954996,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:23.322798+00:00,ok
+q02_s0005,q02_s0005.sql,2,5,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 39
+	and p_type like '%STEEL'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'EUROPE'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'EUROPE'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",33.37233333333333,33.699,0.9472324600293914,34.0716,5576.79,5576.78,1,46,1.084,22,7,10,4,1,1,9,5464.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.33013200001278,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:23.483650+00:00,ok
+q02_s0006,q02_s0006.sql,2,6,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 27
+	and p_type like '%BRASS'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AFRICA'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'AFRICA'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",32.713,31.658,2.1874471422185273,34.871,5643.71,5643.71,1,58,1.159,22,7,10,4,1,1,9,6232.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.441251999941414,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:23.659239+00:00,ok
+q02_s0007,q02_s0007.sql,2,7,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 15
+	and p_type like '%NICKEL'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'EUROPE'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'EUROPE'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",32.510666666666665,32.763,1.03972416213789,33.3372,5465.24,5465.24,1,49,1.435,22,7,10,4,1,1,9,5525.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,37.28374199999962,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:23.817454+00:00,ok
+q02_s0008,q02_s0008.sql,2,8,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 3
+	and p_type like '%TIN'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AMERICA'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'AMERICA'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",30.637,29.0,3.5599602525870964,34.1489,5576.79,5576.78,1,45,1.355,22,7,10,4,1,1,9,5244.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,38.82070500003465,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:23.967799+00:00,ok
+q02_s0009,q02_s0009.sql,2,9,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 41
+	and p_type like '%COPPER'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'EUROPE'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'EUROPE'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",34.02433333333333,33.405,2.4016580383837596,36.348,5420.62,5420.62,1,50,1.038,22,7,10,4,1,1,9,5484.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,39.65726900003119,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:24.127653+00:00,ok
+q02_s0010,q02_s0010.sql,2,10,0.1,3,"select
+	s_acctbal,
+	s_name,
+	n_name,
+	p_partkey,
+	p_mfgr,
+	s_address,
+	s_phone,
+	s_comment
+from
+	part,
+	supplier,
+	partsupp,
+	nation,
+	region
+where
+	p_partkey = ps_partkey
+	and s_suppkey = ps_suppkey
+	and p_size = 28
+	and p_type like '%BRASS'
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AMERICA'
+	and ps_supplycost = (
+		select
+			min(ps_supplycost)
+		from
+			partsupp,
+			supplier,
+			nation,
+			region
+		where
+			p_partkey = ps_partkey
+			and s_suppkey = ps_suppkey
+			and s_nationkey = n_nationkey
+			and n_regionkey = r_regionkey
+			and r_name = 'AMERICA'
+	)
+order by
+	s_acctbal desc,
+	n_name,
+	s_name,
+	p_partkey
+LIMIT 100",31.639333333333337,31.663,0.92972594528352,32.467600000000004,5576.79,5576.78,1,59,1.222,22,7,10,4,1,1,9,6030.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,33.87817200007248,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:24.279380+00:00,ok
+q03_s0001,q03_s0001.sql,3,1,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'FURNITURE'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-17'
+	and l_shipdate > date '1995-03-17'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",69.75766666666667,69.147,14.097922873009813,82.6506,20866.33,20866.31,10,10,0.729,10,2,3,1,1,1,8,60683.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,58.66623999997955,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:24.627183+00:00,high_variance
+q03_s0002,q03_s0002.sql,3,2,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'MACHINERY'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-03'
+	and l_shipdate > date '1995-03-03'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",57.00866666666667,56.574,2.0085891400018396,58.936499999999995,21288.57,21288.55,10,10,0.71,10,2,3,1,1,1,8,61504.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,57.72190100003627,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:24.903666+00:00,ok
+q03_s0003,q03_s0003.sql,3,3,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'BUILDING'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-19'
+	and l_shipdate > date '1995-03-19'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",60.09733333333333,58.781,2.350453218707688,62.408,22411.02,22411.0,10,10,0.566,12,2,3,1,2,2,10,65368.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,65.16405599995778,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:25.169957+00:00,ok
+q03_s0004,q03_s0004.sql,3,4,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'MACHINERY'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-05'
+	and l_shipdate > date '1995-03-05'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",62.10833333333333,61.611,5.053388005421046,66.81389999999999,21297.32,21297.29,10,10,0.624,10,2,3,1,1,1,8,61635.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,63.968570000042746,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:25.443691+00:00,ok
+q03_s0005,q03_s0005.sql,3,5,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'BUILDING'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-21'
+	and l_shipdate > date '1995-03-21'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",60.63399999999999,63.263,4.84392722901573,63.5618,22420.84,22420.81,10,10,0.721,12,2,3,1,2,2,10,65436.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,57.44675500000085,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:25.713147+00:00,ok
+q03_s0006,q03_s0006.sql,3,6,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'HOUSEHOLD'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-07'
+	and l_shipdate > date '1995-03-07'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",56.196333333333335,56.659,1.55162699555445,57.3835,21466.39,21466.36,10,10,0.725,10,2,3,1,1,1,8,61567.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,59.88912899999832,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:25.964319+00:00,ok
+q03_s0007,q03_s0007.sql,3,7,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'BUILDING'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-23'
+	and l_shipdate > date '1995-03-23'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",66.57,66.533,2.449709574623082,68.7875,22430.37,22430.34,10,10,0.573,12,2,3,1,2,2,10,65545.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,69.21834000002036,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:26.247729+00:00,ok
+q03_s0008,q03_s0008.sql,3,8,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'HOUSEHOLD'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-09'
+	and l_shipdate > date '1995-03-09'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",59.713,58.029,4.903877649370952,64.5162,21475.02,21475.0,10,10,0.629,10,2,3,1,1,1,8,61669.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,58.1386559999828,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:26.506336+00:00,ok
+q03_s0009,q03_s0009.sql,3,9,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'AUTOMOBILE'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-25'
+	and l_shipdate > date '1995-03-25'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",58.853,56.604,5.052037509757818,63.835499999999996,21568.03,21568.01,10,10,0.571,10,2,3,1,1,1,8,63033.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,58.728162000079465,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:26.776209+00:00,ok
+q03_s0010,q03_s0010.sql,3,10,0.1,3,"select
+	l_orderkey,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	o_orderdate,
+	o_shippriority
+from
+	customer,
+	orders,
+	lineitem
+where
+	c_mktsegment = 'FURNITURE'
+	and c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate < date '1995-03-11'
+	and l_shipdate > date '1995-03-11'
+group by
+	l_orderkey,
+	o_orderdate,
+	o_shippriority
+order by
+	revenue desc,
+	o_orderdate
+LIMIT 10",54.88399999999999,56.032,3.114920865768504,57.139,20841.01,20840.99,10,10,0.457,10,2,3,1,1,1,8,60361.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,58.08627700002944,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:27.023875+00:00,ok
+q04_s0001,q04_s0001.sql,4,1,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1995-08-01'
+	and o_orderdate < date '1995-08-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",157.44366666666667,158.968,5.1157599956734945,161.3584,19841.67,19820.59,5,5,0.297,9,1,3,1,1,2,7,13230.0,787.0,0.0,1074.0,1096.0,2.89,0.0,0.0,160.8527010000671,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:27.692568+00:00,ok
+q04_s0002,q04_s0002.sql,4,2,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1993-05-01'
+	and o_orderdate < date '1993-05-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",150.20033333333333,149.731,0.8583363753991423,151.045,19833.94,19813.31,5,5,0.336,9,1,3,1,1,2,7,13462.0,531.0,0.0,1072.0,1092.0,1.743,0.0,0.0,151.35207900004843,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:28.334252+00:00,ok
+q04_s0003,q04_s0003.sql,4,3,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1995-12-01'
+	and o_orderdate < date '1995-12-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",155.34033333333332,155.207,2.2899131715707686,157.44529999999997,19839.9,19818.93,5,5,0.278,9,1,3,1,1,2,7,13725.0,275.0,0.0,1073.0,1096.0,0.869,0.0,0.0,154.70390799998768,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:28.966679+00:00,ok
+q04_s0004,q04_s0004.sql,4,4,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1993-09-01'
+	and o_orderdate < date '1993-09-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",158.34433333333334,153.848,12.42351666531394,170.5358,19838.47,19817.58,5,5,0.279,9,1,3,1,1,2,7,13976.0,37.0,0.0,1072.0,1092.0,0.106,0.0,0.0,155.336420000026,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:29.614126+00:00,ok
+q04_s0005,q04_s0005.sql,4,5,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1996-04-01'
+	and o_orderdate < date '1996-04-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",148.39700000000002,147.678,2.105671626821237,150.459,19841.58,19820.5,5,5,0.369,9,1,3,1,1,2,7,13998.0,0.0,0.0,1073.0,1096.0,0.0,0.0,0.0,148.4931239999696,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:30.231312+00:00,ok
+q04_s0006,q04_s0006.sql,4,6,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1994-01-01'
+	and o_orderdate < date '1994-01-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",150.417,148.393,3.8163506128237192,154.1764,19842.49,19821.36,5,5,0.28,9,1,3,1,1,2,7,14017.0,0.0,0.0,1073.0,1092.0,0.0,0.0,0.0,156.54741499997726,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:30.850112+00:00,ok
+q04_s0007,q04_s0007.sql,4,7,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1996-08-01'
+	and o_orderdate < date '1996-08-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",145.75733333333335,145.204,2.3210071808017605,147.9949,19840.44,19819.43,5,5,0.272,9,1,3,1,1,2,7,14037.0,0.0,0.0,1074.0,1084.0,0.0,0.0,0.0,150.07707800009484,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:31.451804+00:00,ok
+q04_s0008,q04_s0008.sql,4,8,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1994-05-01'
+	and o_orderdate < date '1994-05-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",152.159,151.223,2.4330039046413323,154.5512,19859.54,19837.41,5,5,0.398,9,1,3,1,1,2,7,14051.0,0.0,0.0,1075.0,1092.0,0.0,0.0,0.0,153.06794700006776,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:32.077013+00:00,ok
+q04_s0009,q04_s0009.sql,4,9,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1996-12-01'
+	and o_orderdate < date '1996-12-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",143.74766666666667,142.948,3.3459531277848638,146.9737,19848.65,19827.16,5,5,0.392,9,1,3,1,1,2,7,14011.0,0.0,0.0,1071.0,1092.0,0.0,0.0,0.0,142.95828299998448,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:32.684002+00:00,ok
+q04_s0010,q04_s0010.sql,4,10,0.1,3,"select
+	o_orderpriority,
+	count(*) as order_count
+from
+	orders
+where
+	o_orderdate >= date '1994-09-01'
+	and o_orderdate < date '1994-09-01' + interval '3' month
+	and exists (
+		select
+			*
+		from
+			lineitem
+		where
+			l_orderkey = o_orderkey
+			and l_commitdate < l_receiptdate
+	)
+group by
+	o_orderpriority
+order by
+	o_orderpriority",150.29133333333334,151.584,3.9106584270853086,153.2112,19829.74,19809.37,5,5,0.449,9,1,3,1,1,2,7,14004.0,0.0,0.0,1073.0,1096.0,0.0,0.0,0.0,155.54595699995843,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:33.294677+00:00,ok
+q05_s0001,q05_s0001.sql,5,1,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AMERICA'
+	and o_orderdate >= date '1993-01-01'
+	and o_orderdate < date '1993-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",38.17466666666667,38.239,0.2859796030022649,38.4046,12798.99,12798.93,25,5,1.875,21,5,8,3,2,2,13,23324.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,42.337879999990946,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:33.479965+00:00,ok
+q05_s0002,q05_s0002.sql,5,2,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'ASIA'
+	and o_orderdate >= date '1993-01-01'
+	and o_orderdate < date '1993-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",37.58133333333333,37.605,1.0127074273122183,38.4843,12798.99,12798.93,25,5,1.598,21,5,8,3,2,2,13,24217.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.391470000031404,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:33.661182+00:00,ok
+q05_s0003,q05_s0003.sql,5,3,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'EUROPE'
+	and o_orderdate >= date '1993-01-01'
+	and o_orderdate < date '1993-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",34.132666666666665,34.958,1.8303295695948696,35.3603,12798.99,12798.93,25,5,1.48,21,5,8,3,2,2,13,23939.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.05716699999084,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:33.827981+00:00,ok
+q05_s0004,q05_s0004.sql,5,4,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'MIDDLE EAST'
+	and o_orderdate >= date '1993-01-01'
+	and o_orderdate < date '1993-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",37.160333333333334,36.185,1.9521926988218494,39.0857,12798.99,12798.93,25,5,1.539,21,5,8,3,2,2,13,24056.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,39.79041299999153,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:34.000829+00:00,ok
+q05_s0005,q05_s0005.sql,5,5,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AFRICA'
+	and o_orderdate >= date '1994-01-01'
+	and o_orderdate < date '1994-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",37.154666666666664,36.742,2.292033231289052,39.3367,12925.25,12925.19,25,5,1.477,21,5,8,3,2,2,13,24312.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,43.03947400001107,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:34.174184+00:00,ok
+q05_s0006,q05_s0006.sql,5,6,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AMERICA'
+	and o_orderdate >= date '1994-01-01'
+	and o_orderdate < date '1994-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",40.044000000000004,39.238,2.2785495386319785,42.2782,12925.25,12925.19,25,5,1.532,21,5,8,3,2,2,13,24171.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,41.817657000024155,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:34.365786+00:00,ok
+q05_s0007,q05_s0007.sql,5,7,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'ASIA'
+	and o_orderdate >= date '1994-01-01'
+	and o_orderdate < date '1994-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",39.90833333333333,41.068,2.0721429326504803,41.1337,12925.25,12925.19,25,5,1.534,21,5,8,3,2,2,13,24956.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,44.85566400001062,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:34.553716+00:00,ok
+q05_s0008,q05_s0008.sql,5,8,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'EUROPE'
+	and o_orderdate >= date '1994-01-01'
+	and o_orderdate < date '1994-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",37.407999999999994,37.564,2.948097182930034,40.0039,12925.25,12925.19,25,5,1.896,21,5,8,3,2,2,13,24424.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,44.04959700002564,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:34.733795+00:00,ok
+q05_s0009,q05_s0009.sql,5,9,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'MIDDLE EAST'
+	and o_orderdate >= date '1995-01-01'
+	and o_orderdate < date '1995-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",36.663999999999994,36.754,1.370218595699243,37.8637,12869.94,12869.88,25,5,1.63,21,5,8,3,2,2,13,24341.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,38.50774000000001,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:34.910085+00:00,ok
+q05_s0010,q05_s0010.sql,5,10,0.1,3,"select
+	n_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue
+from
+	customer,
+	orders,
+	lineitem,
+	supplier,
+	nation,
+	region
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and l_suppkey = s_suppkey
+	and c_nationkey = s_nationkey
+	and s_nationkey = n_nationkey
+	and n_regionkey = r_regionkey
+	and r_name = 'AFRICA'
+	and o_orderdate >= date '1995-01-01'
+	and o_orderdate < date '1995-01-01' + interval '1' year
+group by
+	n_name
+order by
+	revenue desc",38.60666666666666,38.641,0.5602895084983593,39.0982,12869.94,12869.88,25,5,1.606,21,5,8,3,2,2,13,24837.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,41.82105799998226,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:35.089728+00:00,ok
+q06_s0001,q06_s0001.sql,6,1,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1993-01-01'
+	and l_shipdate < date '1993-01-01' + interval '1' year
+	and l_discount between 0.07 - 0.01 and 0.07 + 0.01
+	and l_quantity < 25",37.544999999999995,36.567,3.204940561071298,40.669200000000004,14746.3,14746.29,1,1,0.137,5,0,2,1,0,2,5,10783.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,36.61174599994865,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:35.258170+00:00,ok
+q06_s0002,q06_s0002.sql,6,2,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1993-01-01'
+	and l_shipdate < date '1993-01-01' + interval '1' year
+	and l_discount between 0.04 - 0.01 and 0.04 + 0.01
+	and l_quantity < 24",35.022,34.801,1.3580541226328202,36.3094,14745.27,14745.26,1,1,0.173,5,0,2,1,0,2,5,10783.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,36.443706999989445,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:35.417524+00:00,ok
+q06_s0003,q06_s0003.sql,6,3,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1993-01-01'
+	and l_shipdate < date '1993-01-01' + interval '1' year
+	and l_discount between 0.02 - 0.01 and 0.02 + 0.01
+	and l_quantity < 24",33.163666666666664,33.593,1.0884733957857389,33.9341,14745.38,14745.37,1,1,0.169,5,0,2,1,0,2,5,10783.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.633540000048924,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:35.562670+00:00,ok
+q06_s0004,q06_s0004.sql,6,4,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1993-01-01'
+	and l_shipdate < date '1993-01-01' + interval '1' year
+	and l_discount between 0.07 - 0.01 and 0.07 + 0.01
+	and l_quantity < 25",32.93933333333333,32.582,0.6415678711822576,33.5702,14746.3,14746.29,1,1,0.183,5,0,2,1,0,2,5,10783.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,34.07601200001409,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:35.710130+00:00,ok
+q06_s0005,q06_s0005.sql,6,5,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1994-01-01'
+	and l_shipdate < date '1994-01-01' + interval '1' year
+	and l_discount between 0.05 - 0.01 and 0.05 + 0.01
+	and l_quantity < 24",38.913333333333334,39.236,3.7613942007363894,42.1763,14806.37,14806.36,1,1,0.135,5,0,2,1,0,2,5,10844.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.93249100003504,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:35.878033+00:00,ok
+q06_s0006,q06_s0006.sql,6,6,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1994-01-01'
+	and l_shipdate < date '1994-01-01' + interval '1' year
+	and l_discount between 0.02 - 0.01 and 0.02 + 0.01
+	and l_quantity < 24",36.13166666666667,36.107,4.603049568854688,40.283,14806.53,14806.52,1,1,0.17,5,0,2,1,0,2,5,10844.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,37.78347100001156,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:36.037279+00:00,ok
+q06_s0007,q06_s0007.sql,6,7,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1994-01-01'
+	and l_shipdate < date '1994-01-01' + interval '1' year
+	and l_discount between 0.08 - 0.01 and 0.08 + 0.01
+	and l_quantity < 25",33.88633333333333,34.379,0.8550563334268283,34.3808,14807.46,14807.45,1,1,0.185,5,0,2,1,0,2,5,10844.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.91766900001403,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:36.189181+00:00,ok
+q06_s0008,q06_s0008.sql,6,8,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1994-01-01'
+	and l_shipdate < date '1994-01-01' + interval '1' year
+	and l_discount between 0.05 - 0.01 and 0.05 + 0.01
+	and l_quantity < 24",34.309666666666665,34.677,1.0636847904023707,35.0946,14806.37,14806.36,1,1,0.249,5,0,2,1,0,2,5,10844.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,34.64007099989885,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:36.338423+00:00,ok
+q06_s0009,q06_s0009.sql,6,9,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1995-01-01'
+	and l_shipdate < date '1995-01-01' + interval '1' year
+	and l_discount between 0.02 - 0.01 and 0.02 + 0.01
+	and l_quantity < 24",37.33866666666666,37.873,3.3238691811401555,40.114,14790.24,14790.23,1,1,0.141,5,0,2,1,0,2,5,10857.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.287157000084335,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:36.493054+00:00,ok
+q06_s0010,q06_s0010.sql,6,10,0.1,3,"select
+	sum(l_extendedprice * l_discount) as revenue
+from
+	lineitem
+where
+	l_shipdate >= date '1995-01-01'
+	and l_shipdate < date '1995-01-01' + interval '1' year
+	and l_discount between 0.08 - 0.01 and 0.08 + 0.01
+	and l_quantity < 25",32.108,32.042,1.1044799681297979,33.1238,14791.16,14791.15,1,1,0.243,5,0,2,1,0,2,5,10857.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,33.931262000010065,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:36.640519+00:00,ok
+q07_s0001,q07_s0001.sql,7,1,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'MOZAMBIQUE' and n2.n_name = 'UNITED KINGDOM')
+				or (n1.n_name = 'UNITED KINGDOM' and n2.n_name = 'MOZAMBIQUE')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",62.550333333333334,64.227,2.924013052866444,64.2477,12241.64,12176.14,608,4,1.711,19,5,6,1,1,2,11,52000.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,62.86052500001915,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:36.927282+00:00,ok
+q07_s0002,q07_s0002.sql,7,2,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'INDIA' and n2.n_name = 'VIETNAM')
+				or (n1.n_name = 'VIETNAM' and n2.n_name = 'INDIA')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",60.177,59.765,0.9579295381185394,61.1213,12241.64,12176.14,608,4,1.096,19,5,6,1,1,2,11,51120.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,64.05450900001597,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:37.204619+00:00,ok
+q07_s0003,q07_s0003.sql,7,3,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'ALGERIA' and n2.n_name = 'SAUDI ARABIA')
+				or (n1.n_name = 'SAUDI ARABIA' and n2.n_name = 'ALGERIA')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",68.53333333333333,59.705,15.713889217292241,83.9789,12241.64,12176.14,608,4,1.11,19,5,6,1,1,2,11,50125.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,89.82355799992092,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:37.509509+00:00,high_variance
+q07_s0004,q07_s0004.sql,7,4,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'PERU' and n2.n_name = 'CHINA')
+				or (n1.n_name = 'CHINA' and n2.n_name = 'PERU')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",62.068000000000005,62.163,2.562820906735384,64.34009999999999,12241.64,12176.14,608,4,1.175,19,5,6,1,1,2,11,51269.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,67.38395499996841,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:37.799363+00:00,ok
+q07_s0005,q07_s0005.sql,7,5,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'INDONESIA' and n2.n_name = 'MOZAMBIQUE')
+				or (n1.n_name = 'MOZAMBIQUE' and n2.n_name = 'INDONESIA')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",62.342999999999996,60.571,3.090001941746965,65.377,12241.64,12176.14,608,4,1.42,19,5,6,1,1,2,11,54217.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,63.99287500005357,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:38.079731+00:00,ok
+q07_s0006,q07_s0006.sql,7,6,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'ARGENTINA' and n2.n_name = 'MOROCCO')
+				or (n1.n_name = 'MOROCCO' and n2.n_name = 'ARGENTINA')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",62.067,63.419,5.953276156873621,66.8471,12241.64,12176.14,608,4,1.256,19,5,6,1,1,2,11,53331.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,67.22639499992056,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:38.366038+00:00,ok
+q07_s0007,q07_s0007.sql,7,7,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'CHINA' and n2.n_name = 'JORDAN')
+				or (n1.n_name = 'JORDAN' and n2.n_name = 'CHINA')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",64.13933333333334,65.284,3.5358071685731574,66.7933,12241.64,12176.14,608,4,1.188,19,5,6,1,1,2,11,52534.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,63.30191200004265,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:38.648841+00:00,ok
+q07_s0008,q07_s0008.sql,7,8,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'IRAN' and n2.n_name = 'IRAQ')
+				or (n1.n_name = 'IRAQ' and n2.n_name = 'IRAN')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",65.31,64.876,2.47372027521302,67.66239999999999,12241.64,12176.14,608,4,1.035,19,5,6,1,1,2,11,55217.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,70.7328390000157,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:38.938627+00:00,ok
+q07_s0009,q07_s0009.sql,7,9,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'BRAZIL' and n2.n_name = 'IRAN')
+				or (n1.n_name = 'IRAN' and n2.n_name = 'BRAZIL')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",64.717,66.442,3.5202095108103983,66.982,12241.64,12176.14,608,4,1.139,19,5,6,1,1,2,11,54410.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,63.856477999934214,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:39.225138+00:00,ok
+q07_s0010,q07_s0010.sql,7,10,0.1,3,"select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'ROMANIA' and n2.n_name = 'INDIA')
+				or (n1.n_name = 'INDIA' and n2.n_name = 'ROMANIA')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year",60.85766666666666,60.041,5.253821878721555,65.82889999999999,12241.64,12176.14,608,4,1.661,19,5,6,1,1,2,11,51766.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,70.47632999990583,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:39.501515+00:00,ok
+q08_s0001,q08_s0001.sql,8,1,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'MOZAMBIQUE' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'AFRICA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'PROMO POLISHED TIN'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",57.70466666666667,57.618,0.7248960845068301,58.383900000000004,15665.51,15637.44,240,2,1.778,25,7,10,4,1,2,14,44886.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,60.989079000023594,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:39.766167+00:00,ok
+q08_s0002,q08_s0002.sql,8,2,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'INDIA' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'ASIA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'PROMO BURNISHED TIN'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",58.513,55.375,6.595861050689287,65.02029999999999,15658.89,15633.21,220,2,1.72,25,7,10,4,1,2,14,44661.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,57.72447900005773,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:40.025177+00:00,ok
+q08_s0003,q08_s0003.sql,8,3,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'ALGERIA' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'AFRICA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'ECONOMY BRUSHED TIN'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",60.35233333333334,62.065,3.5451826939289486,62.6509,15671.56,15641.32,258,2,1.729,25,7,10,4,1,2,14,44922.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,66.09471100000519,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:40.287760+00:00,ok
+q08_s0004,q08_s0004.sql,8,4,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'PERU' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'AMERICA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'ECONOMY PLATED TIN'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",54.08033333333333,52.714,2.761823733212048,56.8045,15672.12,15641.68,260,2,1.813,25,7,10,4,1,2,14,43511.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,57.60225799997443,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:40.540055+00:00,ok
+q08_s0005,q08_s0005.sql,8,5,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'INDONESIA' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'ASIA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'ECONOMY ANODIZED NICKEL'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",56.96233333333333,57.572,5.010396823938534,61.233200000000004,15668.28,15639.21,249,2,1.907,25,7,10,4,1,2,14,44838.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,65.8566959999689,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:40.793113+00:00,ok
+q08_s0006,q08_s0006.sql,8,6,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'ARGENTINA' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'AMERICA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'LARGE POLISHED NICKEL'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",59.059333333333335,61.548,6.590377859677952,63.79350000000001,15678.78,15645.94,281,2,1.696,25,7,10,4,1,2,14,43493.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,67.96491699992657,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:41.057185+00:00,ok
+q08_s0007,q08_s0007.sql,8,7,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'CHINA' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'ASIA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'LARGE BURNISHED NICKEL'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",56.928333333333335,56.314,2.8034461531003836,59.620599999999996,15658.89,15633.21,220,2,1.965,25,7,10,4,1,2,14,44637.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,63.989097999979094,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:41.314732+00:00,ok
+q08_s0008,q08_s0008.sql,8,8,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'IRAN' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'MIDDLE EAST'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'MEDIUM BRUSHED NICKEL'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",53.77833333333333,55.327,2.8635076974461477,55.5133,15669.38,15639.92,252,2,1.881,25,7,10,4,1,2,14,44144.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,54.424565999966035,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:41.560888+00:00,ok
+q08_s0009,q08_s0009.sql,8,9,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'BRAZIL' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'AMERICA'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'MEDIUM PLATED NICKEL'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",62.42466666666667,64.354,3.9434666644125866,64.96419999999999,15666.61,15638.15,243,2,1.785,25,7,10,4,1,2,14,43412.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,61.743704000036814,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:41.841312+00:00,ok
+q08_s0010,q08_s0010.sql,8,10,0.1,3,"select
+	o_year,
+	sum(case
+		when nation = 'ROMANIA' then volume
+		else 0
+	end) / sum(volume) as mkt_share
+from
+	(
+		select
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) as volume,
+			n2.n_name as nation
+		from
+			part,
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2,
+			region
+		where
+			p_partkey = l_partkey
+			and s_suppkey = l_suppkey
+			and l_orderkey = o_orderkey
+			and o_custkey = c_custkey
+			and c_nationkey = n1.n_nationkey
+			and n1.n_regionkey = r_regionkey
+			and r_name = 'EUROPE'
+			and s_nationkey = n2.n_nationkey
+			and o_orderdate between date '1995-01-01' and date '1996-12-31'
+			and p_type = 'MEDIUM ANODIZED BRASS'
+	) as all_nations
+group by
+	o_year
+order by
+	o_year",65.83433333333333,64.27,5.0698584135391105,70.77879999999999,15658.89,15633.21,220,2,2.464,25,7,10,4,1,2,14,44312.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,69.24872100000812,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:42.138588+00:00,ok
+q09_s0001,q09_s0001.sql,9,1,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%thistle%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",131.428,124.807,15.015433293781442,146.23510000000002,13816.24,13273.9,24263,175,2.338,19,5,6,1,1,2,12,46726.0,4330.0,0.0,0.0,0.0,12.965,0.0,0.0,129.17912000000342,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:42.932314+00:00,ok
+q09_s0002,q09_s0002.sql,9,2,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%slate%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",114.97633333333333,116.475,3.254037082353755,117.1374,15297.64,14619.69,30329,175,2.332,19,5,6,1,1,2,12,46280.0,4906.0,0.0,0.0,0.0,14.463,0.324,0.0,120.54554599990297,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:43.955940+00:00,ok
+q09_s0003,q09_s0003.sql,9,3,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%saddle%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",133.06866666666667,131.983,7.2874073807722075,139.9525,23207.5,16685.49,60150,175,2.323,19,5,6,1,1,2,12,47427.0,4240.0,0.0,0.0,0.0,11.399,0.0,0.0,130.5170130000306,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:44.511394+00:00,ok
+q09_s0004,q09_s0004.sql,9,4,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%puff%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",139.519,145.366,12.021025871363893,147.2848,26543.61,19459.64,60150,175,2.381,19,5,6,1,1,2,12,48123.0,4081.0,0.0,0.0,0.0,13.52,0.047,0.0,149.95325200004572,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:45.102974+00:00,ok
+q09_s0005,q09_s0005.sql,9,5,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%papaya%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",135.24466666666666,129.301,12.714986525094442,147.78879999999998,10179.09,8873.19,12132,175,2.526,18,5,6,2,1,2,11,173036.0,3866.0,0.0,0.0,0.0,10.051,0.074,0.0,133.7960870000643,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:45.697380+00:00,ok
+q09_s0006,q09_s0006.sql,9,6,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%navajo%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",112.83033333333333,113.442,9.94561684026352,121.5546,12341.59,11934.84,18197,175,2.2,19,5,6,1,1,2,12,49306.0,2446.0,0.0,0.0,0.0,8.725,0.023,0.0,126.48049099993841,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:46.179555+00:00,ok
+q09_s0007,q09_s0007.sql,9,7,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%medium%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",124.65833333333335,130.01,12.33158579961771,133.07,15297.64,14619.69,30329,175,2.37,19,5,6,1,1,2,12,47156.0,4019.0,0.0,0.0,0.0,11.408,0.0,0.0,114.82813500003886,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:46.707724+00:00,ok
+q09_s0008,q09_s0008.sql,9,8,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%lemon%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",125.49233333333332,122.312,12.768102691211938,137.8262,18275.44,17326.34,42460,175,2.499,19,5,6,1,1,2,12,47256.0,5526.0,0.0,0.0,0.0,17.003,0.147,0.0,126.3735090000182,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:47.235912+00:00,ok
+q09_s0009,q09_s0009.sql,9,9,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%indian%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",115.13266666666668,113.521,4.406395616979178,119.4583,13816.24,13273.9,24263,175,2.606,19,5,6,1,1,2,12,46491.0,5253.0,0.0,0.0,0.0,14.123,0.198,0.0,116.83560799997394,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:47.738261+00:00,ok
+q09_s0010,q09_s0010.sql,9,10,0.1,3,"select
+	nation,
+	o_year,
+	sum(amount) as sum_profit
+from
+	(
+		select
+			n_name as nation,
+			extract(year from o_orderdate) as o_year,
+			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
+		from
+			part,
+			supplier,
+			lineitem,
+			partsupp,
+			orders,
+			nation
+		where
+			s_suppkey = l_suppkey
+			and ps_suppkey = l_suppkey
+			and ps_partkey = l_partkey
+			and p_partkey = l_partkey
+			and o_orderkey = l_orderkey
+			and s_nationkey = n_nationkey
+			and p_name like '%ghost%'
+	) as profit
+group by
+	nation,
+	o_year
+order by
+	nation,
+	o_year desc",128.27599999999998,133.463,15.613644321554142,139.9187,18275.44,17326.34,42460,175,2.372,19,5,6,1,1,2,12,46685.0,4853.0,0.0,0.0,0.0,13.5,0.0,0.0,114.92835000001378,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:48.270431+00:00,ok
+q10_s0001,q10_s0001.sql,10,1,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1993-11-01'
+	and o_orderdate < date '1993-11-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",79.21633333333334,78.775,2.7189971190373363,81.7936,20478.74,20478.69,20,20,0.794,17,3,5,1,2,2,12,14183.0,994.0,0.0,0.0,0.0,2.983,0.0,0.0,86.24829500001852,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:48.616062+00:00,ok
+q10_s0002,q10_s0002.sql,10,2,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1994-08-01'
+	and o_orderdate < date '1994-08-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",74.12466666666667,72.776,4.620073195668375,78.61970000000001,20525.28,20525.23,20,20,0.852,17,3,5,1,2,2,12,14540.0,610.0,0.0,0.0,0.0,2.232,0.0,0.0,82.59462099999837,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:48.942916+00:00,ok
+q10_s0003,q10_s0003.sql,10,3,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1993-05-01'
+	and o_orderdate < date '1993-05-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",77.885,78.387,2.27296370406568,79.71719999999999,20474.85,20474.8,20,20,0.851,17,3,5,1,2,2,12,14911.0,226.0,0.0,0.0,0.0,0.878,0.0,0.0,78.11962999994648,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:49.283029+00:00,ok
+q10_s0004,q10_s0004.sql,10,4,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1994-02-01'
+	and o_orderdate < date '1994-02-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",83.51133333333333,83.285,0.8212346396331153,84.3083,20514.21,20514.16,20,20,0.965,17,3,5,1,2,2,12,15155.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,86.79680700004155,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:49.629573+00:00,ok
+q10_s0005,q10_s0005.sql,10,5,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1994-12-01'
+	and o_orderdate < date '1994-12-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",74.77866666666667,74.49,0.7527259350742038,75.5187,20454.03,20453.98,20,20,0.71,17,3,5,1,2,2,12,15153.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,77.86578599996119,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:49.945378+00:00,ok
+q10_s0006,q10_s0006.sql,10,6,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1993-09-01'
+	and o_orderdate < date '1993-09-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",75.71466666666667,75.415,1.171604170926915,76.8478,20490.45,20490.4,20,20,0.785,17,3,5,1,2,2,12,15157.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,78.12777399999504,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:50.267166+00:00,ok
+q10_s0007,q10_s0007.sql,10,7,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1994-06-01'
+	and o_orderdate < date '1994-06-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",86.46833333333332,84.099,13.008843966061443,98.859,20589.36,20589.31,20,20,0.754,17,3,5,1,2,2,12,15186.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,77.38279400007286,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:50.624966+00:00,ok
+q10_s0008,q10_s0008.sql,10,8,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1993-03-01'
+	and o_orderdate < date '1993-03-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",77.32266666666668,77.391,1.421732159491845,78.5772,20457.17,20457.12,20,20,0.806,17,3,5,1,2,2,12,15166.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,78.69297999991431,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:50.956026+00:00,ok
+q10_s0009,q10_s0009.sql,10,9,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1993-12-01'
+	and o_orderdate < date '1993-12-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",78.68066666666667,77.312,3.2107931003621752,81.84530000000001,20491.89,20491.84,20,20,0.787,17,3,5,1,2,2,12,15158.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,79.14760000005572,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:51.288167+00:00,ok
+q10_s0010,q10_s0010.sql,10,10,0.1,3,"select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1994-10-01'
+	and o_orderdate < date '1994-10-01' + interval '3' month
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20",75.96499999999999,76.044,3.588152310033681,79.1661,20459.14,20459.09,20,20,0.795,17,3,5,1,2,2,12,15172.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,82.52376499990532,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:51.616737+00:00,ok
+q11_s0001,q11_s0001.sql,11,1,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'JAPAN'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'JAPAN'
+		)
+order by
+	value desc",39.531666666666666,39.552,1.2306259924661678,40.632000000000005,6032.68,6030.01,1067,95,0.512,17,4,8,2,1,2,7,3546.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,42.31576400002268,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:51.799059+00:00,ok
+q11_s0002,q11_s0002.sql,11,2,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'ALGERIA'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'ALGERIA'
+		)
+order by
+	value desc",36.660666666666664,36.698,1.3713811772564657,37.881499999999996,6032.68,6030.01,1067,138,0.5,17,4,8,2,1,2,7,3542.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,39.35423999996601,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:51.968066+00:00,ok
+q11_s0003,q11_s0003.sql,11,3,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'JORDAN'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'JORDAN'
+		)
+order by
+	value desc",36.352,36.339,1.1925531434699277,37.4298,6032.68,6030.01,1067,270,0.544,17,4,8,2,1,2,7,3542.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,38.208636999911505,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:52.146325+00:00,ok
+q11_s0004,q11_s0004.sql,11,4,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'ARGENTINA'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'ARGENTINA'
+		)
+order by
+	value desc",39.97366666666667,40.432,2.2310921839613287,41.7892,6032.68,6030.01,1067,129,0.831,17,4,8,2,1,2,7,3548.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,44.75982999997541,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:52.327122+00:00,ok
+q11_s0005,q11_s0005.sql,11,5,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'KENYA'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'KENYA'
+		)
+order by
+	value desc",37.20633333333333,36.606,2.264003607182051,39.3996,6032.68,6030.01,1067,145,0.542,17,4,8,2,1,2,7,3544.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,39.11023299997396,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:52.500929+00:00,ok
+q11_s0006,q11_s0006.sql,11,6,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'BRAZIL'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'BRAZIL'
+		)
+order by
+	value desc",40.82233333333334,39.277,2.8075016176902436,43.5844,6032.68,6030.01,1067,71,0.614,17,4,8,2,1,2,7,3548.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,46.50464299993473,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:52.683139+00:00,ok
+q11_s0007,q11_s0007.sql,11,7,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'MOROCCO'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'MOROCCO'
+		)
+order by
+	value desc",43.61033333333334,42.942,1.3634486911260488,44.9553,6032.68,6030.01,1067,75,0.591,17,4,8,2,1,2,7,3550.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,45.68366899991361,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:52.878496+00:00,ok
+q11_s0008,q11_s0008.sql,11,8,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'CANADA'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'CANADA'
+		)
+order by
+	value desc",35.39633333333333,35.735,1.0402044670800714,36.176,6032.68,6030.01,1067,131,0.482,17,4,8,2,1,2,7,3548.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,39.114831000006234,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:53.049133+00:00,ok
+q11_s0009,q11_s0009.sql,11,9,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'MOZAMBIQUE'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'MOZAMBIQUE'
+		)
+order by
+	value desc",37.806666666666665,37.586,2.7915489129394335,40.3904,6032.68,6030.01,1067,172,0.643,17,4,8,2,1,2,7,3538.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,38.10528500002874,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:53.242521+00:00,ok
+q11_s0010,q11_s0010.sql,11,10,0.1,3,"select
+	ps_partkey,
+	sum(ps_supplycost * ps_availqty) as value
+from
+	partsupp,
+	supplier,
+	nation
+where
+	ps_suppkey = s_suppkey
+	and s_nationkey = n_nationkey
+	and n_name = 'EGYPT'
+group by
+	ps_partkey having
+		sum(ps_supplycost * ps_availqty) > (
+			select
+				sum(ps_supplycost * ps_availqty) * 0.0010000000
+			from
+				partsupp,
+				supplier,
+				nation
+			where
+				ps_suppkey = s_suppkey
+				and s_nationkey = n_nationkey
+				and n_name = 'EGYPT'
+		)
+order by
+	value desc",41.413000000000004,40.531,4.774495994343278,45.9634,6032.68,6030.01,1067,104,0.598,17,4,8,2,1,2,7,3546.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,49.38140800004476,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:53.432107+00:00,ok
+q12_s0001,q12_s0001.sql,12,1,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('FOB', 'REG AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1993-01-01'
+	and l_receiptdate < date '1993-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",98.419,98.776,2.472902949975997,100.5022,22418.57,22384.37,7,2,0.352,8,1,2,0,1,2,7,13500.0,891.0,0.0,0.0,0.0,2.408,0.0,0.0,98.15613000000667,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:53.847216+00:00,ok
+q12_s0002,q12_s0002.sql,12,2,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('MAIL', 'REG AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1993-01-01'
+	and l_receiptdate < date '1993-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",99.127,95.495,6.531289612320068,105.5498,22417.92,22383.86,7,2,0.3,8,1,2,0,1,2,7,13756.0,635.0,0.0,0.0,0.0,2.103,0.0,0.0,109.60280999995575,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:54.270053+00:00,ok
+q12_s0003,q12_s0003.sql,12,3,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('TRUCK', 'REG AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1993-01-01'
+	and l_receiptdate < date '1993-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",94.38333333333333,94.725,1.1395842809258736,95.2542,22417.91,22383.85,7,2,0.366,8,1,2,0,1,2,7,14012.0,379.0,0.0,0.0,0.0,1.336,0.0,0.0,95.50393899996834,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:54.663370+00:00,ok
+q12_s0004,q12_s0004.sql,12,4,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('RAIL', 'REG AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1994-01-01'
+	and l_receiptdate < date '1994-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",96.101,94.795,2.2985273546338285,98.359,22422.99,22387.85,7,2,0.428,8,1,2,0,1,2,7,14268.0,123.0,0.0,0.0,0.0,0.46,0.0,0.0,97.01237500007664,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:55.070984+00:00,ok
+q12_s0005,q12_s0005.sql,12,5,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('AIR', 'MAIL')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1994-01-01'
+	and l_receiptdate < date '1994-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",98.39133333333332,98.564,3.165533814909158,101.1767,22422.61,22387.55,7,2,0.651,8,1,2,0,1,2,7,14391.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.90173599996888,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:55.482136+00:00,ok
+q12_s0006,q12_s0006.sql,12,6,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('SHIP', 'AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1994-01-01'
+	and l_receiptdate < date '1994-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",98.34499999999998,99.002,1.7637933552431866,99.61760000000001,22423.65,22388.37,7,2,0.295,8,1,2,0,1,2,7,14391.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,97.77617000008831,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:55.891132+00:00,ok
+q12_s0007,q12_s0007.sql,12,7,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('FOB', 'AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1994-01-01'
+	and l_receiptdate < date '1994-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",96.74566666666665,94.197,8.948483689057786,105.4425,22423.27,22388.07,7,2,0.271,8,1,2,0,1,2,7,14391.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,108.6776849999751,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:56.290199+00:00,ok
+q12_s0008,q12_s0008.sql,12,8,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('MAIL', 'AIR')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1995-01-01'
+	and l_receiptdate < date '1995-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",104.82966666666665,100.092,15.938642236192306,120.3492,22419.89,22385.41,7,2,0.277,8,1,2,0,1,2,7,14391.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,93.60095700003512,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:56.724455+00:00,ok
+q12_s0009,q12_s0009.sql,12,9,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('TRUCK', 'RAIL')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1995-01-01'
+	and l_receiptdate < date '1995-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",94.81966666666666,93.341,7.028638725481155,101.55709999999999,22420.54,22385.92,7,2,0.433,8,1,2,0,1,2,7,14391.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,90.57745600000544,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:57.135841+00:00,ok
+q12_s0010,q12_s0010.sql,12,10,0.1,3,"select
+	l_shipmode,
+	sum(case
+		when o_orderpriority = '1-URGENT'
+			or o_orderpriority = '2-HIGH'
+			then 1
+		else 0
+	end) as high_line_count,
+	sum(case
+		when o_orderpriority <> '1-URGENT'
+			and o_orderpriority <> '2-HIGH'
+			then 1
+		else 0
+	end) as low_line_count
+from
+	orders,
+	lineitem
+where
+	o_orderkey = l_orderkey
+	and l_shipmode in ('RAIL', 'TRUCK')
+	and l_commitdate < l_receiptdate
+	and l_shipdate < l_commitdate
+	and l_receiptdate >= date '1994-01-01'
+	and l_receiptdate < date '1994-01-01' + interval '1' year
+group by
+	l_shipmode
+order by
+	l_shipmode",94.98200000000001,94.02,3.7780031762824087,98.6352,22423.27,22388.07,7,2,0.272,8,1,2,0,1,2,7,14391.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,95.56722600007106,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:57.537253+00:00,ok
+q13_s0001,q13_s0001.sql,13,1,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%special%packages%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",145.65533333333335,131.169,31.81451433439355,177.0384,6700.68,6700.18,200,37,0.36,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,125.93716500009577,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:58.121619+00:00,high_variance
+q13_s0002,q13_s0002.sql,13,2,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%special%packages%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",121.50966666666666,120.983,4.50514787030718,125.7278,6700.68,6700.18,200,37,0.38,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,123.18606600001658,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:58.638497+00:00,ok
+q13_s0003,q13_s0003.sql,13,3,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%special%packages%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",121.90833333333335,127.095,9.549369734874302,127.6773,6700.68,6700.18,200,37,0.358,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,129.80019500002982,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:59.142166+00:00,ok
+q13_s0004,q13_s0004.sql,13,4,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%special%packages%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",128.84733333333335,118.95,18.75429727644663,147.3243,6700.68,6700.18,200,37,0.421,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,121.25931700006731,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:43:59.680298+00:00,ok
+q13_s0005,q13_s0005.sql,13,5,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%special%requests%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",128.8696666666667,120.495,15.353936639615696,143.9805,6689.24,6688.74,200,37,0.502,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,122.36624499996651,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:00.205622+00:00,ok
+q13_s0006,q13_s0006.sql,13,6,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%special%requests%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",140.841,125.441,33.62317987638885,174.0095,6689.24,6688.74,200,37,0.35,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,181.3811340000484,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:00.775599+00:00,high_variance
+q13_s0007,q13_s0007.sql,13,7,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%special%requests%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",139.56366666666668,138.229,10.661838600041431,149.56990000000002,6689.24,6688.74,200,37,0.367,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,132.0864630000642,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:01.350658+00:00,ok
+q13_s0008,q13_s0008.sql,13,8,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%pending%requests%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",134.40566666666666,135.196,6.130825909560093,139.6123,6689.24,6688.74,200,37,0.371,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,142.46517800006586,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:01.974348+00:00,ok
+q13_s0009,q13_s0009.sql,13,9,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%pending%requests%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",124.79199999999999,120.59,15.758917856248885,140.0624,6689.24,6688.74,200,37,0.382,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,122.74945499996193,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:02.511507+00:00,ok
+q13_s0010,q13_s0010.sql,13,10,0.1,3,"select
+	c_count,
+	count(*) as custdist
+from
+	(
+		select
+			c_custkey,
+			count(o_orderkey)
+		from
+			customer left outer join orders on
+				c_custkey = o_custkey
+				and o_comment not like '%pending%accounts%'
+		group by
+			c_custkey
+	) as c_orders (c_custkey, c_count)
+group by
+	c_count
+order by
+	custdist desc,
+	c_count desc",120.47333333333334,112.241,15.194005078758314,135.4304,6700.68,6700.18,200,37,0.578,7,1,2,1,1,2,6,2755.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,113.47963500008973,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.018474+00:00,ok
+q14_s0001,q14_s0001.sql,14,1,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1993-04-01'
+	and l_shipdate < date '1993-04-01' + interval '1' month",22.456666666666667,23.281,2.181610949122995,24.023500000000002,11752.24,11752.23,1,1,0.323,6,1,3,1,0,1,4,4472.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,25.256012999989252,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.132198+00:00,ok
+q14_s0002,q14_s0002.sql,14,2,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1993-07-01'
+	and l_shipdate < date '1993-07-01' + interval '1' month",22.993,21.993,3.500809049348452,26.3958,12167.26,12167.24,1,1,0.324,6,1,3,1,0,1,4,4571.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,22.161046000064744,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.245709+00:00,ok
+q14_s0003,q14_s0003.sql,14,3,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1993-10-01'
+	and l_shipdate < date '1993-10-01' + interval '1' month",23.017666666666667,21.987,1.944913708454268,24.9336,11937.69,11937.68,1,1,0.347,6,1,3,1,0,1,4,4565.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,28.52195599996321,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.353675+00:00,ok
+q14_s0004,q14_s0004.sql,14,4,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1994-01-01'
+	and l_shipdate < date '1994-01-01' + interval '1' month",21.828999999999997,22.063,1.350293301471944,22.9486,12224.08,12224.06,1,1,0.33,6,1,3,1,0,1,4,4570.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,25.168227999984083,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.459079+00:00,ok
+q14_s0005,q14_s0005.sql,14,5,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1994-05-01'
+	and l_shipdate < date '1994-05-01' + interval '1' month",28.602666666666664,27.769,3.706495694498152,32.1664,12039.03,12039.01,1,1,0.523,6,1,3,1,0,1,4,4707.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,30.63108000003467,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.589321+00:00,ok
+q14_s0006,q14_s0006.sql,14,6,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1994-08-01'
+	and l_shipdate < date '1994-08-01' + interval '1' month",23.346666666666664,23.133,1.2206073624771128,24.5073,12224.08,12224.06,1,1,0.329,6,1,3,1,0,1,4,4677.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.858864999941943,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.704341+00:00,ok
+q14_s0007,q14_s0007.sql,14,7,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1994-11-01'
+	and l_shipdate < date '1994-11-01' + interval '1' month",22.438666666666666,22.639,0.5838718466695704,22.8703,12113.98,12113.96,1,1,0.358,6,1,3,1,0,1,4,4641.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.876620999975785,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.808260+00:00,ok
+q14_s0008,q14_s0008.sql,14,8,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1995-02-01'
+	and l_shipdate < date '1995-02-01' + interval '1' month",20.137,20.145,0.346069357210372,20.4456,11523.93,11523.92,1,1,0.329,6,1,3,1,0,1,4,4346.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,21.904382999991867,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:03.909363+00:00,ok
+q14_s0009,q14_s0009.sql,14,9,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1995-05-01'
+	and l_shipdate < date '1995-05-01' + interval '1' month",25.872666666666664,26.037,3.5363648473161438,28.9953,12319.15,12319.13,1,1,0.329,6,1,3,1,0,1,4,4620.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,31.518938000090202,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:04.027069+00:00,ok
+q14_s0010,q14_s0010.sql,14,10,0.1,3,"select
+	100.00 * sum(case
+		when p_type like 'PROMO%'
+			then l_extendedprice * (1 - l_discount)
+		else 0
+	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+from
+	lineitem,
+	part
+where
+	l_partkey = p_partkey
+	and l_shipdate >= date '1995-09-01'
+	and l_shipdate < date '1995-09-01' + interval '1' month",22.839333333333332,22.925,0.7541580294164707,23.4848,12152.91,12152.9,1,1,0.331,6,1,3,1,0,1,4,4639.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.916621999977906,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:04.137392+00:00,ok
+q15_s0001,q15_s0001.sql,15,1,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1995-07-01'
+		and l_shipdate < date '1995-07-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",36.965666666666664,37.859,6.07446774074349,42.0755,12650.98,12650.97,5,1,0.267,9,1,5,2,1,2,4,6807.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.09697000003598,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:04.292927+00:00,ok
+q15_s0002,q15_s0002.sql,15,2,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1993-04-01'
+		and l_shipdate < date '1993-04-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",32.933,33.628,1.6055843173125464,34.029399999999995,12757.7,12757.69,5,1,0.303,9,1,5,2,1,2,4,6678.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.79470099998616,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:04.457473+00:00,ok
+q15_s0003,q15_s0003.sql,15,3,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1995-11-01'
+		and l_shipdate < date '1995-11-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",30.655666666666665,29.39,3.1794141493887436,33.7847,12715.93,12715.92,5,1,0.214,9,1,5,2,1,2,4,6812.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,30.09814600000027,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:04.598270+00:00,ok
+q15_s0004,q15_s0004.sql,15,4,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1993-07-01'
+		and l_shipdate < date '1993-07-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",33.67033333333333,34.73,5.528202450465551,38.205799999999996,12649.33,12649.32,5,1,0.281,9,1,5,2,1,2,4,6725.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,36.779983999963406,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:04.747559+00:00,ok
+q15_s0005,q15_s0005.sql,15,5,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1996-02-01'
+		and l_shipdate < date '1996-02-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",34.80766666666667,34.613,5.517576128458342,39.8393,12669.43,12669.42,5,1,0.224,9,1,5,2,1,2,4,6754.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,37.31631000005109,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:04.902381+00:00,ok
+q15_s0006,q15_s0006.sql,15,6,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1993-11-01'
+		and l_shipdate < date '1993-11-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",30.246666666666666,29.037,2.432630332239843,32.645999999999994,12658.81,12658.8,5,1,0.26,9,1,5,2,1,2,4,6751.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.15380099997856,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:05.043649+00:00,ok
+q15_s0007,q15_s0007.sql,15,7,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1996-06-01'
+		and l_shipdate < date '1996-06-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",31.400666666666666,31.157,1.4756660643022619,32.800399999999996,12671.77,12671.76,5,1,0.431,9,1,5,2,1,2,4,6804.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,32.68260000004375,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:05.192417+00:00,ok
+q15_s0008,q15_s0008.sql,15,8,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1994-02-01'
+		and l_shipdate < date '1994-02-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",32.597,31.894,1.9661350411403575,34.5256,12687.14,12687.13,5,1,0.319,9,1,5,2,1,2,4,6741.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,33.772651000049336,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:05.336815+00:00,ok
+q15_s0009,q15_s0009.sql,15,9,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1996-09-01'
+		and l_shipdate < date '1996-09-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",32.119,31.079,2.7619777334366766,34.8329,12685.47,12685.46,5,1,0.267,9,1,5,2,1,2,4,6764.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,37.4848579999707,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:05.485495+00:00,ok
+q15_s0010,q15_s0010.sql,15,10,0.1,3,"WITH revenue0 (supplier_no, total_revenue) AS MATERIALIZED (
+select
+		l_suppkey,
+		sum(l_extendedprice * (1 - l_discount))
+	from
+		lineitem
+	where
+		l_shipdate >= date '1994-06-01'
+		and l_shipdate < date '1994-06-01' + interval '3' month
+	group by
+		l_suppkey
+)
+select
+	s_suppkey,
+	s_name,
+	s_address,
+	s_phone,
+	total_revenue
+from
+	supplier,
+	revenue0
+where
+	s_suppkey = supplier_no
+	and total_revenue = (
+		select
+			max(total_revenue)
+		from
+			revenue0
+	)
+order by
+	s_suppkey",33.129333333333335,33.777,3.2345037228813527,35.7696,12631.26,12631.25,5,1,1.084,9,1,5,2,1,2,4,6915.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,36.69501500007755,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:05.635498+00:00,ok
+q16_s0001,q16_s0001.sql,16,1,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#41'
+	and p_type not like 'MEDIUM BURNISHED%'
+	and p_size in (4, 22, 35, 31, 47, 44, 30, 11)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",60.016,59.831,0.6456926513442772,60.6437,3968.31,3964.29,1608,2839,0.467,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,62.01801699990028,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:05.902964+00:00,ok
+q16_s0002,q16_s0002.sql,16,2,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#21'
+	and p_type not like 'ECONOMY POLISHED%'
+	and p_size in (7, 42, 20, 12, 44, 37, 9, 15)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",61.702666666666666,60.706,1.8197286427743364,63.4933,3958.57,3954.58,1596,2782,0.445,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,66.13822199994956,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:06.173573+00:00,ok
+q16_s0003,q16_s0003.sql,16,3,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#11'
+	and p_type not like 'STANDARD BRUSHED%'
+	and p_size in (11, 14, 5, 40, 41, 30, 32, 19)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",63.031,62.297,2.8858780293006125,65.8214,3960.56,3956.56,1599,2817,0.385,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,64.33872599995993,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:06.443846+00:00,ok
+q16_s0004,q16_s0004.sql,16,4,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#41'
+	and p_type not like 'LARGE BURNISHED%'
+	and p_size in (14, 34, 38, 20, 3, 23, 11, 6)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",61.936,60.951,1.902463928698783,63.81120000000001,3979.56,3975.51,1621,2876,0.458,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,66.55440199995155,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:06.712679+00:00,ok
+q16_s0005,q16_s0005.sql,16,5,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#21'
+	and p_type not like 'PROMO PLATED%'
+	and p_size in (17, 6, 23, 48, 35, 16, 34, 27)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",63.41766666666666,62.043,2.527880798877454,65.9058,3977.64,3973.59,1619,2893,0.551,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,68.85721499997999,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:06.984089+00:00,ok
+q16_s0006,q16_s0006.sql,16,6,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#11'
+	and p_type not like 'SMALL BRUSHED%'
+	and p_size in (21, 26, 8, 29, 31, 9, 14, 5)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",62.742,61.743,3.7671903323299176,66.39150000000001,3957.43,3953.44,1595,2798,0.434,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,69.07481300004292,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:07.254237+00:00,ok
+q16_s0007,q16_s0007.sql,16,7,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#41'
+	and p_type not like 'ECONOMY ANODIZED%'
+	and p_size in (24, 47, 41, 9, 28, 2, 37, 35)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",72.24866666666667,65.201,14.677692473046752,86.72899999999998,3964.4,3960.39,1603,2806,0.444,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,91.61822499993377,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:07.549603+00:00,high_variance
+q16_s0008,q16_s0008.sql,16,8,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#21'
+	and p_type not like 'STANDARD PLATED%'
+	and p_size in (27, 18, 26, 37, 25, 40, 16, 39)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",74.52333333333333,63.497,22.70334835070222,96.9203,3973.79,3969.75,1615,2877,0.581,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,61.87043600004927,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:07.894153+00:00,high_variance
+q16_s0009,q16_s0009.sql,16,9,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#11'
+	and p_type not like 'MEDIUM POLISHED%'
+	and p_size in (31, 39, 11, 18, 22, 33, 2, 43)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",58.88066666666666,58.207,1.3114192057970395,60.173500000000004,3953.7,3949.72,1590,2729,0.66,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,60.72757999993428,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:08.148498+00:00,ok
+q16_s0010,q16_s0010.sql,16,10,0.1,3,"select
+	p_brand,
+	p_type,
+	p_size,
+	count(distinct ps_suppkey) as supplier_cnt
+from
+	partsupp,
+	part
+where
+	p_partkey = ps_partkey
+	and p_brand <> 'Brand#41'
+	and p_type not like 'PROMO ANODIZED%'
+	and p_size in (34, 10, 44, 45, 19, 26, 18, 47)
+	and ps_suppkey not in (
+		select
+			s_suppkey
+		from
+			supplier
+		where
+			s_comment like '%Customer%Complaints%'
+	)
+group by
+	p_brand,
+	p_type,
+	p_size
+order by
+	supplier_cnt desc,
+	p_brand,
+	p_type,
+	p_size",61.737,61.73,0.4665393874047506,62.1593,3964.04,3960.03,1603,2806,0.529,8,1,3,1,2,1,6,682.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,64.81904999998278,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:08.418169+00:00,ok
+q17_s0001,q17_s0001.sql,17,1,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#12'
+	and p_container = 'SM BAG'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",161.654,164.321,19.390549837485267,178.0478,21150.52,21150.5,1,1,0.313,8,1,4,1,0,2,5,39070.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,181.76994000009472,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:09.102557+00:00,ok
+q17_s0002,q17_s0002.sql,17,2,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#14'
+	and p_container = 'SM PKG'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",161.06433333333334,159.096,4.6743992483883305,165.6705,21150.52,21150.5,1,1,0.382,8,1,4,1,0,2,5,38013.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,169.10682599996107,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:09.756160+00:00,ok
+q17_s0003,q17_s0003.sql,17,3,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#11'
+	and p_container = 'LG CASE'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",151.108,152.681,11.106360925163557,160.4777,21150.44,21150.43,1,1,0.596,8,1,4,1,0,2,5,33780.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,142.20081700000264,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:10.391261+00:00,ok
+q17_s0004,q17_s0004.sql,17,4,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#13'
+	and p_container = 'LG BAG'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",145.133,145.102,5.975560308456434,150.52179999999998,21150.52,21150.5,1,1,0.311,8,1,4,1,0,2,5,26164.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,147.35939799993503,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:11.001158+00:00,ok
+q17_s0005,q17_s0005.sql,17,5,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#15'
+	and p_container = 'LG PKG'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",152.59766666666667,152.754,5.089301163552162,157.1217,21150.48,21150.47,1,1,0.313,8,1,4,1,0,2,5,35130.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,149.67847699995218,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:11.648749+00:00,ok
+q17_s0006,q17_s0006.sql,17,6,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#12'
+	and p_container = 'MED CASE'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",163.65,166.29,15.773574388831465,176.7723,21150.55,21150.54,1,1,0.353,8,1,4,1,0,2,5,32752.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,180.15456700004506,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:12.308893+00:00,ok
+q17_s0007,q17_s0007.sql,17,7,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#14'
+	and p_container = 'MED BAG'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",167.90200000000002,163.789,15.613237300444771,183.0229,21150.52,21150.5,1,1,0.349,8,1,4,1,0,2,5,41240.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,157.02986700000565,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:13.009553+00:00,ok
+q17_s0008,q17_s0008.sql,17,8,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#11'
+	and p_container = 'MED PKG'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",143.37666666666667,145.882,9.582853298122298,150.9004,21150.52,21150.5,1,1,0.316,8,1,4,1,0,2,5,29920.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,153.83542699998998,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:14.408260+00:00,ok
+q17_s0009,q17_s0009.sql,17,9,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#13'
+	and p_container = 'JUMBO CASE'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",156.566,159.96,5.9132552794547975,159.996,21150.55,21150.54,1,1,0.415,8,1,4,1,0,2,5,31558.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,162.25869799995962,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:15.060392+00:00,ok
+q17_s0010,q17_s0010.sql,17,10,0.1,3,"select
+	sum(l_extendedprice) / 7.0 as avg_yearly
+from
+	lineitem,
+	part
+where
+	p_partkey = l_partkey
+	and p_brand = 'Brand#15'
+	and p_container = 'JUMBO BAG'
+	and l_quantity < (
+		select
+			0.2 * avg(l_quantity)
+		from
+			lineitem
+		where
+			l_partkey = p_partkey
+	)",158.97199999999998,157.563,6.859898760185899,165.54059999999998,21150.52,21150.5,1,1,0.47,8,1,4,1,0,2,5,33878.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,168.80689599997822,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:15.722213+00:00,ok
+q18_s0001,q18_s0001.sql,18,1,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 313
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",284.395,284.277,1.8298557320182365,286.0806,104977.58,104977.33,100,0,0.873,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,289.1969979999658,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:16.904977+00:00,ok
+q18_s0002,q18_s0002.sql,18,2,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 315
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",265.538,268.012,7.934740512455327,271.5481,104977.58,104977.33,100,0,0.867,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,271.46958800005905,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:17.995419+00:00,ok
+q18_s0003,q18_s0003.sql,18,3,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 312
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",277.45933333333335,283.72,11.301505047263987,284.1925,104977.58,104977.33,100,0,1.238,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,287.12665200009724,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:19.144525+00:00,ok
+q18_s0004,q18_s0004.sql,18,4,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 314
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",249.255,243.037,18.885974875552495,267.7231,104977.58,104977.33,100,0,0.869,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,245.88542800006508,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:20.164016+00:00,ok
+q18_s0005,q18_s0005.sql,18,5,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 315
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",260.55566666666664,258.203,4.9079023353499425,265.3976,104977.58,104977.33,100,0,0.989,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,260.4463110000097,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:21.226453+00:00,ok
+q18_s0006,q18_s0006.sql,18,6,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 313
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",254.32799999999997,259.301,9.791511068267239,260.5016,104977.58,104977.33,100,0,0.916,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,246.76750999992692,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:22.257073+00:00,ok
+q18_s0007,q18_s0007.sql,18,7,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 314
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",255.72933333333333,256.542,7.198487086418474,261.89250000000004,104977.58,104977.33,100,0,1.325,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,266.22908899992126,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:23.295093+00:00,ok
+q18_s0008,q18_s0008.sql,18,8,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 312
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",254.74833333333333,258.747,7.847405006327469,259.6866,104977.58,104977.33,100,0,0.943,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,261.643706999962,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:24.345934+00:00,ok
+q18_s0009,q18_s0009.sql,18,9,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 313
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",252.94933333333333,251.907,7.0346568028108765,259.593,104977.58,104977.33,100,0,1.287,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,254.86528299995825,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:25.379845+00:00,ok
+q18_s0010,q18_s0010.sql,18,10,0.1,3,"select
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice,
+	sum(l_quantity)
+from
+	customer,
+	orders,
+	lineitem
+where
+	o_orderkey in (
+		select
+			l_orderkey
+		from
+			lineitem
+		group by
+			l_orderkey having
+				sum(l_quantity) > 315
+	)
+	and c_custkey = o_custkey
+	and o_orderkey = l_orderkey
+group by
+	c_name,
+	c_custkey,
+	o_orderkey,
+	o_orderdate,
+	o_totalprice
+order by
+	o_totalprice desc,
+	o_orderdate
+LIMIT 100",280.69233333333335,282.245,3.1630443141589626,282.7256,104977.58,104977.33,100,0,1.001,14,3,4,1,1,2,10,14326.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,286.0919949999925,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.510113+00:00,ok
+q19_s0001,q19_s0001.sql,19,1,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#13'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 6 and l_quantity <= 6 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#43'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 11 and l_quantity <= 11 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#55'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 27 and l_quantity <= 27 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",9.126333333333333,9.028,0.6729103456875468,9.7615,7308.62,7308.61,1,1,0.414,4,1,2,1,0,1,3,2167.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,12.04744300002858,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.568339+00:00,ok
+q19_s0002,q19_s0002.sql,19,2,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#15'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 1 and l_quantity <= 1 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#21'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 12 and l_quantity <= 12 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#54'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 23 and l_quantity <= 23 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",8.365666666666668,8.15,0.902047855345454,9.2354,7308.62,7308.61,1,1,0.502,4,1,2,1,0,1,3,1886.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,9.568565999984457,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.624925+00:00,ok
+q19_s0003,q19_s0003.sql,19,3,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#22'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 6 and l_quantity <= 6 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#14'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 13 and l_quantity <= 13 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#43'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 30 and l_quantity <= 30 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",7.175333333333334,7.044,0.8694712952900363,7.9971,7308.62,7308.61,1,1,0.377,4,1,2,1,0,1,3,1877.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.086290000003828,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.677700+00:00,ok
+q19_s0004,q19_s0004.sql,19,4,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#24'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 2 and l_quantity <= 2 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#42'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 14 and l_quantity <= 14 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#42'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 26 and l_quantity <= 26 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",6.762666666666667,6.725,0.7621983556354172,7.4612,7308.62,7308.61,1,1,0.403,4,1,2,1,0,1,3,1549.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.23950699998477,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.725124+00:00,ok
+q19_s0005,q19_s0005.sql,19,5,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#21'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 7 and l_quantity <= 7 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#35'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 15 and l_quantity <= 15 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#42'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 22 and l_quantity <= 22 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",8.151666666666667,7.99,1.0043068920072855,9.1033,7308.62,7308.61,1,1,0.637,4,1,2,1,0,1,3,1796.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,11.4371789999268,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.773609+00:00,ok
+q19_s0006,q19_s0006.sql,19,6,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#33'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 2 and l_quantity <= 2 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#13'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 16 and l_quantity <= 16 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#31'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 30 and l_quantity <= 30 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",9.187333333333333,8.94,0.43012711299490636,9.609599999999999,7308.62,7308.61,1,1,0.374,4,1,2,1,0,1,3,2286.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.49616899990724,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.833478+00:00,ok
+q19_s0007,q19_s0007.sql,19,7,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#35'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 7 and l_quantity <= 7 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#51'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 17 and l_quantity <= 17 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#35'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 26 and l_quantity <= 26 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",8.651,8.067,1.0939341844919193,9.7284,7074.64,7074.63,1,1,0.504,4,1,2,1,0,1,3,2149.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,11.814399000058984,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.888488+00:00,ok
+q19_s0008,q19_s0008.sql,19,8,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#32'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 3 and l_quantity <= 3 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#34'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 18 and l_quantity <= 18 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#34'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 22 and l_quantity <= 22 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",8.706,8.997,1.3296018200950237,9.7791,7423.62,7423.61,1,1,0.525,4,1,2,1,0,1,3,1849.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,12.648675000036746,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.943975+00:00,ok
+q19_s0009,q19_s0009.sql,19,9,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#44'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 8 and l_quantity <= 8 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#12'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 19 and l_quantity <= 19 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#24'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 29 and l_quantity <= 29 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",6.993333333333333,6.628,0.8232261738631328,7.8052,7193.63,7193.62,1,1,0.456,4,1,2,1,0,1,3,1881.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.38466800007609,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:26.990345+00:00,ok
+q19_s0010,q19_s0010.sql,19,10,0.1,3,"select
+	sum(l_extendedprice* (1 - l_discount)) as revenue
+from
+	lineitem,
+	part
+where
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#41'
+		and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+		and l_quantity >= 3 and l_quantity <= 3 + 10
+		and p_size between 1 and 5
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#55'
+		and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+		and l_quantity >= 20 and l_quantity <= 20 + 10
+		and p_size between 1 and 10
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)
+	or
+	(
+		p_partkey = l_partkey
+		and p_brand = 'Brand#23'
+		and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+		and l_quantity >= 25 and l_quantity <= 25 + 10
+		and p_size between 1 and 15
+		and l_shipmode in ('AIR', 'AIR REG')
+		and l_shipinstruct = 'DELIVER IN PERSON'
+	)",6.707333333333334,6.499,0.6779486214554412,7.368399999999999,7074.64,7074.63,1,1,0.678,4,1,2,1,0,1,3,1774.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,9.435549000045285,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.035591+00:00,ok
+q20_s0001,q20_s0001.sql,20,1,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'ivory%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1996-01-01'
+					and l_shipdate < date '1996-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'KENYA'
+order by
+	s_name",19.267,19.981,1.3083409341605108,20.0548,9779.74,9779.72,11,15,0.659,12,3,6,3,1,1,7,9859.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.507632999965608,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.129843+00:00,ok
+q20_s0002,q20_s0002.sql,20,2,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'seashell%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1994-01-01'
+					and l_shipdate < date '1994-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'EGYPT'
+order by
+	s_name",19.225333333333335,18.812,1.7226021982260833,20.8865,9779.74,9779.72,11,20,0.851,12,3,6,3,1,1,7,11537.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.17664100003458,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.238037+00:00,ok
+q20_s0003,q20_s0003.sql,20,3,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'dim%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1993-01-01'
+					and l_shipdate < date '1993-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'ROMANIA'
+order by
+	s_name",12.046333333333335,12.069,0.4943898596586839,12.483,9779.74,9779.72,11,14,0.46,12,3,6,3,1,1,7,10363.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,13.200581999967653,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.317190+00:00,ok
+q20_s0004,q20_s0004.sql,20,4,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'papaya%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1996-01-01'
+					and l_shipdate < date '1996-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'INDIA'
+order by
+	s_name",20.566,19.901,1.8020058268496262,22.3355,9779.74,9779.72,11,20,0.681,12,3,6,3,1,1,7,10399.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,21.766879999972844,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.428224+00:00,ok
+q20_s0005,q20_s0005.sql,20,5,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'blue%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1995-01-01'
+					and l_shipdate < date '1995-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'UNITED KINGDOM'
+order by
+	s_name",18.369,19.44,2.197802766401026,19.7874,18170.41,18170.36,22,23,0.856,12,3,6,3,1,1,7,11012.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,23.06996499999059,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.528698+00:00,ok
+q20_s0006,q20_s0006.sql,20,6,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'linen%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1993-01-01'
+					and l_shipdate < date '1993-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'JORDAN'
+order by
+	s_name",18.984333333333336,19.074,1.0254444564837881,19.8732,9779.74,9779.72,11,15,0.657,12,3,6,3,1,1,7,9811.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.43185299999095,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.634021+00:00,ok
+q20_s0007,q20_s0007.sql,20,7,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'tan%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1997-01-01'
+					and l_shipdate < date '1997-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'CANADA'
+order by
+	s_name",16.711333333333332,16.708,2.7200015318623136,19.1605,18170.41,18170.36,22,21,0.591,12,3,6,3,1,1,7,9729.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,16.184838999947715,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.735357+00:00,ok
+q20_s0008,q20_s0008.sql,20,8,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'ghost%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1995-01-01'
+					and l_shipdate < date '1995-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'PERU'
+order by
+	s_name",24.93133333333333,26.44,2.7819044436021403,26.613699999999998,9779.74,9779.72,11,21,0.499,12,3,6,3,1,1,7,10256.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.111193000067033,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.858784+00:00,ok
+q20_s0009,q20_s0009.sql,20,9,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'red%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1993-01-01'
+					and l_shipdate < date '1993-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'GERMANY'
+order by
+	s_name",16.812,15.934,1.6879609000210873,18.4756,9779.74,9779.72,11,26,0.659,12,3,6,3,1,1,7,10093.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18.732694999926025,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:27.961113+00:00,ok
+q20_s0010,q20_s0010.sql,20,10,0.1,3,"select
+	s_name,
+	s_address
+from
+	supplier,
+	nation
+where
+	s_suppkey in (
+		select
+			ps_suppkey
+		from
+			partsupp
+		where
+			ps_partkey in (
+				select
+					p_partkey
+				from
+					part
+				where
+					p_name like 'coral%'
+			)
+			and ps_availqty > (
+				select
+					0.5 * sum(l_quantity)
+				from
+					lineitem
+				where
+					l_partkey = ps_partkey
+					and l_suppkey = ps_suppkey
+					and l_shipdate >= date '1997-01-01'
+					and l_shipdate < date '1997-01-01' + interval '1' year
+			)
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'RUSSIA'
+order by
+	s_name",19.355666666666668,20.362,2.6801530428938807,21.2845,9779.74,9779.72,11,17,0.814,12,3,6,3,1,1,7,10774.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,19.29666000000907,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:28.064544+00:00,ok
+q21_s0001,q21_s0001.sql,21,1,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'PERU'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",75.31700000000001,76.617,4.876733025294705,79.13250000000001,18593.97,18593.96,1,40,1.876,18,5,7,4,2,1,13,81356.0,464.0,0.0,0.0,0.0,1.69,0.0,0.0,73.73341899995012,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:28.413442+00:00,ok
+q21_s0002,q21_s0002.sql,21,2,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'INDONESIA'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",71.709,71.171,1.4603215399356384,73.1429,18593.97,18593.96,1,45,2.003,18,5,7,4,2,1,13,89813.0,43.0,0.0,0.0,0.0,0.292,0.0,0.0,74.96001499998783,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:28.727825+00:00,ok
+q21_s0003,q21_s0003.sql,21,3,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'ARGENTINA'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",69.52666666666667,70.052,2.1135461512191625,71.2004,18593.97,18593.96,1,38,1.863,18,5,7,4,2,1,13,78439.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,70.52812300003097,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:29.033753+00:00,ok
+q21_s0004,q21_s0004.sql,21,4,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'CHINA'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",87.10666666666667,88.29,4.322245866830498,90.4716,18593.97,18593.96,1,53,1.876,18,5,7,4,2,1,13,103118.0,41.0,0.0,0.0,0.0,0.32,0.0,0.0,86.37125199993534,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:29.404717+00:00,ok
+q21_s0005,q21_s0005.sql,21,5,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'IRAN'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",70.736,69.857,2.438370972596258,73.1285,18593.97,18593.96,1,40,1.928,18,5,7,4,2,1,13,80082.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,72.50021300001208,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:29.716080+00:00,ok
+q21_s0006,q21_s0006.sql,21,6,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'CANADA'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",68.75266666666666,67.83,1.805449066945211,70.53269999999999,18593.97,18593.96,1,37,1.959,18,5,7,4,2,1,13,76553.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,71.07843900007538,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:30.022832+00:00,ok
+q21_s0007,q21_s0007.sql,21,7,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'SAUDI ARABIA'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",75.901,77.088,3.5381261989929076,78.5325,18593.97,18593.96,1,47,1.825,18,5,7,4,2,1,13,92922.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,80.77052299995557,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:30.347416+00:00,ok
+q21_s0008,q21_s0008.sql,21,8,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'JAPAN'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",70.40333333333334,70.304,1.047538225237307,71.3777,18593.97,18593.96,1,41,1.848,18,5,7,4,2,1,13,83354.0,104.0,0.0,0.0,0.0,0.63,0.0,0.0,75.17638299998453,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:30.664806+00:00,ok
+q21_s0009,q21_s0009.sql,21,9,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'EGYPT'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",68.39133333333334,67.837,1.5782827165414055,69.9385,18593.97,18593.96,1,40,1.929,18,5,7,4,2,1,13,81530.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,71.43457200004377,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:30.971371+00:00,ok
+q21_s0010,q21_s0010.sql,21,10,0.1,3,"select
+	s_name,
+	count(*) as numwait
+from
+	supplier,
+	lineitem l1,
+	orders,
+	nation
+where
+	s_suppkey = l1.l_suppkey
+	and o_orderkey = l1.l_orderkey
+	and o_orderstatus = 'F'
+	and l1.l_receiptdate > l1.l_commitdate
+	and exists (
+		select
+			*
+		from
+			lineitem l2
+		where
+			l2.l_orderkey = l1.l_orderkey
+			and l2.l_suppkey <> l1.l_suppkey
+	)
+	and not exists (
+		select
+			*
+		from
+			lineitem l3
+		where
+			l3.l_orderkey = l1.l_orderkey
+			and l3.l_suppkey <> l1.l_suppkey
+			and l3.l_receiptdate > l3.l_commitdate
+	)
+	and s_nationkey = n_nationkey
+	and n_name = 'VIETNAM'
+group by
+	s_name
+order by
+	numwait desc,
+	s_name
+LIMIT 100",72.733,72.556,2.9954246777377014,75.4873,18593.97,18593.96,1,39,1.934,18,5,7,4,2,1,13,79599.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,82.1625909999284,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.285585+00:00,ok
+q22_s0001,q22_s0001.sql,22,1,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('34', '43', '41', '20', '25', '38', '33')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('34', '43', '41', '20', '25', '38', '33')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",15.287333333333331,15.029,0.9745277488780562,16.231399999999997,1629.92,1628.22,62,4,0.342,7,1,3,1,1,2,4,2947.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18.04073599998901,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.368702+00:00,ok
+q22_s0002,q22_s0002.sql,22,2,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('24', '41', '37', '20', '27', '31', '21')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('24', '41', '37', '20', '27', '31', '21')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",16.215999999999998,16.204,1.4400374995117309,17.516199999999998,1629.92,1628.22,62,5,0.514,7,1,3,1,1,2,4,3481.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.1133990000244,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.450363+00:00,ok
+q22_s0003,q22_s0003.sql,22,3,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('39', '20', '34', '35', '29', '44', '30')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('39', '20', '34', '35', '29', '44', '30')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",17.862,18.312,1.8700577531188716,19.3506,1629.92,1628.22,62,4,0.577,7,1,3,1,1,2,4,2897.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,21.74170000000686,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.539031+00:00,ok
+q22_s0004,q22_s0004.sql,22,4,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('28', '38', '30', '25', '31', '37', '21')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('28', '38', '30', '25', '31', '37', '21')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",16.993666666666666,16.248,1.443948175431977,18.417,1629.92,1628.22,62,5,0.664,7,1,3,1,1,2,4,3383.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,21.162486999969587,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.626412+00:00,ok
+q22_s0005,q22_s0005.sql,22,5,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('43', '36', '27', '21', '33', '30', '22')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('43', '36', '27', '21', '33', '30', '22')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",17.62666666666667,18.181,1.0541566929699457,18.2773,1629.92,1628.22,62,5,0.362,7,1,3,1,1,2,4,3439.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.372124999994412,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.713939+00:00,ok
+q22_s0006,q22_s0006.sql,22,6,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('33', '34', '23', '26', '35', '43', '24')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('33', '34', '23', '26', '35', '43', '24')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",17.459333333333333,15.383,3.7875575683193694,21.1862,1629.92,1628.22,62,5,0.532,7,1,3,1,1,2,4,3407.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18.213453999919693,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.817709+00:00,high_variance
+q22_s0007,q22_s0007.sql,22,7,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('23', '33', '43', '38', '37', '36', '22')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('23', '33', '43', '38', '37', '36', '22')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",15.897,15.615,0.6710201189234195,16.5582,1629.92,1628.22,62,3,0.425,7,1,3,1,1,2,4,2367.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18.015942000033647,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.899158+00:00,ok
+q22_s0008,q22_s0008.sql,22,8,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('37', '31', '39', '27', '22', '29', '32')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('37', '31', '39', '27', '22', '29', '32')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",18.44033333333333,17.953,1.8098951166665245,20.194899999999997,1629.92,1628.22,62,5,0.351,7,1,3,1,1,2,4,3461.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,19.300665999935518,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:31.993952+00:00,ok
+q22_s0009,q22_s0009.sql,22,9,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('27', '29', '36', '39', '41', '42', '40')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('27', '29', '36', '39', '41', '42', '40')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",15.398000000000001,15.619,2.3532957740156673,17.4316,1629.92,1628.22,62,2,0.421,7,1,3,1,1,2,4,1815.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.717780000040875,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:32.076757+00:00,ok
+q22_s0010,q22_s0010.sql,22,10,0.1,3,"select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substring(c_phone from 1 for 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substring(c_phone from 1 for 2) in
+				('42', '28', '32', '21', '43', '35', '29')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substring(c_phone from 1 for 2) in
+						('42', '28', '32', '21', '43', '35', '29')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as custsale
+group by
+	cntrycode
+order by
+	cntrycode",16.775000000000002,16.53,0.5918403500945164,17.358,1629.92,1628.22,62,4,0.276,7,1,3,1,1,2,4,2903.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18.271056000003227,16.14 (Debian 16.14-1.pgdg13+1),Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39,2026-09-13T19:44:32.164541+00:00,ok

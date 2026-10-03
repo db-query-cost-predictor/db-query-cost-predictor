@@ -216,3 +216,37 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------------------
+# Project-specific rules (Database Query Cost Predictor). Everything above is the
+# Python template from main and is kept unchanged; some rules below repeat it.
+# ---------------------------------------------------------------------------
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+.venv/
+
+# Secrets and machine-local configuration (never commit)
+.env
+*.local.yaml
+
+# Generated poster evidence (regenerate with POSTER_RUNBOOK.md)
+reports/**
+!reports/README.md
+
+# Raw evidence, manifests and derived data live in QCP_DATA_ROOT outside the
+# repository. Guard against accidental copies inside the repository:
+data/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
