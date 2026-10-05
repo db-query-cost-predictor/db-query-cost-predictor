@@ -1,0 +1,100 @@
+# Previously reported pilot values, compared by `pilot-audit` against values it
+# recomputes independently from reference_pilot/output/ raw files.
+#
+# Fields
+#   id        stable identifier
+#   source    document that reported the value
+#   reported  the value as reported (copied from the source; not recomputed)
+#   metric    key in the audit's flat `recomputed` dictionary
+#   rule      exact | abs | rel | not_comparable | not_recomputable | not_recomputed
+#   tolerance for abs/rel rules (reported values are often rounded)
+#   note      why the rule was chosen
+#
+# A MISMATCH is always shown in reports/poster/pilot_claim_check.md and is never
+# overwritten. This file contains reported values only — no new results.
+version: 1
+claims:
+  # --- Counts and integrity (validation_summary.json, README.md) -------------
+  - {id: PR-001, source: validation_summary.json, reported: 220, metric: counts.instances_csv, rule: exact, note: "successful_queries"}
+  - {id: PR-002, source: validation_summary.json, reported: 220, metric: counts.instances_raw, rule: exact, note: "unique_query_ids, recomputed from raw JSONL"}
+  - {id: PR-003, source: validation_summary.json, reported: 22, metric: counts.templates, rule: exact, note: "unique_template_ids"}
+  - {id: PR-004, source: validation_summary.json, reported: 660, metric: counts.raw_runs, rule: exact, note: "measured_runs"}
+  - {id: PR-005, source: validation_summary.json, reported: 0, metric: counts.error_records, rule: exact, note: "errors"}
+  - {id: PR-006, source: validation_summary.json, reported: 36, metric: counts.csv_columns, rule: exact, note: "dimensions[1]"}
+  - {id: PR-007, source: validation_summary.json, reported: 0, metric: counts.duplicate_query_ids, rule: exact, note: "duplicate_query_ids"}
+  - {id: PR-008, source: validation_summary.json, reported: 0, metric: counts.duplicate_csv_rows, rule: exact, note: "duplicate_rows"}
+  - {id: PR-009, source: validation_summary.json, reported: 14, metric: counts.duplicate_sql_rows, rule: exact, note: "duplicate_sql = rows - distinct SQL"}
+  - {id: PR-010, source: README.md, reported: 206, metric: counts.distinct_sql, rule: exact, note: "206 distinct SQL statements"}
+  - {id: PR-011, source: validation_summary.json, reported: 0, metric: counts.missing_values_csv_total, rule: exact, note: "sum of missing_values"}
+  - {id: PR-012, source: README.md, reported: 0, metric: counts.raw_record_parse_errors, rule: exact, note: "All 660 raw JSONL records parse as JSON"}
+  - {id: PR-013, source: README.md, reported: 220, metric: counts.instances_with_3_runs, rule: exact, note: "three measured records per successful instance"}
+  - {id: PR-014, source: README.md, reported: 0, metric: integrity.csv_mean_mismatches, rule: exact, note: "every target mean recomputed from the three raw plans"}
+  - {id: PR-015, source: sql_validation.json, reported: 220, metric: counts.sql_validation_valid, rule: exact, note: "all 220 SQL files passed EXPLAIN"}
+  - {id: PR-016, source: README.md, reported: 660, metric: integrity.runs_with_jit_off_setting, rule: exact, note: "JIT off (checked in each plan's Settings block)"}
+  - {id: PR-017, source: validation_summary.json, reported: "2facd5fcf4b8ae3a9a97b47c7ecaeab6658e8e9df6750947d1f10b780954c50d", metric: integrity.sha256.query_dataset.csv, rule: exact, note: "output_sha256"}
+  - {id: PR-018, source: validation_summary.json, reported: "ed3af89a378e508ea3ac2539eab8e3dcaa3ce64f4313225f0bfb2f3f818dc081", metric: integrity.sha256.query_runs.jsonl, rule: exact, note: "output_sha256"}
+  - {id: PR-019, source: validation_summary.json, reported: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", metric: integrity.sha256.errors.jsonl, rule: exact, note: "output_sha256 (SHA-256 of an empty file)"}
+  - {id: PR-020, source: validation_summary.json, reported: "table_counts (region 5 ... lineitem 600572)", metric: none, rule: not_recomputable, note: "requires the pilot database; raw output files do not contain table counts"}
+  - {id: PR-021, source: setup_verification.json, reported: "all_eight_normalized_files_match: true", metric: none, rule: not_recomputable, note: "requires regenerating dbgen data"}
+
+  # --- Runtime distribution (per-instance mean of three runs, pilot definition) -
+  - {id: PR-030, source: validation_summary.json, reported: 6.707333333333334, metric: runtime.mean_label.min, rule: rel, tolerance: 1.0e-9, note: "runtime_mean_ms_summary.min"}
+  - {id: PR-031, source: validation_summary.json, reported: 61.719833333333334, metric: runtime.mean_label.median, rule: rel, tolerance: 1.0e-9, note: "runtime_mean_ms_summary.median"}
+  - {id: PR-032, source: validation_summary.json, reported: 82.00549393939394, metric: runtime.mean_label.mean, rule: rel, tolerance: 1.0e-9, note: "runtime_mean_ms_summary.mean"}
+  - {id: PR-033, source: validation_summary.json, reported: 284.395, metric: runtime.mean_label.max, rule: rel, tolerance: 1.0e-9, note: "runtime_mean_ms_summary.max"}
+  - {id: PR-034, source: validation_summary.json, reported: 68.32264995287372, metric: runtime.mean_label.std_sample, rule: rel, tolerance: 1.0e-9, note: "runtime_mean_ms_summary.std"}
+  - {id: PR-035, source: "Forward Plan", reported: 42, metric: runtime.mean_label.max_over_min, rule: abs, tolerance: 0.5, note: "'spans 42x'"}
+  - {id: PR-036, source: "Forward Plan", reported: 82, metric: runtime.mean_label.mean, rule: abs, tolerance: 0.5, note: "'pilot's 82 ms mean'"}
+
+  # --- Repeatability / noise (Open Issues, Research Plan) ----------------------
+  - {id: PR-040, source: validation_summary.json, reported: 7, metric: quality.high_variance_instances, rule: exact, note: "sample std / mean > 0.20"}
+  - {id: PR-041, source: validation_summary.json, reported: 213, metric: quality.ok_instances, rule: exact, note: "quality_flags.ok"}
+  - {id: PR-042, source: "Open Issues", reported: 1.054, metric: noise.loo_qerror.p50, rule: abs, tolerance: 0.0005, note: "leave-one-run-out q-error; audit uses mean of the other runs as reference"}
+  - {id: PR-043, source: "Open Issues", reported: 1.187, metric: noise.loo_qerror.p90, rule: abs, tolerance: 0.0005, note: "same definition as PR-042"}
+  - {id: PR-044, source: "Open Issues / Research Plan", reported: 1.236, metric: noise.loo_qerror.p95, rule: abs, tolerance: 0.0005, note: "same definition as PR-042"}
+  - {id: PR-045, source: "Open Issues / Research Plan", reported: 1.374, metric: noise.loo_qerror.p99, rule: abs, tolerance: 0.0005, note: "same definition as PR-042"}
+  - {id: PR-046, source: "Open Issues", reported: 0.053, metric: noise.median_instance_cv, rule: abs, tolerance: 0.0005, note: "median per-query coefficient of variation 5.3%"}
+  - {id: PR-047, source: "Open Issues", reported: 0.031, metric: noise.sem_fraction_3_runs, rule: abs, tolerance: 0.0005, note: "median CV / sqrt(3)"}
+  - {id: PR-048, source: "Open Issues", reported: 0.024, metric: noise.sem_fraction_5_runs, rule: abs, tolerance: 0.0005, note: "median CV / sqrt(5) (projection, not a measurement)"}
+
+  # --- Variance decomposition ---------------------------------------------------
+  - {id: PR-050, source: "Open Issues", reported: 0.994, metric: variance.between_template_share_mean_ms, rule: abs, tolerance: 0.0005, note: "between-template variance 99.4% of execution_time_mean_ms"}
+  - {id: PR-051, source: "Research Plan", reported: 0.9943, metric: variance.between_template_share_mean_ms, rule: abs, tolerance: 0.00005, note: "99.43%"}
+  - {id: PR-052, source: "Open Issues", reported: 0.03, metric: variance.within_template_cv_min, rule: abs, tolerance: 0.005, note: "'within-template CV between 3% and 12%'"}
+  - {id: PR-053, source: "Open Issues", reported: 0.12, metric: variance.within_template_cv_max, rule: abs, tolerance: 0.005, note: "'within-template CV between 3% and 12%'"}
+
+  # --- Resources (measured run 3, as in the pilot CSV) --------------------------
+  - {id: PR-060, source: "Open Issues / Research Plan", reported: 195, metric: resources.instances_zero_shared_reads_run3, rule: exact, note: "195 of 220 rows report zero shared reads"}
+  - {id: PR-061, source: "Open Issues / Research Plan", reported: 10, metric: resources.instances_temp_written_run3, rule: exact, note: "10 rows spill temp blocks"}
+
+  # --- SQL, parameter and plan diversity ----------------------------------------
+  - {id: PR-070, source: "Open Issues", reported: 8, metric: diversity.q06_distinct_sql, rule: exact, note: "Q6 distinct queries"}
+  - {id: PR-071, source: "Open Issues", reported: 4, metric: diversity.q13_distinct_sql, rule: exact, note: "Q13 distinct queries"}
+  - {id: PR-072, source: "Open Issues", reported: 4, metric: diversity.q18_distinct_sql, rule: exact, note: "Q18 distinct queries"}
+  - {id: PR-073, source: "Open Issues", reported: 2, metric: diversity.q06_largest_identical_group, rule: exact, note: "largest identical group"}
+  - {id: PR-074, source: "Open Issues", reported: 4, metric: diversity.q13_largest_identical_group, rule: exact, note: "largest identical group"}
+  - {id: PR-075, source: "Open Issues", reported: 3, metric: diversity.q18_largest_identical_group, rule: exact, note: "largest identical group"}
+  - {id: PR-076, source: "Forward Plan", reported: 0.087, metric: diversity.q13_identical_group_cv, rule: abs, tolerance: 0.0005, note: "CV across Q13's byte-identical rows"}
+  - {id: PR-077, source: "Forward Plan", reported: 0.067, metric: diversity.q18_identical_group_cv, rule: abs, tolerance: 0.0005, note: "CV across Q18's byte-identical rows"}
+  - {id: PR-078, source: "Research Plan", reported: 4, metric: diversity.node_count_min, rule: exact, note: "'4 to 25 nodes'"}
+  - {id: PR-079, source: "Research Plan", reported: 25, metric: diversity.node_count_max, rule: exact, note: "'4 to 25 nodes'"}
+  - {id: PR-080, source: "Research Plan", reported: 0, metric: diversity.join_count_min, rule: exact, note: "'0 to 7 joins' (audit counts join plan nodes)"}
+  - {id: PR-081, source: "Research Plan", reported: 7, metric: diversity.join_count_max, rule: exact, note: "'0 to 7 joins' (audit counts join plan nodes)"}
+  - {id: PR-082, source: "Research Plan / Forward Plan", reported: 220, metric: diversity.instances_with_aggregate, rule: exact, note: "'every query aggregates'"}
+  - {id: PR-083, source: "Forward Plan", reported: 20, metric: diversity.templates_with_index_scan, rule: exact, note: "'20 of 22 templates use an index scan' (Index, Index Only or Bitmap Index Scan)"}
+  - {id: PR-084, source: "Forward Plan", reported: 10, metric: diversity.templates_result_lt_10_rows, rule: exact, note: "median root Actual Rows per template < 10 (diagnostic, class E)"}
+  - {id: PR-085, source: "Forward Plan", reported: 3, metric: diversity.templates_result_gt_1000_rows, rule: exact, note: "median root Actual Rows per template > 1000 (diagnostic, class E)"}
+  - {id: PR-086, source: "Forward Plan", reported: 7, metric: diversity.templates_with_4plus_joins, rule: exact, note: "definition may differ: audit uses max join plan nodes per template"}
+  - {id: PR-087, source: "Forward Plan", reported: 13, metric: diversity.templates_with_1to3_joins, rule: exact, note: "definition may differ: audit uses max join plan nodes per template"}
+  - {id: PR-088, source: "Forward Plan", reported: 9, metric: diversity.templates_with_subplan, rule: not_comparable, note: "'nested subqueries' definition unspecified; audit shows templates with SubPlan/InitPlan nodes"}
+
+  # --- Baselines and models ---------------------------------------------------------
+  - {id: PR-090, source: "Research Plan", reported: 0.685, metric: cost.spearman_total_cost_vs_mean_label, rule: abs, tolerance: 0.0006, note: "Spearman(estimated total cost, runtime) 'approximately 0.685'"}
+  - {id: PR-091, source: "Open Issues", reported: 53.6, metric: models.global_mean_insample_mae_ms, rule: abs, tolerance: 0.05, note: "'Predict the global mean' MAE 53.6 ms (in-sample)"}
+  - {id: PR-092, source: "Open Issues", reported: 0.0, metric: models.global_mean_insample_r2, rule: abs, tolerance: 0.0005, note: "R2 of predicting the global mean is 0 by definition"}
+  - {id: PR-093, source: "Open Issues / Research Plan", reported: 0.956, metric: models.hgb.random.pooled.r2_ms, rule: not_comparable, note: "reported for XGBoost with unspecified features/folds; audit uses HistGradientBoosting"}
+  - {id: PR-094, source: "Open Issues / Research Plan", reported: 0.390, metric: models.hgb.grouped.pooled.r2_ms, rule: not_comparable, note: "reported for XGBoost with unspecified features/folds; audit uses HistGradientBoosting"}
+  - {id: PR-095, source: "Open Issues", reported: 6.0, metric: models.hgb.random.pooled.mae_ms, rule: not_comparable, note: "XGBoost random 5-fold MAE"}
+  - {id: PR-096, source: "Open Issues", reported: 41.4, metric: models.hgb.grouped.pooled.mae_ms, rule: not_comparable, note: "XGBoost GroupKFold MAE"}
+  - {id: PR-097, source: "Claude review", reported: "grouped R2 -1.081/-0.256/-0.105/+0.209/+0.390 for 6/10/14/18/22 templates", metric: none, rule: not_recomputed, note: "procedure (model, subsampling) unspecified"}
+  - {id: PR-098, source: "Claude review", reported: "grouped R2 0.338/0.299/0.363/0.390 for 3/5/7/10 instances per template", metric: none, rule: not_recomputed, note: "procedure (model, subsampling) unspecified"}

@@ -1,0 +1,88 @@
+# Poster evidence milestone — PostgreSQL 16 benchmark server, evidence store and
+# TPC-H tools. Written but never started by its author; start it yourself with
+# scripts/powershell/02_start_databases.ps1.
+#
+# * All ports are published on 127.0.0.1 only.
+# * Every secret comes from .env (git-ignored); a missing value stops Compose.
+# * bench-db runs only measured benchmark queries. Evidence is written to the
+#   separate evidence-db so evidence writes never share the measured server.
+# * No project folder is bind-mounted into a container.
+name: qcp
+
+services:
+  bench-db:
+    image: ${QCP_POSTGRES_IMAGE:?set QCP_POSTGRES_IMAGE in .env}
+    environment:
+      POSTGRES_USER: ${QCP_BENCH_ADMIN_USER:?set QCP_BENCH_ADMIN_USER in .env}
+      POSTGRES_PASSWORD: ${QCP_BENCH_ADMIN_PASSWORD:?set QCP_BENCH_ADMIN_PASSWORD in .env}
+      POSTGRES_DB: postgres
+    command:
+      - postgres
+      - -c
+      - jit=off
+      - -c
+      - track_io_timing=on
+    ports:
+      - "127.0.0.1:${QCP_BENCH_PORT:?set QCP_BENCH_PORT in .env}:5432"
+    shm_size: ${QCP_BENCH_SHM_SIZE:?set QCP_BENCH_SHM_SIZE in .env}
+    cpus: ${QCP_BENCH_CPUS:?set QCP_BENCH_CPUS in .env}
+    mem_limit: ${QCP_BENCH_MEMORY:?set QCP_BENCH_MEMORY in .env}
+    volumes:
+      - bench_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    restart: "no"
+
+  evidence-db:
+    image: ${QCP_POSTGRES_IMAGE:?set QCP_POSTGRES_IMAGE in .env}
+    environment:
+      POSTGRES_USER: ${QCP_EVIDENCE_ADMIN_USER:?set QCP_EVIDENCE_ADMIN_USER in .env}
+      POSTGRES_PASSWORD: ${QCP_EVIDENCE_ADMIN_PASSWORD:?set QCP_EVIDENCE_ADMIN_PASSWORD in .env}
+      POSTGRES_DB: postgres
+    command:
+      - postgres
+      - -c
+      - jit=off
+    ports:
+      - "127.0.0.1:${QCP_EVIDENCE_PORT:?set QCP_EVIDENCE_PORT in .env}:5432"
+    cpus: ${QCP_EVIDENCE_CPUS:?set QCP_EVIDENCE_CPUS in .env}
+    mem_limit: ${QCP_EVIDENCE_MEMORY:?set QCP_EVIDENCE_MEMORY in .env}
+    volumes:
+      - evidence_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    restart: "no"
+
+  # Build-and-run-once tool: generates TPC-H data with the pinned dbgen commit and
+  # loads it into bench-db as qcp_bench_owner. Not started by `up` (profile tools).
+  tpch-tools:
+    profiles: ["tools"]
+    build:
+      context: ./docker/tpch-tools
+      args:
+        TPCH_DBGEN_REPO: ${QCP_TPCH_DBGEN_REPO:?set QCP_TPCH_DBGEN_REPO in .env}
+        TPCH_DBGEN_COMMIT: ${QCP_TPCH_DBGEN_COMMIT:?set QCP_TPCH_DBGEN_COMMIT in .env}
+    image: qcp-tpch-tools:local
+    environment:
+      PGHOST: bench-db
+      PGPORT: "5432"
+      PGUSER: qcp_bench_owner
+      PGPASSWORD: ${QCP_BENCH_OWNER_PASSWORD:?set QCP_BENCH_OWNER_PASSWORD in .env}
+      QCP_TPCH_DBGEN_REPO: ${QCP_TPCH_DBGEN_REPO}
+      QCP_TPCH_DBGEN_COMMIT: ${QCP_TPCH_DBGEN_COMMIT}
+    volumes:
+      - tpch_tbl:/data/tbl
+    depends_on:
+      bench-db:
+        condition: service_healthy
+
+volumes:
+  bench_pgdata:
+  evidence_pgdata:
+  tpch_tbl:

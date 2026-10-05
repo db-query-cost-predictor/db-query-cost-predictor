@@ -1,0 +1,23 @@
+# Normalize line endings. Shell scripts and SQL copied into Linux containers must
+# keep LF endings or they fail with "bad interpreter" / syntax errors.
+* text=auto
+*.sh text eol=lf
+*.sql text eol=lf
+*.py text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.ipynb text eol=lf
+Dockerfile text eol=lf
+*.ps1 text eol=crlf
+*.png binary
+
+# Historical reference material is stored byte-for-byte, with no end-of-line
+# conversion on commit or checkout. pilot-audit compares SHA-256 hashes of the raw
+# pilot files with the recorded values (config/pilot_reported_claims.yaml). The
+# pilot CSV mixes CRLF row ends with LF inside SQL fields, and the ReportLab PDF is
+# plain ASCII that Git would otherwise treat as text. These files are never edited,
+# so whitespace checks are disabled for them too. Must stay after the rules above.
+reference_pilot/** -text -whitespace
+reference_docs/** -text -whitespace
