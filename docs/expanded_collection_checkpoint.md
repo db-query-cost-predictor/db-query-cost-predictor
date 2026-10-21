@@ -18,6 +18,20 @@ re-checked on 2026-10-21. The machine-readable form used for RQ1 modeling is
 | Not evaluable | 10 s classification stays `NOT_YET_EVALUABLE` (G-08) |
 | Pending | final expanded model scores; LLM rewrite results (RQ2). The 25 manual rewrite pairs remain `NOT_YET_VERIFIED` |
 
+### Release-scoped and development-scoped counts
+
+The counts in the full validation report and in `derived_manifest.json` cover
+the **whole release** (4,944 cases). The positive-support gates G-07 and G-08
+count **development** cases only. Both are correct, and they reconcile as
+follows (read from `labels.csv`):
+
+| Quantity | Release (validation report) | Development (gates, RQ1) | Reserved RQ2 |
+|---|---:|---:|---:|
+| 1 s positives | 407 | 393 (106 groups; G-07 PASS) | 14 |
+| 10 s positives | 4 | 0 (G-08 STOP) | 4 (all right-censored `rw12` original-form cases) |
+
+The historical validation report and the input record are left unchanged.
+
 ## 2. Source checkpoint
 
 | Item | Value |
@@ -97,7 +111,7 @@ comment, breaks that link. A changed design needs a new spec version.
 | Package | `query-cost-predictor` 0.1.0 (recorded) | 0.1.0 |
 | Third-party libraries | **not recorded** | numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1, pandas 3.0.6, matplotlib 3.11.2, PyYAML 6.0.3, psycopg 3.2.13, pytest 9.1.1 |
 | PostgreSQL | 16.15 (Debian 16.15-1.pgdg13+2), image `postgres:16` @ `sha256:a3b7f434b2dc57ce85a67e171163eb8ab1a1ebcb39d27484661f26b1dfbe30d6` (recorded in the manifest) | not started during the audit |
-| Machine state at preflight | 15.71 GB RAM, **1.13 GB free** (readiness check R-04 warned); Docker Desktop 7.61 GB | - |
+| Machine state at preflight | one observation at preflight (2026-10-04 01:56 UTC), not a measurement during collection: 15.71 GB RAM with **1.13 GB free** (readiness check R-04 warned); Docker Desktop 7.61 GB; Intel Core i9-14900HX (32 logical processors). The bench container's CPU and memory limits come from the git-ignored `.env` and are not recorded in the package | - |
 
 The audited versions show what reproduces the derivation now. They are not
 evidence of what was installed during collection.
@@ -113,8 +127,11 @@ evidence of what was installed during collection.
    hashes and capture times. The data-generator version, its seed and the row
    counts are only in the evidence database (`qcp.benchmark_snapshot`) and in
    the git-ignored load reports.
-5. Low free memory at preflight may have added timing noise. The median
-   repetition CV of development cases is 0.046 (p90 0.136).
+5. Free memory was low at the preflight (1.13 GB). That is a single
+   observation before collection; memory was not monitored during collection,
+   so its effect on timing noise is unknown. The median repetition CV of
+   development cases is 0.046 (p90 0.136). The bench container's CPU and memory
+   limits are not recorded in the package.
 6. The raw `session_start` records contain the machine's host name, and four
    packaged reports contain absolute local paths. Raw records cannot be edited
    without breaking their checksums.

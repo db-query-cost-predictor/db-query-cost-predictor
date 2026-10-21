@@ -58,8 +58,10 @@ these rules:
 
 ## Rows and targets
 
-* **Rows:** development cases only (`split_role == development`, 4,784 cases in
-  194 semantic groups). The 160 `heldout_rq2` cases are excluded from model
+* **Rows:** development cases only, selected by `split_role == development`
+  alone (4,784 cases in 194 semantic groups). `in_sample` is a
+  collection-control annotation: it is present, but it is not used for RQ1
+  selection, fitting or prediction. The 160 `heldout_rq2` cases are excluded from model
   fitting, preprocessing fitting, calibration, feature selection,
   hyperparameter or model selection, and the choice of decision thresholds.
 * **Regression target:** ln(`median_ms`), the median of the three measured
@@ -67,7 +69,9 @@ these rules:
   **All 4,784 development cases are `complete`**, so the development set has no
   censored labels and no censoring-aware model is needed for it. All four
   right-censored cases are reserved RQ2 cases and are outside RQ1. Censored
-  labels are never imputed as completed runtimes anywhere.
+  labels are never imputed as completed runtimes anywhere. Predictions in ms
+  are exp(predicted ln) with **no smearing correction**. They do not generally
+  estimate the arithmetic-mean runtime, so ms-scale metrics are secondary.
 * **1 s classification target:** `hr_1s_class`, positive or negative, frozen at
   1,000 ms. Development cases are 393 positive (106 semantic groups) and 4,391
   negative.
@@ -97,19 +101,59 @@ Four feature columns are constant in this release (`est_n_function_scan`,
 | Baseline | Regression | 1 s classification |
 |---|---|---|
 | Global median / prevalence | median of the training-fold labels | training-fold positive rate |
-| Raw planner cost | Spearman and Kendall rank agreement only (planner units are not milliseconds) | ranking by raw cost (PR-AUC) |
+| Raw planner cost | Spearman and Kendall rank agreement only (planner units are not milliseconds) | ranking by raw cost: average precision and ROC-AUC only |
 | **Cost-only (calibrated)** | ln(runtime) = a + b·ln(cost), least squares | logistic regression on ln(cost) |
 | **Scale-plus-cost** | ln(runtime) = a + b·ln(cost) + c·ln(scale factor) | logistic regression on ln(cost) and ln(scale factor) |
 
-The headline comparison is the learned model against the cost-only calibrated
-baseline. The scale-plus-cost baseline shows how much the model adds beyond
-knowing the snapshot size, which matters because every development positive at
-1 s is at SF 1.
+The headline reports **every predeclared learned model** (Ridge and
+histogram gradient boosting for regression; all-feature logistic regression and
+histogram gradient boosting for classification) against all baselines,
+including the cost-only calibrated baseline. No model is selected as a winner,
+and no cross-validation score is presented as an independent final test. The
+scale-plus-cost baseline shows how much a model adds beyond knowing the snapshot
+size, which matters because every development positive at 1 s is at SF 1.
+
+* **Baseline wording:**
+  - the regression cost baselines are **log-linear calibrations** of planner
+    cost;
+  - the classification cost baselines are **logistic calibrations of log
+    cost**.
+
+  Claims concern these specified baselines only. No isotonic models are used in
+  v1. With only two scale factors, the scale coefficient is not interpreted as
+  an established scaling law.
+* **Exact headline:**
+  - all headline results are pooled development out-of-fold results on
+    `fold_group`;
+  - for regression, log-MAE and median, p90 and p95 q-error for the
+    runtime-predicting models;
+  - for classification, average precision for every declared classifier;
+  - raw-cost regression ranking goes in a separate rank-metric table, and
+    threshold-dependent metrics go in a separate operating-point table.
+* **Uncertainty:**
+  - method: a paired cluster bootstrap over the 194 development semantic
+    groups (2,000 replicates, seed 20261021, 95 % percentile intervals);
+  - each replicate keeps every row of each drawn group, once per occurrence;
+    every model uses the same indices, and the case-weighted pooled metric
+    definitions are kept;
+  - differences are learned minus baseline, against both the cost-only and the
+    scale-plus-cost baselines.
+
+  These intervals are approximate and conditional on the fixed out-of-fold
+  predictions and folds. They do not capture retraining variability or
+  establish generalization to other databases or machines. A comparative claim
+  must name the metric, the baseline and the paired interval. No universal or
+  multiple-comparison-adjusted significance is claimed. Details are in
+  [rq1_modeling_implementation_plan.md](rq1_modeling_implementation_plan.md).
+* **Feature contract:** the learned models use exactly the 69 allowlisted
+  columns, with the same names in the same order. The raw `est_total_cost` is a
+  separate pre-execution baseline input outside that allowlist.
 
 **Fitting rule:** every preprocessing step (scaling, encoding, feature
-selection, dropping constant columns if chosen), every calibrated baseline and
-every decision threshold is fitted **inside the training folds only** and then
-applied to the test fold.
+selection, dropping constant columns if chosen) and every calibrated baseline is
+fitted **inside the training folds only** and then applied to the test fold.
+The classification decision threshold is not fitted: v1 fixes it at a
+predicted probability of 0.5 (see High-runtime classification).
 
 ## Splits
 
@@ -132,8 +176,10 @@ applied to the test fold.
 * **Labelled diagnostic:** `fold_seen_template` holds out whole query
   instances, so templates appear in training and test. It is never presented as
   unseen-structure performance.
-* **Leakage diagnostic only:** a random row-wise split (`splits.random_kfold`),
-  always labelled as such.
+* **Random row-wise split: deferred beyond v1.** A random split would have to
+  generate new folds, which v1 forbids. If a later version adds one as a
+  leakage diagnostic, it must be a separately recorded, seeded assignment that
+  is always labelled "leakage diagnostic" and never replaces `splits.csv`.
 * **Tuning:** the first scope uses fixed hyperparameters. If tuning is
   introduced, it uses **nested grouped partitions**: inside each outer training
   fold, the inner folds are formed from whole semantic groups of that training
@@ -159,23 +205,46 @@ The development data are concentrated, so pooled numbers alone would mislead:
 Every regression and classification result is therefore reported pooled
 (out-of-fold) **and** by snapshot, by component, by configuration and by runtime
 bin, with per-fold values for variability. A metric that is undefined in a
-stratum (for example PR-AUC at SF 0.1, which has no positives) is reported as
-undefined, and the false-positive rate is reported there instead.
+stratum is reported as null with a reason, following the metric-specific rules
+in [rq1_modeling_implementation_plan.md](rq1_modeling_implementation_plan.md).
+For example, average precision, ROC-AUC and recall are null at SF 0.1, which
+has no positives, while the false-positive rate and Brier score are still
+reported there.
+
+Some strata are thin, and they are flagged rather than hidden:
+- a classification stratum with fewer than 30 positives, or fewer than 5
+  positive semantic groups;
+- a pooled stratum whose positives all come from a single fold.
+
+Flagged results stay visible but are descriptive only. Rows also report query
+instances, positive groups and the folds contributing positives.
+
+**Limitations.** Every report carries the limitations block from
+`config/rq1_modeling_v1.yaml` verbatim. It covers:
+- the workload, the PostgreSQL version and image, the single machine, the two
+  scale factors, the two `work_mem` profiles, isolated warm-cache execution and
+  the 15 s timeout;
+- the execution-time-only target (planning and client latency excluded);
+- the absence of 10 s development cases;
+- the observed development range of 0.011–6,906.413 ms, outside which
+  predictions are unsupported.
 
 ## Noise and threshold diagnostics
 
 These are descriptive diagnostics. They never change a label, the frozen 1 s
 boundary, or the release.
 
-* **Repeated-run noise floor:** leave-one-run-out q-error of the three measured
-  repetitions, reported next to model error. On development cases, the
+* **Repetition-noise reference:** leave-one-run-out q-error of the three
+  measured repetitions, reported next to model error as a descriptive reference.
+  It is not a proven lower bound on prediction error. On development cases, the
   coefficient of variation of the repetitions has median 0.046 and 90th
   percentile 0.136 (audit, 2026-10-21).
 * **Threshold sensitivity:** 31 development cases have repetitions on both sides
   of 1,000 ms (13 of them positive by median), and 245 have medians between
   800 ms and 1,250 ms. Report classification metrics with and without this
   near-threshold band, as a labelled sensitivity analysis. The headline uses all
-  cases and the frozen labels.
+  cases and the frozen labels. Both sets are defined from observed runtimes, so
+  they are retrospective diagnostics and never pre-execution filters.
 
 ## Pilot diagnostic (implemented in `pilot_audit.py`; historical)
 
@@ -203,7 +272,7 @@ The learned model did not beat the baseline on unseen templates there.
 | MAE, RMSE (ms) | raw-scale errors | operational context |
 | R² (log and ms) | variance explained | **secondary; never called accuracy** |
 | Spearman / Kendall | rank agreement | raw-cost baseline |
-| Noise floor | leave-one-run-out q-error of repeated runs | reported next to model error |
+| Repetition-noise reference | leave-one-run-out q-error of repeated runs | descriptive reference next to model error; not a lower bound |
 
 Out-of-fold predictions are pooled for headline numbers; per-fold values are
 reported for variability. Tail error is reported by runtime bin.
@@ -217,16 +286,31 @@ reported for variability. Tail error is reported by runtime bin.
 * **10 s:** `NOT_YET_EVALUABLE` (G-08: no development positives). The four
   right-censored cases at or above 10 s are reserved RQ2 cases. Moving them, or
   any other RQ2 case, into development to reach the gate is not allowed.
-* Metrics: PR-AUC as the primary ranking metric; recall and false-negative rate
-  as primary safety measures; precision and warnings per 100 queries; Brier
-  score and calibration curve; ROC-AUC secondary; raw accuracy never a headline.
-  Any operating threshold on predicted scores is chosen inside the training
-  folds.
+* Metrics:
+  - **average precision** (`sklearn.metrics.average_precision_score`, the
+    non-interpolated step sum) is the primary ranking metric. It is reported
+    under that name and is never replaced by, or called, the trapezoidal area
+    under the precision-recall curve;
+  - recall and false-negative rate are the primary safety measures;
+  - precision and warnings per 100 queries;
+  - Brier score and calibration curve;
+  - ROC-AUC is secondary;
+  - raw accuracy is never a headline.
+* **Decision threshold:** v1 fixes the probability threshold at 0.5 (positive
+  when the predicted probability is at least 0.5). It was fixed in this
+  specification before any model was fitted and before any model prediction was
+  inspected. It was not chosen before any data were seen: the dataset had already
+  been audited. It is not tuned. The runtime-label boundary stays 1,000 ms.
+  Recall, false-negative rate and precision at 0.5 describe one predeclared
+  operating point, not a recommended production threshold. Ranking quality is
+  characterized by average precision and the step-wise precision-recall curve.
+  An optional threshold grid is deferred.
 
 ## Reporting rules
 
-* Random-split numbers are labelled "leakage diagnostic" and never described as
-  performance on unseen queries.
+* No random-split numbers are produced in v1. If a later version adds them,
+  they are labelled "leakage diagnostic" and never described as performance on
+  unseen queries.
 * Seen-template numbers are labelled "seen-template diagnostic".
 * Results show grouped numbers with keys, groups and keys per group, and the
   strata above.

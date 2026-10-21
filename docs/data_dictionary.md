@@ -169,7 +169,16 @@ version, filename, sha256, applied_at (C, provenance).
   `est_max_node_rows_log`, `est_join_count`, `est_scan_count`,
   `est_subplan_count`, `est_relation_count`, `est_workers_planned`,
   `est_parallel_aware_count`, `est_hashed_aggregate_count`, and 29 node-type
-  counts `est_n_<category>`; plus the raw baseline input `est_total_cost`.
+  counts `est_n_<category>`. These 44 class-D model features, the 23 class-A
+  features, `snap_scale_factor` and `cfg_work_mem_kb` make up the 69-column
+  learned-model allowlist (`config/rq1_modeling_input_v1.json`, exact names and
+  order).
+* **Separate baseline input:** the raw `est_total_cost` (`estimates.csv`) is a
+  registered class-D pre-execution field, used only by the calibrated cost
+  baselines as ln(`est_total_cost`). It is **outside** the learned-model
+  allowlist; the learned models see `est_total_cost_log` (log1p) instead.
+  Keeping it out preserves the declared 69-column feature contract. It is not a
+  leakage issue: the value is available before execution.
 
 ## Derived smoke files (`QCP_DATA_ROOT/derived/poster_smoke/<manifest>/<label_version>/<inputs>/`)
 
