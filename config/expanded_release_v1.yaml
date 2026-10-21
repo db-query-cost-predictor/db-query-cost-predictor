@@ -1,0 +1,1539 @@
+# Expanded release v1 - versioned specification. PLANNED: nothing here is a measurement.
+#
+# `expanded-arithmetic` expands this file into PROPOSED modeling keys without a
+# database; `expanded-manifest` registers them after both TPC-H snapshots are
+# loaded. A proposed key becomes a usable label only after collection and a
+# validation report prove it (status complete or right_censored).
+#
+# Identities (see docs/expanded_release_spec.md):
+#   semantic group  = one query structure; the unit held out together
+#   template        = one SQL text with placeholders (a group may hold several:
+#                     rewrite forms, or the indexed / unindexed predicate variant)
+#   query instance  = template + explicit parameter values
+#   modeling key    = query instance + snapshot + configuration + cache protocol + protocol version
+#   repetitions     = 1 unmeasured probe + 3 measured runs per key (children, never extra keys)
+#
+# Expected mechanisms are hypotheses. TPC-H-derived queries are benchmark
+# queries, not production incidents. No pg_sleep, no Cartesian products and no
+# unbounded statements: every join is an FK equi-join, every statement is a
+# single read-only SELECT bounded by the statement timeout and temp_file_limit.
+version: 1
+
+release:
+  release_name: expanded-v1
+  id_prefix: x1
+  target_min_proposed_keys: 4704
+  status: PLANNED
+
+protocol:
+  protocol_version: expanded-v1
+  cache_protocol: warm
+  statement_timeout_ms: 15000          # frozen for this release; a change requires a new protocol version
+  planned_final_timeout_ms: 15000      # recorded; equal to the collection timeout for this release
+  lock_timeout_ms: 5000
+  warmup_probes: 1
+  measured_repetitions: 3
+  order_seed: 20261003
+  watchdog_grace_ms: 10000
+  snapshot_check_every_n_keys: 25
+  max_transient_retries: 3
+  high_runtime_thresholds_ms: [1000, 10000]
+  # SUMMARY ON adds the planning time of the plain plan (nothing is executed). It
+  # bounds the censoring correction; it is stored as provenance, never as a feature.
+  explain_estimate_options: "SETTINGS, SUMMARY ON, FORMAT JSON"
+  explain_measured_options: "ANALYZE, BUFFERS, WAL, TIMING OFF, SUMMARY ON, SETTINGS, FORMAT JSON"
+  min_keys: 4704
+  max_keys: 6000
+
+snapshots:
+  tpch_sf0_1: {database: tpch_sf0_1, workload: tpch, scale_factor: "0.1", required: true}
+  tpch_sf1: {database: tpch_sf1, workload: tpch, scale_factor: "1", required: true}
+
+expected_row_counts:
+  "0.1": {region: 5, nation: 25, part: 20000, supplier: 1000, partsupp: 80000, customer: 15000, orders: 150000, lineitem: 600572}
+  "1": {region: 5, nation: 25, part: 200000, supplier: 10000, partsupp: 800000, customer: 150000, orders: 1500000, lineitem: 6001215}
+
+configurations:
+  C1_baseline:
+    description: "PostgreSQL 16 defaults (work_mem 4MB); jit=off and track_io_timing=on at server level"
+    session_settings: {jit: "off"}
+  C2_reduced_work_mem:
+    description: "C1 with work_mem 256kB to expose sort/hash spill; same value as the poster smoke run"
+    session_settings: {jit: "off", work_mem: "256kB"}
+
+labels:
+  frozen_high_runtime_thresholds_ms: [1000, 10000]   # frozen now; never changed to manufacture positives
+  censor_margin_ms: 100        # parse/rewrite/EXPLAIN-output allowance in the execution-time censoring bound
+  planning_fallback_ms: 1000   # used only if no planning time was observed for a censored key (flagged)
+
+splits:
+  n_folds: 5
+  seed: 20261005
+
+sample:
+  per_stratum: 5               # 22 strata x 5 = 110 development keys; RQ2-reserved keys never sampled
+  seed: 20261004
+
+gates:
+  min_usable_keys: 4704
+  min_development_usable_keys: 4000
+  min_groups_usable_on_all_snapshots: 150
+  max_template_share: 0.02
+  max_structure_family_share: 0.10
+  positives: {min_keys: 10, min_groups: 5, min_components: 2}   # per frozen threshold, development keys
+  max_sql_error_keys_in_sample: 0
+  max_failed_share_in_sample: 0.05
+
+budget:
+  min_free_gb_data_root: 20
+  disk_check_every_n_keys: 25
+  max_preflight_age_hours: 24
+  min_free_memory_gb_warn: 3
+  min_docker_memory_gb_warn: 6
+
+# Selectivity regimes of the generated structural groups (date-range length).
+# Expected fractions of lineitem rows (~0.1%, ~4%, ~47%) are design hypotheses;
+# estimated rows (class D) and actual rows (class E) record what happened.
+parameter_regimes:
+  R1_narrow: {days: 3, start_window: ["1992-06-01", "1998-06-01"]}
+  R2_medium: {days: 90, start_window: ["1992-06-01", "1998-03-01"]}
+  R3_wide: {days: 1200, start_window: ["1992-06-01", "1995-06-01"]}
+
+components:
+  # ============================================================================ TPC-H-derived (22 groups)
+  # The 22 TPC-H query shapes, PostgreSQL syntax, Q15 as a CTE (no DDL). Parameters
+  # are drawn deterministically from the specification's substitution domains, except
+  # Q11's FRACTION (fixed at its SF 1 value) and explicit Q8/Q18 sets. These are
+  # benchmark queries: results are "derived from TPC-H", never TPC-H results.
+  tpch_derived:
+    snapshots: [tpch_sf0_1, tpch_sf1]
+    configurations: [C1_baseline, C2_reduced_work_mem]
+    groups:
+      - name: q01
+        expected_mechanism: "Near-full scan of lineitem with a low-cardinality grouped aggregate."
+        coverage: [large_scan_aggregate, grouped_aggregate]
+        parameter_types: {delta_days: int}
+        parameters: {kind: sample, count: 8, seed: 1101, domains: {delta_days: {int_range: [60, 120]}}}
+        sql: |
+          SELECT l_returnflag, l_linestatus, sum(l_quantity) AS sum_qty, sum(l_extendedprice) AS sum_base_price,
+                 sum(l_extendedprice * (1 - l_discount)) AS sum_disc_price,
+                 sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) AS sum_charge,
+                 avg(l_quantity) AS avg_qty, avg(l_extendedprice) AS avg_price, avg(l_discount) AS avg_disc,
+                 count(*) AS count_order
+          FROM lineitem
+          WHERE l_shipdate <= DATE '1998-12-01' - {delta_days}
+          GROUP BY l_returnflag, l_linestatus
+          ORDER BY l_returnflag, l_linestatus
+      - name: q02
+        expected_mechanism: "Five-table join with a correlated minimum-cost subquery per part."
+        coverage: [join, correlated_subquery]
+        parameter_types: {size: int, type_suffix: token, region: token}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1102
+          domains:
+            size: {int_range: [1, 50]}
+            type_suffix: {choice: [TIN, NICKEL, BRASS, STEEL, COPPER]}
+            region: {choice: [AFRICA, AMERICA, ASIA, EUROPE, MIDDLE EAST]}
+        sql: |
+          SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment
+          FROM part, supplier, partsupp, nation, region
+          WHERE p_partkey = ps_partkey
+            AND s_suppkey = ps_suppkey
+            AND p_size = {size}
+            AND p_type LIKE '%{type_suffix}'
+            AND s_nationkey = n_nationkey
+            AND n_regionkey = r_regionkey
+            AND r_name = '{region}'
+            AND ps_supplycost = (
+                SELECT min(ps_supplycost)
+                FROM partsupp, supplier, nation, region
+                WHERE p_partkey = ps_partkey
+                  AND s_suppkey = ps_suppkey
+                  AND s_nationkey = n_nationkey
+                  AND n_regionkey = r_regionkey
+                  AND r_name = '{region}')
+          ORDER BY s_acctbal DESC, n_name, s_name, p_partkey
+          LIMIT 100
+      - name: q03
+        expected_mechanism: "Three-table join with date filters, grouped revenue and a top-10 sort."
+        coverage: [join, grouped_aggregate, sort]
+        parameter_types: {segment: token, order_date: date}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1103
+          domains:
+            segment: {choice: [AUTOMOBILE, BUILDING, FURNITURE, MACHINERY, HOUSEHOLD]}
+            order_date: {date_range: ["1995-03-01", "1995-03-31"]}
+        sql: |
+          SELECT l_orderkey, sum(l_extendedprice * (1 - l_discount)) AS revenue, o_orderdate, o_shippriority
+          FROM customer, orders, lineitem
+          WHERE c_mktsegment = '{segment}'
+            AND c_custkey = o_custkey
+            AND l_orderkey = o_orderkey
+            AND o_orderdate < DATE '{order_date}'
+            AND l_shipdate > DATE '{order_date}'
+          GROUP BY l_orderkey, o_orderdate, o_shippriority
+          ORDER BY revenue DESC, o_orderdate
+          LIMIT 10
+      - name: q04
+        expected_mechanism: "Quarter of orders with a correlated EXISTS semi-join on lineitem."
+        coverage: [semi_join, grouped_aggregate]
+        parameter_types: {month_start: date}
+        parameters: {kind: sample, count: 8, seed: 1104, domains: {month_start: {month_start: ["1993-01", "1997-10"]}}}
+        sql: |
+          SELECT o_orderpriority, count(*) AS order_count
+          FROM orders
+          WHERE o_orderdate >= DATE '{month_start}'
+            AND o_orderdate < DATE '{month_start}' + INTERVAL '3 months'
+            AND EXISTS (SELECT 1 FROM lineitem WHERE l_orderkey = o_orderkey AND l_commitdate < l_receiptdate)
+          GROUP BY o_orderpriority
+          ORDER BY o_orderpriority
+      - name: q05
+        expected_mechanism: "Six-table join (customer and supplier in the same nation) with grouped revenue."
+        coverage: [join, grouped_aggregate]
+        parameter_types: {region: token, year_start: date}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1105
+          domains:
+            region: {choice: [AFRICA, AMERICA, ASIA, EUROPE, MIDDLE EAST]}
+            year_start: {year_start: [1993, 1997]}
+        sql: |
+          SELECT n_name, sum(l_extendedprice * (1 - l_discount)) AS revenue
+          FROM customer, orders, lineitem, supplier, nation, region
+          WHERE c_custkey = o_custkey
+            AND l_orderkey = o_orderkey
+            AND l_suppkey = s_suppkey
+            AND c_nationkey = s_nationkey
+            AND s_nationkey = n_nationkey
+            AND n_regionkey = r_regionkey
+            AND r_name = '{region}'
+            AND o_orderdate >= DATE '{year_start}'
+            AND o_orderdate < DATE '{year_start}' + INTERVAL '1 year'
+          GROUP BY n_name
+          ORDER BY revenue DESC
+      - name: q06
+        expected_mechanism: "Selective single-table scan of lineitem with a scalar aggregate."
+        coverage: [selective_range, large_scan_aggregate]
+        parameter_types: {year_start: date, discount: decimal, quantity: int}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1106
+          domains:
+            year_start: {year_start: [1993, 1997]}
+            discount: {decimal_range: ["0.02", "0.09", "0.01"]}
+            quantity: {int_range: [24, 25]}
+        sql: |
+          SELECT sum(l_extendedprice * l_discount) AS revenue
+          FROM lineitem
+          WHERE l_shipdate >= DATE '{year_start}'
+            AND l_shipdate < DATE '{year_start}' + INTERVAL '1 year'
+            AND l_discount BETWEEN {discount} - 0.01 AND {discount} + 0.01
+            AND l_quantity < {quantity}
+      - name: q07
+        expected_mechanism: "Six-table join with a disjunctive nation-pair filter and grouped volume."
+        coverage: [join, grouped_aggregate]
+        parameter_types: {nation1: token, nation2: token}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1107
+          distinct: [[nation1, nation2]]
+          domains:
+            nation1: {choice: [ALGERIA, ARGENTINA, BRAZIL, CANADA, EGYPT, ETHIOPIA, FRANCE, GERMANY, INDIA, INDONESIA, IRAN, IRAQ, JAPAN, JORDAN, KENYA, MOROCCO, MOZAMBIQUE, PERU, CHINA, ROMANIA, SAUDI ARABIA, VIETNAM, RUSSIA, UNITED KINGDOM, UNITED STATES]}
+            nation2: {choice: [ALGERIA, ARGENTINA, BRAZIL, CANADA, EGYPT, ETHIOPIA, FRANCE, GERMANY, INDIA, INDONESIA, IRAN, IRAQ, JAPAN, JORDAN, KENYA, MOROCCO, MOZAMBIQUE, PERU, CHINA, ROMANIA, SAUDI ARABIA, VIETNAM, RUSSIA, UNITED KINGDOM, UNITED STATES]}
+        sql: |
+          SELECT supp_nation, cust_nation, l_year, sum(volume) AS revenue
+          FROM (
+              SELECT n1.n_name AS supp_nation, n2.n_name AS cust_nation,
+                     EXTRACT(YEAR FROM l_shipdate) AS l_year,
+                     l_extendedprice * (1 - l_discount) AS volume
+              FROM supplier, lineitem, orders, customer, nation n1, nation n2
+              WHERE s_suppkey = l_suppkey
+                AND o_orderkey = l_orderkey
+                AND c_custkey = o_custkey
+                AND s_nationkey = n1.n_nationkey
+                AND c_nationkey = n2.n_nationkey
+                AND ((n1.n_name = '{nation1}' AND n2.n_name = '{nation2}')
+                  OR (n1.n_name = '{nation2}' AND n2.n_name = '{nation1}'))
+                AND l_shipdate BETWEEN DATE '1995-01-01' AND DATE '1996-12-31'
+          ) AS shipping
+          GROUP BY supp_nation, cust_nation, l_year
+          ORDER BY supp_nation, cust_nation, l_year
+      - name: q08
+        expected_mechanism: "Eight-way join with a part-type filter and a market-share ratio by year."
+        coverage: [join, grouped_aggregate]
+        parameter_types: {nation: token, region: token, part_type: token}
+        parameters:
+          kind: explicit
+          regime: spec_domain_explicit
+          sets:
+            - {nation: BRAZIL, region: AMERICA, part_type: ECONOMY ANODIZED STEEL}
+            - {nation: CANADA, region: AMERICA, part_type: STANDARD POLISHED BRASS}
+            - {nation: FRANCE, region: EUROPE, part_type: SMALL PLATED COPPER}
+            - {nation: GERMANY, region: EUROPE, part_type: MEDIUM BRUSHED TIN}
+            - {nation: JAPAN, region: ASIA, part_type: LARGE BURNISHED NICKEL}
+            - {nation: INDIA, region: ASIA, part_type: PROMO ANODIZED STEEL}
+            - {nation: EGYPT, region: MIDDLE EAST, part_type: ECONOMY POLISHED COPPER}
+            - {nation: KENYA, region: AFRICA, part_type: STANDARD BRUSHED NICKEL}
+        sql: |
+          SELECT o_year,
+                 sum(CASE WHEN nation = '{nation}' THEN volume ELSE 0 END) / sum(volume) AS mkt_share
+          FROM (
+              SELECT EXTRACT(YEAR FROM o_orderdate) AS o_year,
+                     l_extendedprice * (1 - l_discount) AS volume,
+                     n2.n_name AS nation
+              FROM part, supplier, lineitem, orders, customer, nation n1, nation n2, region
+              WHERE p_partkey = l_partkey
+                AND s_suppkey = l_suppkey
+                AND l_orderkey = o_orderkey
+                AND o_custkey = c_custkey
+                AND c_nationkey = n1.n_nationkey
+                AND n1.n_regionkey = r_regionkey
+                AND r_name = '{region}'
+                AND s_nationkey = n2.n_nationkey
+                AND o_orderdate BETWEEN DATE '1995-01-01' AND DATE '1996-12-31'
+                AND p_type = '{part_type}'
+          ) AS all_nations
+          GROUP BY o_year
+          ORDER BY o_year
+      - name: q09
+        expected_mechanism: "Six-table join driven by a leading-wildcard LIKE on part names; grouped profit."
+        coverage: [join, leading_wildcard, grouped_aggregate]
+        parameter_types: {color: word}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1109
+          domains:
+            color: {choice: [green, forest, blue, red, ivory, khaki, lemon, navy, olive, peach, pink, plum, rose, salmon, smoke, tomato, violet, wheat, white, yellow]}
+        sql: |
+          SELECT nation, o_year, sum(amount) AS sum_profit
+          FROM (
+              SELECT n_name AS nation, EXTRACT(YEAR FROM o_orderdate) AS o_year,
+                     l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity AS amount
+              FROM part, supplier, lineitem, partsupp, orders, nation
+              WHERE s_suppkey = l_suppkey
+                AND ps_suppkey = l_suppkey
+                AND ps_partkey = l_partkey
+                AND p_partkey = l_partkey
+                AND o_orderkey = l_orderkey
+                AND s_nationkey = n_nationkey
+                AND p_name LIKE '%{color}%'
+          ) AS profit
+          GROUP BY nation, o_year
+          ORDER BY nation, o_year DESC
+      - name: q10
+        expected_mechanism: "Four-table join over one quarter of returned items; grouped revenue with a top-20 sort."
+        coverage: [join, grouped_aggregate, sort]
+        parameter_types: {month_start: date}
+        parameters: {kind: sample, count: 8, seed: 1110, domains: {month_start: {month_start: ["1993-02", "1995-01"]}}}
+        sql: |
+          SELECT c_custkey, c_name, sum(l_extendedprice * (1 - l_discount)) AS revenue, c_acctbal, n_name,
+                 c_address, c_phone, c_comment
+          FROM customer, orders, lineitem, nation
+          WHERE c_custkey = o_custkey
+            AND l_orderkey = o_orderkey
+            AND o_orderdate >= DATE '{month_start}'
+            AND o_orderdate < DATE '{month_start}' + INTERVAL '3 months'
+            AND l_returnflag = 'R'
+            AND c_nationkey = n_nationkey
+          GROUP BY c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment
+          ORDER BY revenue DESC
+          LIMIT 20
+      - name: q11
+        expected_mechanism: "Grouped partsupp value per nation with an uncorrelated HAVING subquery."
+        coverage: [join, grouped_aggregate]
+        parameter_types: {nation: token, fraction: decimal}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1111
+          domains:
+            nation: {choice: [ALGERIA, ARGENTINA, BRAZIL, CANADA, EGYPT, ETHIOPIA, FRANCE, GERMANY, INDIA, INDONESIA, IRAN, IRAQ, JAPAN, JORDAN, KENYA, MOROCCO, MOZAMBIQUE, PERU, CHINA, ROMANIA, SAUDI ARABIA, VIETNAM, RUSSIA, UNITED KINGDOM, UNITED STATES]}
+            fraction: {choice: ["0.0001"]}
+        sql: |
+          SELECT ps_partkey, sum(ps_supplycost * ps_availqty) AS value
+          FROM partsupp, supplier, nation
+          WHERE ps_suppkey = s_suppkey
+            AND s_nationkey = n_nationkey
+            AND n_name = '{nation}'
+          GROUP BY ps_partkey
+          HAVING sum(ps_supplycost * ps_availqty) > (
+              SELECT sum(ps_supplycost * ps_availqty) * {fraction}
+              FROM partsupp, supplier, nation
+              WHERE ps_suppkey = s_suppkey
+                AND s_nationkey = n_nationkey
+                AND n_name = '{nation}')
+          ORDER BY value DESC
+      - name: q12
+        expected_mechanism: "Two-table join on unindexed receipt-date and ship-mode filters; conditional counts."
+        coverage: [join, grouped_aggregate]
+        parameter_types: {shipmode1: token, shipmode2: token, year_start: date}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1112
+          distinct: [[shipmode1, shipmode2]]
+          domains:
+            shipmode1: {choice: [REG AIR, AIR, RAIL, SHIP, TRUCK, MAIL, FOB]}
+            shipmode2: {choice: [REG AIR, AIR, RAIL, SHIP, TRUCK, MAIL, FOB]}
+            year_start: {year_start: [1993, 1997]}
+        sql: |
+          SELECT l_shipmode,
+                 sum(CASE WHEN o_orderpriority = '1-URGENT' OR o_orderpriority = '2-HIGH' THEN 1 ELSE 0 END) AS high_line_count,
+                 sum(CASE WHEN o_orderpriority <> '1-URGENT' AND o_orderpriority <> '2-HIGH' THEN 1 ELSE 0 END) AS low_line_count
+          FROM orders, lineitem
+          WHERE o_orderkey = l_orderkey
+            AND l_shipmode IN ('{shipmode1}', '{shipmode2}')
+            AND l_commitdate < l_receiptdate
+            AND l_shipdate < l_commitdate
+            AND l_receiptdate >= DATE '{year_start}'
+            AND l_receiptdate < DATE '{year_start}' + INTERVAL '1 year'
+          GROUP BY l_shipmode
+          ORDER BY l_shipmode
+      - name: q13
+        expected_mechanism: "Outer join of every customer to orders filtered by a two-word NOT LIKE; nested aggregation."
+        coverage: [outer_join, grouped_aggregate]
+        parameter_types: {word1: word, word2: word}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1113
+          domains:
+            word1: {choice: [special, pending, unusual, express]}
+            word2: {choice: [packages, requests, accounts, deposits]}
+        sql: |
+          SELECT c_count, count(*) AS custdist
+          FROM (
+              SELECT c_custkey, count(o_orderkey) AS c_count
+              FROM customer LEFT OUTER JOIN orders
+                ON c_custkey = o_custkey AND o_comment NOT LIKE '%{word1}%{word2}%'
+              GROUP BY c_custkey
+          ) AS c_orders
+          GROUP BY c_count
+          ORDER BY custdist DESC, c_count DESC
+      - name: q14
+        expected_mechanism: "One month of lineitem joined to part; conditional revenue ratio."
+        coverage: [join, selective_range]
+        parameter_types: {month_start: date}
+        parameters: {kind: sample, count: 8, seed: 1114, domains: {month_start: {month_start: ["1993-01", "1997-12"]}}}
+        sql: |
+          SELECT 100.00 * sum(CASE WHEN p_type LIKE 'PROMO%' THEN l_extendedprice * (1 - l_discount) ELSE 0 END)
+                 / sum(l_extendedprice * (1 - l_discount)) AS promo_revenue
+          FROM lineitem, part
+          WHERE l_partkey = p_partkey
+            AND l_shipdate >= DATE '{month_start}'
+            AND l_shipdate < DATE '{month_start}' + INTERVAL '1 month'
+      - name: q15
+        expected_mechanism: "Quarterly revenue per supplier in a CTE referenced twice (materialized), max lookup."
+        coverage: [cte, grouped_aggregate]
+        parameter_types: {month_start: date}
+        parameters: {kind: sample, count: 8, seed: 1115, domains: {month_start: {month_start: ["1993-01", "1997-10"]}}}
+        sql: |
+          WITH revenue AS (
+              SELECT l_suppkey AS supplier_no, sum(l_extendedprice * (1 - l_discount)) AS total_revenue
+              FROM lineitem
+              WHERE l_shipdate >= DATE '{month_start}'
+                AND l_shipdate < DATE '{month_start}' + INTERVAL '3 months'
+              GROUP BY l_suppkey
+          )
+          SELECT s_suppkey, s_name, s_address, s_phone, total_revenue
+          FROM supplier, revenue
+          WHERE s_suppkey = supplier_no
+            AND total_revenue = (SELECT max(total_revenue) FROM revenue)
+          ORDER BY s_suppkey
+      - name: q16
+        expected_mechanism: "Partsupp joined to part with NOT LIKE, IN-list and NOT IN subquery; count distinct."
+        coverage: [join, anti_join, grouped_aggregate]
+        parameter_types: {brand: token, type_prefix: token, size1: int, size2: int, size3: int, size4: int, size5: int, size6: int, size7: int, size8: int}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1116
+          distinct: [[size1, size2, size3, size4, size5, size6, size7, size8]]
+          domains:
+            brand: {choice: ["Brand#11", "Brand#12", "Brand#13", "Brand#14", "Brand#15", "Brand#21", "Brand#22", "Brand#23", "Brand#24", "Brand#25", "Brand#31", "Brand#32", "Brand#33", "Brand#34", "Brand#35", "Brand#41", "Brand#42", "Brand#43", "Brand#44", "Brand#45", "Brand#51", "Brand#52", "Brand#53", "Brand#54", "Brand#55"]}
+            type_prefix: {choice: [STANDARD POLISHED, SMALL BRUSHED, MEDIUM POLISHED, LARGE BURNISHED, ECONOMY ANODIZED, PROMO PLATED, STANDARD BURNISHED, SMALL PLATED, MEDIUM ANODIZED, LARGE BRUSHED]}
+            size1: {int_range: [1, 50]}
+            size2: {int_range: [1, 50]}
+            size3: {int_range: [1, 50]}
+            size4: {int_range: [1, 50]}
+            size5: {int_range: [1, 50]}
+            size6: {int_range: [1, 50]}
+            size7: {int_range: [1, 50]}
+            size8: {int_range: [1, 50]}
+        sql: |
+          SELECT p_brand, p_type, p_size, count(DISTINCT ps_suppkey) AS supplier_cnt
+          FROM partsupp, part
+          WHERE p_partkey = ps_partkey
+            AND p_brand <> '{brand}'
+            AND p_type NOT LIKE '{type_prefix}%'
+            AND p_size IN ({size1}, {size2}, {size3}, {size4}, {size5}, {size6}, {size7}, {size8})
+            AND ps_suppkey NOT IN (
+                SELECT s_suppkey FROM supplier WHERE s_comment LIKE '%Customer%Complaints%')
+          GROUP BY p_brand, p_type, p_size
+          ORDER BY supplier_cnt DESC, p_brand, p_type, p_size
+      - name: q17
+        expected_mechanism: "Part filter joined to lineitem with a correlated average subquery per part (indexed l_partkey)."
+        coverage: [join, correlated_subquery]
+        parameter_types: {brand: token, container: token}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1117
+          domains:
+            brand: {choice: ["Brand#11", "Brand#12", "Brand#13", "Brand#14", "Brand#15", "Brand#21", "Brand#22", "Brand#23", "Brand#24", "Brand#25", "Brand#31", "Brand#32", "Brand#33", "Brand#34", "Brand#35", "Brand#41", "Brand#42", "Brand#43", "Brand#44", "Brand#45", "Brand#51", "Brand#52", "Brand#53", "Brand#54", "Brand#55"]}
+            container: {choice: [SM CASE, SM BOX, SM PACK, SM PKG, MED BAG, MED BOX, MED PKG, MED PACK, LG CASE, LG BOX, LG PACK, LG PKG, JUMBO BOX, JUMBO JAR, WRAP CASE, WRAP BOX]}
+        sql: |
+          SELECT sum(l_extendedprice) / 7.0 AS avg_yearly
+          FROM lineitem, part
+          WHERE p_partkey = l_partkey
+            AND p_brand = '{brand}'
+            AND p_container = '{container}'
+            AND l_quantity < (SELECT 0.2 * avg(l_quantity) FROM lineitem WHERE l_partkey = p_partkey)
+      - name: q18
+        expected_mechanism: "IN-subquery over a full grouped scan of lineitem with HAVING; three-table join and top-100 sort."
+        coverage: [join, grouped_aggregate, large_scan_aggregate]
+        parameter_types: {quantity: int}
+        parameters:
+          kind: explicit
+          regime: spec_domain_explicit
+          sets: [{quantity: 312}, {quantity: 313}, {quantity: 314}, {quantity: 315}]
+        sql: |
+          SELECT c_name, c_custkey, o_orderkey, o_orderdate, o_totalprice, sum(l_quantity) AS total_qty
+          FROM customer, orders, lineitem
+          WHERE o_orderkey IN (
+                  SELECT l_orderkey FROM lineitem GROUP BY l_orderkey HAVING sum(l_quantity) > {quantity})
+            AND c_custkey = o_custkey
+            AND o_orderkey = l_orderkey
+          GROUP BY c_name, c_custkey, o_orderkey, o_orderdate, o_totalprice
+          ORDER BY o_totalprice DESC, o_orderdate
+          LIMIT 100
+      - name: q19
+        expected_mechanism: "Lineitem-part join with a three-branch disjunctive predicate."
+        coverage: [join, disjunction]
+        parameter_types: {brand1: token, brand2: token, brand3: token, quantity1: int, quantity2: int, quantity3: int}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1119
+          # Ten distinct TPC-H brands (Brand#MN, M and N in 1-5) per branch. The spec draws
+          # the three brands independently, so brand3 may repeat brand1 or brand2.
+          domains:
+            brand1: {choice: ["Brand#11", "Brand#12", "Brand#13", "Brand#14", "Brand#15", "Brand#21", "Brand#22", "Brand#23", "Brand#24", "Brand#25"]}
+            brand2: {choice: ["Brand#31", "Brand#32", "Brand#33", "Brand#34", "Brand#35", "Brand#41", "Brand#42", "Brand#43", "Brand#44", "Brand#45"]}
+            brand3: {choice: ["Brand#51", "Brand#52", "Brand#53", "Brand#54", "Brand#55", "Brand#12", "Brand#23", "Brand#34", "Brand#45", "Brand#13"]}
+            quantity1: {int_range: [1, 10]}
+            quantity2: {int_range: [10, 20]}
+            quantity3: {int_range: [20, 30]}
+        sql: |
+          SELECT sum(l_extendedprice * (1 - l_discount)) AS revenue
+          FROM lineitem, part
+          WHERE (p_partkey = l_partkey AND p_brand = '{brand1}'
+                 AND p_container IN ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+                 AND l_quantity >= {quantity1} AND l_quantity <= {quantity1} + 10
+                 AND p_size BETWEEN 1 AND 5
+                 AND l_shipmode IN ('AIR', 'AIR REG') AND l_shipinstruct = 'DELIVER IN PERSON')
+             OR (p_partkey = l_partkey AND p_brand = '{brand2}'
+                 AND p_container IN ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+                 AND l_quantity >= {quantity2} AND l_quantity <= {quantity2} + 10
+                 AND p_size BETWEEN 1 AND 10
+                 AND l_shipmode IN ('AIR', 'AIR REG') AND l_shipinstruct = 'DELIVER IN PERSON')
+             OR (p_partkey = l_partkey AND p_brand = '{brand3}'
+                 AND p_container IN ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+                 AND l_quantity >= {quantity3} AND l_quantity <= {quantity3} + 10
+                 AND p_size BETWEEN 1 AND 15
+                 AND l_shipmode IN ('AIR', 'AIR REG') AND l_shipinstruct = 'DELIVER IN PERSON')
+      - name: q20
+        expected_mechanism: "Nested IN-subqueries with a correlated sum over lineitem per (part, supplier)."
+        coverage: [semi_join, correlated_subquery]
+        parameter_types: {color: word, year_start: date, nation: token}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1120
+          domains:
+            color: {choice: [green, forest, blue, red, ivory, khaki, lemon, navy, olive, peach, pink, plum, rose, salmon, smoke, tomato, violet, wheat, white, yellow]}
+            year_start: {year_start: [1993, 1997]}
+            nation: {choice: [ALGERIA, ARGENTINA, BRAZIL, CANADA, EGYPT, ETHIOPIA, FRANCE, GERMANY, INDIA, INDONESIA, IRAN, IRAQ, JAPAN, JORDAN, KENYA, MOROCCO, MOZAMBIQUE, PERU, CHINA, ROMANIA, SAUDI ARABIA, VIETNAM, RUSSIA, UNITED KINGDOM, UNITED STATES]}
+        sql: |
+          SELECT s_name, s_address
+          FROM supplier, nation
+          WHERE s_suppkey IN (
+                  SELECT ps_suppkey FROM partsupp
+                  WHERE ps_partkey IN (SELECT p_partkey FROM part WHERE p_name LIKE '{color}%')
+                    AND ps_availqty > (
+                        SELECT 0.5 * sum(l_quantity) FROM lineitem
+                        WHERE l_partkey = ps_partkey
+                          AND l_suppkey = ps_suppkey
+                          AND l_shipdate >= DATE '{year_start}'
+                          AND l_shipdate < DATE '{year_start}' + INTERVAL '1 year'))
+            AND s_nationkey = n_nationkey
+            AND n_name = '{nation}'
+          ORDER BY s_name
+      - name: q21
+        expected_mechanism: "Join with EXISTS and NOT EXISTS self-references on lineitem; grouped count and top-100."
+        coverage: [semi_join, anti_join, grouped_aggregate]
+        parameter_types: {nation: token}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1121
+          domains:
+            nation: {choice: [ALGERIA, ARGENTINA, BRAZIL, CANADA, EGYPT, ETHIOPIA, FRANCE, GERMANY, INDIA, INDONESIA, IRAN, IRAQ, JAPAN, JORDAN, KENYA, MOROCCO, MOZAMBIQUE, PERU, CHINA, ROMANIA, SAUDI ARABIA, VIETNAM, RUSSIA, UNITED KINGDOM, UNITED STATES]}
+        sql: |
+          SELECT s_name, count(*) AS numwait
+          FROM supplier, lineitem l1, orders, nation
+          WHERE s_suppkey = l1.l_suppkey
+            AND o_orderkey = l1.l_orderkey
+            AND o_orderstatus = 'F'
+            AND l1.l_receiptdate > l1.l_commitdate
+            AND EXISTS (SELECT 1 FROM lineitem l2 WHERE l2.l_orderkey = l1.l_orderkey AND l2.l_suppkey <> l1.l_suppkey)
+            AND NOT EXISTS (SELECT 1 FROM lineitem l3
+                            WHERE l3.l_orderkey = l1.l_orderkey AND l3.l_suppkey <> l1.l_suppkey
+                              AND l3.l_receiptdate > l3.l_commitdate)
+            AND s_nationkey = n_nationkey
+            AND n_name = '{nation}'
+          GROUP BY s_name
+          ORDER BY numwait DESC, s_name
+          LIMIT 100
+      - name: q22
+        expected_mechanism: "Customer scan with a function-wrapped phone prefix, a scalar average and NOT EXISTS."
+        coverage: [anti_join, function_predicate, grouped_aggregate]
+        parameter_types: {code1: int, code2: int, code3: int, code4: int, code5: int, code6: int, code7: int}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 1122
+          distinct: [[code1, code2, code3, code4, code5, code6, code7]]
+          domains:
+            code1: {int_range: [10, 34]}
+            code2: {int_range: [10, 34]}
+            code3: {int_range: [10, 34]}
+            code4: {int_range: [10, 34]}
+            code5: {int_range: [10, 34]}
+            code6: {int_range: [10, 34]}
+            code7: {int_range: [10, 34]}
+        sql: |
+          SELECT cntrycode, count(*) AS numcust, sum(c_acctbal) AS totacctbal
+          FROM (
+              SELECT substring(c_phone FROM 1 FOR 2) AS cntrycode, c_acctbal
+              FROM customer
+              WHERE substring(c_phone FROM 1 FOR 2) IN ('{code1}', '{code2}', '{code3}', '{code4}', '{code5}', '{code6}', '{code7}')
+                AND c_acctbal > (
+                    SELECT avg(c_acctbal) FROM customer
+                    WHERE c_acctbal > 0.00
+                      AND substring(c_phone FROM 1 FOR 2) IN ('{code1}', '{code2}', '{code3}', '{code4}', '{code5}', '{code6}', '{code7}'))
+                AND NOT EXISTS (SELECT 1 FROM orders WHERE o_custkey = c_custkey)
+          ) AS custsale
+          GROUP BY cntrycode
+          ORDER BY cntrycode
+
+  # ============================================================================ generated structural (128 groups)
+  # Every join path x output shape is one semantic group. Each group has two
+  # templates that differ only in index availability: the date range is applied to
+  # the indexed l_shipdate or to the unindexed l_receiptdate (same distribution
+  # shifted by 1-30 days). Both templates use the same three selectivity regimes.
+  structural:
+    snapshots: [tpch_sf0_1, tpch_sf1]
+    configurations: [C1_baseline, C2_reduced_work_mem]
+    regimes: [R1_narrow, R2_medium, R3_wide]
+    draws_per_regime: 1
+    seed: 3001
+    predicates:
+      indexed_predicate: "l.l_shipdate >= DATE '{start_date}' AND l.l_shipdate < DATE '{start_date}' + {days}"
+      unindexed_predicate: "l.l_receiptdate >= DATE '{start_date}' AND l.l_receiptdate < DATE '{start_date}' + {days}"
+    paths:
+      p01_l:
+        description: "lineitem alone"
+        from: "lineitem l"
+        dim_low: "l.l_shipmode"
+        dim_high: "l.l_orderkey"
+      p02_lo:
+        description: "lineitem-orders (FK join)"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey"
+        dim_low: "o.o_orderpriority"
+        dim_high: "o.o_custkey"
+      p03_lp:
+        description: "lineitem-part (FK join)"
+        from: "lineitem l JOIN part p ON p.p_partkey = l.l_partkey"
+        dim_low: "p.p_mfgr"
+        dim_high: "p.p_partkey"
+      p04_ls:
+        description: "lineitem-supplier (FK join)"
+        from: "lineitem l JOIN supplier s ON s.s_suppkey = l.l_suppkey"
+        dim_low: "s.s_nationkey"
+        dim_high: "s.s_suppkey"
+      p05_lps:
+        description: "lineitem-partsupp (composite FK join)"
+        from: "lineitem l JOIN partsupp ps ON ps.ps_partkey = l.l_partkey AND ps.ps_suppkey = l.l_suppkey"
+        dim_low: "l.l_returnflag"
+        dim_high: "ps.ps_partkey"
+      p06_loc:
+        description: "lineitem-orders-customer chain"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey JOIN customer c ON c.c_custkey = o.o_custkey"
+        dim_low: "c.c_mktsegment"
+        dim_high: "c.c_custkey"
+      p07_lsn:
+        description: "lineitem-supplier-nation chain"
+        from: "lineitem l JOIN supplier s ON s.s_suppkey = l.l_suppkey JOIN nation n ON n.n_nationkey = s.s_nationkey"
+        dim_low: "n.n_name"
+        dim_high: "s.s_suppkey"
+      p08_locn:
+        description: "lineitem-orders-customer-nation chain"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey JOIN customer c ON c.c_custkey = o.o_custkey JOIN nation n ON n.n_nationkey = c.c_nationkey"
+        dim_low: "n.n_name"
+        dim_high: "c.c_custkey"
+      p09_lsnr:
+        description: "lineitem-supplier-nation-region chain"
+        from: "lineitem l JOIN supplier s ON s.s_suppkey = l.l_suppkey JOIN nation n ON n.n_nationkey = s.s_nationkey JOIN region r ON r.r_regionkey = n.n_regionkey"
+        dim_low: "r.r_name"
+        dim_high: "s.s_suppkey"
+      p10_locnr:
+        description: "lineitem-orders-customer-nation-region chain"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey JOIN customer c ON c.c_custkey = o.o_custkey JOIN nation n ON n.n_nationkey = c.c_nationkey JOIN region r ON r.r_regionkey = n.n_regionkey"
+        dim_low: "r.r_name"
+        dim_high: "o.o_custkey"
+      p11_lpsup:
+        description: "lineitem star joined to part and supplier"
+        from: "lineitem l JOIN part p ON p.p_partkey = l.l_partkey JOIN supplier s ON s.s_suppkey = l.l_suppkey"
+        dim_low: "p.p_mfgr"
+        dim_high: "s.s_suppkey"
+      p12_lop:
+        description: "lineitem star joined to orders and part"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey JOIN part p ON p.p_partkey = l.l_partkey"
+        dim_low: "o.o_orderpriority"
+        dim_high: "p.p_partkey"
+      p13_los:
+        description: "lineitem star joined to orders and supplier"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey JOIN supplier s ON s.s_suppkey = l.l_suppkey"
+        dim_low: "o.o_orderstatus"
+        dim_high: "s.s_suppkey"
+      p14_locs:
+        description: "lineitem-orders-customer plus supplier in the customer's nation (cyclic join graph)"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey JOIN customer c ON c.c_custkey = o.o_custkey JOIN supplier s ON s.s_suppkey = l.l_suppkey AND s.s_nationkey = c.c_nationkey"
+        dim_low: "c.c_mktsegment"
+        dim_high: "c.c_custkey"
+      p15_lpps:
+        description: "lineitem-partsupp-part chain"
+        from: "lineitem l JOIN partsupp ps ON ps.ps_partkey = l.l_partkey AND ps.ps_suppkey = l.l_suppkey JOIN part p ON p.p_partkey = ps.ps_partkey"
+        dim_low: "p.p_brand"
+        dim_high: "ps.ps_suppkey"
+      p16_locsnr:
+        description: "six-table cyclic join (customer and supplier in the same nation, with region)"
+        from: "lineitem l JOIN orders o ON o.o_orderkey = l.l_orderkey JOIN customer c ON c.c_custkey = o.o_custkey JOIN supplier s ON s.s_suppkey = l.l_suppkey AND s.s_nationkey = c.c_nationkey JOIN nation n ON n.n_nationkey = s.s_nationkey JOIN region r ON r.r_regionkey = n.n_regionkey"
+        dim_low: "n.n_name"
+        dim_high: "o.o_orderkey"
+    shapes:
+      s1_scalar_agg:
+        description: "scalar aggregate"
+        sql: |
+          SELECT count(*) AS n_rows, sum(l.l_extendedprice * (1 - l.l_discount)) AS revenue
+          FROM <<from>>
+          WHERE <<pred>>
+      s2_group_low:
+        description: "grouped aggregate on a low-cardinality column, ordered"
+        sql: |
+          SELECT <<dim_low>> AS dim_low, count(*) AS n_rows, sum(l.l_extendedprice * (1 - l.l_discount)) AS revenue
+          FROM <<from>>
+          WHERE <<pred>>
+          GROUP BY <<dim_low>>
+          ORDER BY <<dim_low>>
+      s3_group_high:
+        description: "grouped aggregate on a high-cardinality key (hash-aggregate spill candidate)"
+        sql: |
+          SELECT <<dim_high>> AS dim_high, count(*) AS n_rows, sum(l.l_quantity) AS total_qty
+          FROM <<from>>
+          WHERE <<pred>>
+          GROUP BY <<dim_high>>
+      s4_distinct_high:
+        description: "DISTINCT over a high-cardinality key and a flag"
+        sql: |
+          SELECT DISTINCT <<dim_high>> AS dim_high, l.l_returnflag
+          FROM <<from>>
+          WHERE <<pred>>
+      s5_count_distinct:
+        description: "COUNT(DISTINCT high-cardinality key) per low-cardinality group"
+        sql: |
+          SELECT <<dim_low>> AS dim_low, count(DISTINCT <<dim_high>>) AS n_distinct
+          FROM <<from>>
+          WHERE <<pred>>
+          GROUP BY <<dim_low>>
+      s6_topn:
+        description: "top-100 by price (bounded top-N sort)"
+        sql: |
+          SELECT <<dim_high>> AS dim_high, l.l_orderkey, l.l_linenumber, l.l_extendedprice
+          FROM <<from>>
+          WHERE <<pred>>
+          ORDER BY l.l_extendedprice DESC, l.l_orderkey, l.l_linenumber
+          LIMIT 100
+      s7_full_sort:
+        description: "full sort of every qualifying row by a text column (sort spill candidate)"
+        sql: |
+          SELECT <<dim_low>> AS dim_low, l.l_orderkey, l.l_linenumber, l.l_comment
+          FROM <<from>>
+          WHERE <<pred>>
+          ORDER BY l.l_comment, l.l_orderkey, l.l_linenumber
+      s8_window_rank:
+        description: "rank() window per low-cardinality partition, top 3 kept"
+        sql: |
+          SELECT ranked.dim_low, ranked.l_orderkey, ranked.l_linenumber, ranked.rnk
+          FROM (
+              SELECT <<dim_low>> AS dim_low, l.l_orderkey, l.l_linenumber,
+                     rank() OVER (PARTITION BY <<dim_low>> ORDER BY l.l_extendedprice DESC) AS rnk
+              FROM <<from>>
+              WHERE <<pred>>
+          ) AS ranked
+          WHERE ranked.rnk <= 3
+
+  # ============================================================================ point / range probes (24 groups)
+  # Single-query probes of index access paths (the fast regime). Not an OLTP
+  # benchmark. Parameter domains stay inside SF 0.1 key ranges, so every instance
+  # is valid on both snapshots. work_mem does not apply, so only C1 is collected.
+  probe:
+    snapshots: [tpch_sf0_1, tpch_sf1]
+    configurations: [C1_baseline]
+    groups:
+      - name: orders_pk
+        expected_mechanism: "Primary-key point lookup on orders (sparse keys: absent keys return no row)."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {order_key: int}
+        parameters: {kind: sample, count: 8, seed: 2101, domains: {order_key: {int_range: [1, 600000]}}}
+        sql: |
+          SELECT o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate
+          FROM orders
+          WHERE o_orderkey = {order_key}
+      - name: lineitem_pk
+        expected_mechanism: "Composite primary-key point lookup on lineitem."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {order_key: int, line_number: int}
+        parameters: {kind: sample, count: 8, seed: 2102, domains: {order_key: {int_range: [1, 600000]}, line_number: {int_range: [1, 7]}}}
+        sql: |
+          SELECT l_orderkey, l_linenumber, l_quantity, l_extendedprice
+          FROM lineitem
+          WHERE l_orderkey = {order_key} AND l_linenumber = {line_number}
+      - name: customer_pk
+        expected_mechanism: "Primary-key point lookup on customer."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {cust_key: int}
+        parameters: {kind: sample, count: 8, seed: 2103, domains: {cust_key: {int_range: [1, 15000]}}}
+        sql: |
+          SELECT c_custkey, c_name, c_nationkey, c_acctbal
+          FROM customer
+          WHERE c_custkey = {cust_key}
+      - name: part_pk
+        expected_mechanism: "Primary-key point lookup on part."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {part_key: int}
+        parameters: {kind: sample, count: 8, seed: 2104, domains: {part_key: {int_range: [1, 20000]}}}
+        sql: |
+          SELECT p_partkey, p_name, p_brand, p_retailprice
+          FROM part
+          WHERE p_partkey = {part_key}
+      - name: supplier_pk
+        expected_mechanism: "Primary-key point lookup on supplier."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {supp_key: int}
+        parameters: {kind: sample, count: 8, seed: 2105, domains: {supp_key: {int_range: [1, 1000]}}}
+        sql: |
+          SELECT s_suppkey, s_name, s_nationkey, s_acctbal
+          FROM supplier
+          WHERE s_suppkey = {supp_key}
+      - name: partsupp_pk
+        expected_mechanism: "Composite primary-key point lookup on partsupp (random pairs are often absent)."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {part_key: int, supp_key: int}
+        parameters: {kind: sample, count: 8, seed: 2106, domains: {part_key: {int_range: [1, 20000]}, supp_key: {int_range: [1, 1000]}}}
+        sql: |
+          SELECT ps_partkey, ps_suppkey, ps_availqty, ps_supplycost
+          FROM partsupp
+          WHERE ps_partkey = {part_key} AND ps_suppkey = {supp_key}
+      - name: orders_by_customer
+        expected_mechanism: "Foreign-key index lookup (idx_orders_customer) with a small aggregate."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {cust_key: int}
+        parameters: {kind: sample, count: 8, seed: 2107, domains: {cust_key: {int_range: [1, 15000]}}}
+        sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE o_custkey = {cust_key}
+      - name: lineitem_by_order
+        expected_mechanism: "Primary-key prefix lookup of one order's lines."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {order_key: int}
+        parameters: {kind: sample, count: 8, seed: 2108, domains: {order_key: {int_range: [1, 600000]}}}
+        sql: |
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS total_price
+          FROM lineitem
+          WHERE l_orderkey = {order_key}
+      - name: lineitem_by_part
+        expected_mechanism: "Leading-column lookup on idx_lineitem_part_supp (about 30 lines per part)."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {part_key: int}
+        parameters: {kind: sample, count: 8, seed: 2109, domains: {part_key: {int_range: [1, 20000]}}}
+        sql: |
+          SELECT count(*) AS n_lines, sum(l_quantity) AS total_qty
+          FROM lineitem
+          WHERE l_partkey = {part_key}
+      - name: customers_by_nation
+        expected_mechanism: "Indexed foreign-key range on customer (about 4% of rows)."
+        coverage: [selective_range]
+        parameter_types: {nation_key: int}
+        parameters: {kind: sample, count: 8, seed: 2110, domains: {nation_key: {int_range: [0, 24]}}}
+        sql: |
+          SELECT count(*) AS n_customers, avg(c_acctbal) AS avg_balance
+          FROM customer
+          WHERE c_nationkey = {nation_key}
+      - name: suppliers_by_nation
+        expected_mechanism: "Indexed foreign-key range on supplier."
+        coverage: [selective_range]
+        parameter_types: {nation_key: int}
+        parameters: {kind: sample, count: 8, seed: 2111, domains: {nation_key: {int_range: [0, 24]}}}
+        sql: |
+          SELECT count(*) AS n_suppliers, avg(s_acctbal) AS avg_balance
+          FROM supplier
+          WHERE s_nationkey = {nation_key}
+      - name: orders_one_day
+        expected_mechanism: "Equality on the indexed order date (one day of orders)."
+        coverage: [selective_range]
+        parameter_types: {day: date}
+        parameters: {kind: sample, count: 8, seed: 2112, domains: {day: {date_range: ["1992-01-01", "1998-08-01"]}}}
+        sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE o_orderdate = DATE '{day}'
+      - name: lineitem_one_day
+        expected_mechanism: "Equality on the indexed ship date (one day of lineitem)."
+        coverage: [selective_range]
+        parameter_types: {day: date}
+        parameters: {kind: sample, count: 8, seed: 2113, domains: {day: {date_range: ["1992-01-02", "1998-12-01"]}}}
+        sql: |
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+          FROM lineitem
+          WHERE l_shipdate = DATE '{day}'
+      - name: orders_in_list
+        expected_mechanism: "Five-key IN-list on the orders primary key."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {k1: int, k2: int, k3: int, k4: int, k5: int}
+        parameters:
+          kind: sample
+          count: 8
+          seed: 2114
+          distinct: [[k1, k2, k3, k4, k5]]
+          domains:
+            k1: {int_range: [1, 600000]}
+            k2: {int_range: [1, 600000]}
+            k3: {int_range: [1, 600000]}
+            k4: {int_range: [1, 600000]}
+            k5: {int_range: [1, 600000]}
+        sql: |
+          SELECT o_orderkey, o_totalprice
+          FROM orders
+          WHERE o_orderkey IN ({k1}, {k2}, {k3}, {k4}, {k5})
+      - name: orders_key_range
+        expected_mechanism: "Primary-key range of 1,000 key values (sparse keys: about 250 orders)."
+        coverage: [selective_range]
+        parameter_types: {start_key: int}
+        parameters: {kind: sample, count: 8, seed: 2115, domains: {start_key: {int_range: [1, 590000]}}}
+        sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE o_orderkey BETWEEN {start_key} AND {start_key} + 1000
+      - name: latest_orders_topn
+        expected_mechanism: "Backward scan of the order-date index stopping after 10 rows."
+        coverage: [fast_indexed_lookup, sort]
+        parameter_types: {day: date}
+        parameters: {kind: sample, count: 8, seed: 2116, domains: {day: {date_range: ["1992-06-01", "1998-08-01"]}}}
+        sql: |
+          SELECT o_orderkey, o_orderdate, o_totalprice
+          FROM orders
+          WHERE o_orderdate <= DATE '{day}'
+          ORDER BY o_orderdate DESC
+          LIMIT 10
+      - name: max_shipdate_before
+        expected_mechanism: "MAX over an index-ordered range (min/max optimization)."
+        coverage: [fast_indexed_lookup]
+        parameter_types: {day: date}
+        parameters: {kind: sample, count: 8, seed: 2117, domains: {day: {date_range: ["1992-06-01", "1998-11-30"]}}}
+        sql: |
+          SELECT max(l_shipdate) AS last_ship
+          FROM lineitem
+          WHERE l_shipdate < DATE '{day}'
+      - name: nation_region_lookup
+        expected_mechanism: "Tiny-table join by primary key."
+        coverage: [fast_indexed_lookup, join]
+        parameter_types: {nation_key: int}
+        parameters: {kind: sample, count: 8, seed: 2118, domains: {nation_key: {int_range: [0, 24]}}}
+        sql: |
+          SELECT n.n_name, r.r_name
+          FROM nation n JOIN region r ON r.r_regionkey = n.n_regionkey
+          WHERE n.n_nationkey = {nation_key}
+      - name: customer_orders_by_key
+        expected_mechanism: "Index nested-loop join of one customer to its orders."
+        coverage: [fast_indexed_lookup, join]
+        parameter_types: {cust_key: int}
+        parameters: {kind: sample, count: 8, seed: 2119, domains: {cust_key: {int_range: [1, 15000]}}}
+        sql: |
+          SELECT c.c_name, o.o_orderkey, o.o_totalprice
+          FROM customer c JOIN orders o ON o.o_custkey = c.c_custkey
+          WHERE c.c_custkey = {cust_key}
+      - name: order_lines_by_key
+        expected_mechanism: "Index nested-loop join of one order to its lines."
+        coverage: [fast_indexed_lookup, join]
+        parameter_types: {order_key: int}
+        parameters: {kind: sample, count: 8, seed: 2120, domains: {order_key: {int_range: [1, 600000]}}}
+        sql: |
+          SELECT o.o_orderdate, l.l_linenumber, l.l_extendedprice
+          FROM orders o JOIN lineitem l ON l.l_orderkey = o.o_orderkey
+          WHERE o.o_orderkey = {order_key}
+      - name: part_suppliers_by_key
+        expected_mechanism: "Partsupp primary-key prefix joined to supplier by primary key."
+        coverage: [fast_indexed_lookup, join]
+        parameter_types: {part_key: int}
+        parameters: {kind: sample, count: 8, seed: 2121, domains: {part_key: {int_range: [1, 20000]}}}
+        sql: |
+          SELECT s.s_name, ps.ps_supplycost
+          FROM partsupp ps JOIN supplier s ON s.s_suppkey = ps.ps_suppkey
+          WHERE ps.ps_partkey = {part_key}
+      - name: customer_has_orders
+        expected_mechanism: "Point lookup with an EXISTS probe on the orders foreign-key index."
+        coverage: [fast_indexed_lookup, semi_join]
+        parameter_types: {cust_key: int}
+        parameters: {kind: sample, count: 8, seed: 2122, domains: {cust_key: {int_range: [1, 15000]}}}
+        sql: |
+          SELECT c.c_custkey, EXISTS (SELECT 1 FROM orders o WHERE o.o_custkey = c.c_custkey) AS has_orders
+          FROM customer c
+          WHERE c.c_custkey = {cust_key}
+      - name: limit_scan_quantity
+        expected_mechanism: "Sequential scan that stops after 10 matching rows (early termination)."
+        coverage: [limit_early_stop]
+        parameter_types: {quantity: int}
+        parameters: {kind: sample, count: 8, seed: 2123, domains: {quantity: {int_range: [1, 50]}}}
+        sql: |
+          SELECT l_orderkey, l_comment
+          FROM lineitem
+          WHERE l_quantity = {quantity}
+          LIMIT 10
+      - name: supplier_balance_scan
+        expected_mechanism: "Full scan of a small table with an unindexed numeric filter."
+        coverage: [small_table_scan]
+        parameter_types: {balance: int}
+        parameters: {kind: sample, count: 8, seed: 2124, domains: {balance: {int_range: [-999, 9999]}}}
+        sql: |
+          SELECT count(*) AS n_suppliers, avg(s_acctbal) AS avg_balance
+          FROM supplier
+          WHERE s_acctbal > {balance}
+
+  # ============================================================================ manual reference rewrite pairs (25 groups)
+  # Hand-written MANUAL_REFERENCE_REWRITE pairs. Both forms are collected as modeling
+  # keys in ONE semantic group. Their equivalence is argued in writing here and is
+  # NOT_YET_VERIFIED: verification needs the rewrite harness extended to this spec
+  # (planned). Five groups are reserved for the RQ2 holdout: never used for RQ1
+  # training, preprocessing, calibration or tuning, and never sampled.
+  rewrite:
+    snapshots: [tpch_sf0_1, tpch_sf1]
+    configurations: [C1_baseline, C2_reduced_work_mem]
+    pairs:
+      - name: rw01_extract_year
+        expected_mechanism: "EXTRACT() on the indexed o_orderdate blocks an index range; the half-open range can use it."
+        equivalence_argument: >-
+          o_orderdate is DATE NOT NULL. EXTRACT(YEAR FROM d) = Y holds exactly when make_date(Y, 1, 1) <= d <
+          make_date(Y + 1, 1, 1). Both forms aggregate the same rows with the same expressions.
+        preconditions:
+          - {name: o_orderdate_date_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_orderdate' AND data_type = 'date' AND is_nullable = 'NO'"}
+        parameter_types: {year: int}
+        parameters: {kind: sample, count: 4, seed: 4101, domains: {year: {int_range: [1992, 1998]}}}
+        original_sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE EXTRACT(YEAR FROM o_orderdate) = {year}
+        rewrite_sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE o_orderdate >= make_date({year}, 1, 1)
+            AND o_orderdate < make_date({year} + 1, 1, 1)
+      - name: rw02_date_trunc_month
+        expected_mechanism: "date_trunc() on the indexed column blocks an index range; the month range can use it."
+        equivalence_argument: >-
+          o_orderdate is DATE NOT NULL and the cast to timestamp is midnight of the same day. For the first day m of a
+          month, date_trunc('month', d::timestamp) = m::timestamp exactly when m <= d < (m + 1 month)::date.
+        preconditions:
+          - {name: o_orderdate_date_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_orderdate' AND data_type = 'date' AND is_nullable = 'NO'"}
+        parameter_types: {month_start: date}
+        parameters: {kind: sample, count: 4, seed: 4102, domains: {month_start: {month_start: ["1992-01", "1998-07"]}}}
+        original_sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE date_trunc('month', o_orderdate::timestamp) = DATE '{month_start}'::timestamp
+        rewrite_sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE o_orderdate >= DATE '{month_start}'
+            AND o_orderdate < (DATE '{month_start}' + INTERVAL '1 month')::date
+      - name: rw03_cast_to_timestamp
+        expected_mechanism: "A cast on the indexed column blocks the index; comparing the date itself can use it."
+        equivalence_argument: >-
+          CAST(d AS timestamp) is midnight of d and DATE literals compare to timestamps as midnight, so the cast is
+          order-preserving: d::timestamp >= a and d::timestamp < a + k hold exactly when d >= a and d < a + k.
+        preconditions:
+          - {name: o_orderdate_date_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_orderdate' AND data_type = 'date' AND is_nullable = 'NO'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4103, domains: {start_date: {date_range: ["1992-02-01", "1998-05-01"]}, days: {int_range: [7, 60]}}}
+        original_sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE CAST(o_orderdate AS timestamp) >= DATE '{start_date}'
+            AND CAST(o_orderdate AS timestamp) < DATE '{start_date}' + {days}
+        rewrite_sql: |
+          SELECT count(*) AS n_orders, sum(o_totalprice) AS total_price
+          FROM orders
+          WHERE o_orderdate >= DATE '{start_date}'
+            AND o_orderdate < DATE '{start_date}' + {days}
+      - name: rw04_date_arithmetic
+        holdout_reason: "RQ2 holdout: non-sargable arithmetic on an indexed column"
+        expected_mechanism: "Arithmetic on the indexed l_shipdate blocks the index; moving it to the constant side can use it."
+        equivalence_argument: >-
+          Adding an integer k to a DATE is strictly increasing and invertible in the data range, so d + k BETWEEN a AND
+          b holds exactly when d BETWEEN a - k AND b - k. l_shipdate is DATE NOT NULL.
+        preconditions:
+          - {name: l_shipdate_date_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_shipdate' AND data_type = 'date' AND is_nullable = 'NO'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4104, domains: {start_date: {date_range: ["1992-03-01", "1998-10-01"]}, days: {int_range: [1, 30]}}}
+        original_sql: |
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+          FROM lineitem
+          WHERE l_shipdate + {days} BETWEEN DATE '{start_date}' AND DATE '{start_date}' + 6
+        rewrite_sql: |
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+          FROM lineitem
+          WHERE l_shipdate BETWEEN DATE '{start_date}' - {days} AND DATE '{start_date}' + 6 - {days}
+      - name: rw05_cast_to_text_equality
+        expected_mechanism: "Casting the indexed o_custkey to text blocks idx_orders_customer; integer equality can use it."
+        equivalence_argument: >-
+          o_custkey is a NOT NULL integer and the literal is rendered from an integer without sign or leading zeros,
+          so the canonical text of o_custkey equals it exactly when o_custkey equals the integer.
+        preconditions:
+          - {name: o_custkey_integer_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND data_type = 'integer' AND is_nullable = 'NO'"}
+        parameter_types: {cust_key: int}
+        parameters: {kind: sample, count: 4, seed: 4105, domains: {cust_key: {int_range: [1, 15000]}}}
+        original_sql: |
+          SELECT count(*) AS n_orders, min(o_orderdate) AS first_order, max(o_orderdate) AS last_order
+          FROM orders
+          WHERE CAST(o_custkey AS text) = '{cust_key}'
+        rewrite_sql: |
+          SELECT count(*) AS n_orders, min(o_orderdate) AS first_order, max(o_orderdate) AS last_order
+          FROM orders
+          WHERE o_custkey = {cust_key}
+      - name: rw06_numeric_literal_on_int
+        expected_mechanism: "A numeric literal casts the integer l_partkey to numeric, blocking the composite index."
+        equivalence_argument: >-
+          l_partkey is a NOT NULL integer; integer = numeric compares the integer cast to numeric, and an integer
+          equals K.0 exactly when it equals the integer K.
+        preconditions:
+          - {name: l_partkey_integer_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_partkey' AND data_type = 'integer' AND is_nullable = 'NO'"}
+        parameter_types: {part_key: int}
+        parameters: {kind: sample, count: 4, seed: 4106, domains: {part_key: {int_range: [1, 20000]}}}
+        original_sql: |
+          SELECT count(*) AS n_lines, avg(l_extendedprice) AS avg_price, max(l_shipdate) AS last_ship
+          FROM lineitem
+          WHERE l_partkey = {part_key}.0
+        rewrite_sql: |
+          SELECT count(*) AS n_lines, avg(l_extendedprice) AS avg_price, max(l_shipdate) AS last_ship
+          FROM lineitem
+          WHERE l_partkey = {part_key}
+      - name: rw07_substring_prefix
+        expected_mechanism: "substring() prefix test versus LIKE 'word%'; p_name has no index, so a speedup is not expected."
+        equivalence_argument: >-
+          The word contains only letters (no LIKE wildcards) and p_name is NOT NULL. substring(s FROM 1 FOR
+          length(w)) = w holds exactly when w is a prefix of s, which is exactly s LIKE w || '%'.
+        preconditions:
+          - {name: p_name_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'part' AND column_name = 'p_name' AND is_nullable = 'NO'"}
+        parameter_types: {word: word}
+        parameters: {kind: sample, count: 4, seed: 4107, domains: {word: {choice: [green, blue, red, ivory, khaki, lemon, navy, olive, peach, plum]}}}
+        original_sql: |
+          SELECT count(*) AS n_parts, avg(p_retailprice) AS avg_price
+          FROM part
+          WHERE substring(p_name FROM 1 FOR char_length('{word}')) = '{word}'
+        rewrite_sql: |
+          SELECT count(*) AS n_parts, avg(p_retailprice) AS avg_price
+          FROM part
+          WHERE p_name LIKE '{word}%'
+      - name: rw08_correlated_sum_indexed
+        expected_mechanism: "Correlated SUM per customer probes idx_orders_customer; the rewrite scans orders once with a hash join."
+        equivalence_argument: >-
+          c_custkey is the primary key of customer, so GROUP BY c.c_custkey yields one row per qualifying customer.
+          The LEFT JOIN keeps customers without orders; SUM over their NULL-extended row is NULL, as is the scalar
+          subquery. No COALESCE is added.
+        preconditions:
+          - {name: customer_primary_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.customer'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (c_custkey)'"}
+        parameter_types: {nation_key: int}
+        parameters: {kind: sample, count: 4, seed: 4108, domains: {nation_key: {int_range: [0, 24]}}}
+        original_sql: |
+          SELECT c.c_custkey,
+                 (SELECT sum(o.o_totalprice) FROM orders o WHERE o.o_custkey = c.c_custkey) AS total_spend
+          FROM customer c
+          WHERE c.c_nationkey = {nation_key}
+        rewrite_sql: |
+          SELECT c.c_custkey, sum(o.o_totalprice) AS total_spend
+          FROM customer c
+          LEFT JOIN orders o ON o.o_custkey = c.c_custkey
+          WHERE c.c_nationkey = {nation_key}
+          GROUP BY c.c_custkey
+      - name: rw09_correlated_count_indexed
+        expected_mechanism: "Correlated COUNT per customer (indexed) versus one outer join with grouping."
+        equivalence_argument: >-
+          c_custkey is the primary key; count(o.o_orderkey) over the LEFT JOIN counts matching orders because
+          o_orderkey is NOT NULL, and is 0 for customers without orders, exactly like the scalar count(*).
+        preconditions:
+          - {name: customer_primary_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.customer'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (c_custkey)'"}
+          - {name: o_orderkey_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_orderkey' AND is_nullable = 'NO'"}
+        parameter_types: {nation_key: int}
+        parameters: {kind: sample, count: 4, seed: 4109, domains: {nation_key: {int_range: [0, 24]}}}
+        original_sql: |
+          SELECT c.c_custkey,
+                 (SELECT count(*) FROM orders o WHERE o.o_custkey = c.c_custkey) AS n_orders
+          FROM customer c
+          WHERE c.c_nationkey = {nation_key}
+        rewrite_sql: |
+          SELECT c.c_custkey, count(o.o_orderkey) AS n_orders
+          FROM customer c
+          LEFT JOIN orders o ON o.o_custkey = c.c_custkey
+          WHERE c.c_nationkey = {nation_key}
+          GROUP BY c.c_custkey
+      - name: rw10_correlated_sum_unindexed
+        holdout_reason: "RQ2 holdout: correlated aggregate on a non-leading index column"
+        expected_mechanism: "l_suppkey is only the second column of idx_lineitem_part_supp, so each correlated SUM may scan the whole index; the rewrite aggregates lineitem once."
+        equivalence_argument: >-
+          s_suppkey is the primary key of supplier and the derived table has one row per l_suppkey, so each supplier
+          joins at most one aggregate row. The LEFT JOIN keeps suppliers without lineitems with a NULL sum, matching
+          the scalar subquery over no rows.
+        preconditions:
+          - {name: supplier_primary_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.supplier'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (s_suppkey)'"}
+        parameter_types: {nation_key: int}
+        parameters: {kind: sample, count: 4, seed: 4110, domains: {nation_key: {int_range: [0, 24]}}}
+        original_sql: |
+          SELECT s.s_suppkey,
+                 (SELECT sum(l.l_quantity) FROM lineitem l WHERE l.l_suppkey = s.s_suppkey) AS supplied_qty
+          FROM supplier s
+          WHERE s.s_nationkey = {nation_key}
+        rewrite_sql: |
+          SELECT s.s_suppkey, agg.supplied_qty
+          FROM supplier s
+          LEFT JOIN (SELECT l.l_suppkey, sum(l.l_quantity) AS supplied_qty FROM lineitem l GROUP BY l.l_suppkey) AS agg
+            ON agg.l_suppkey = s.s_suppkey
+          WHERE s.s_nationkey = {nation_key}
+      - name: rw11_in_to_exists
+        expected_mechanism: "IN (subquery) versus a correlated EXISTS; PostgreSQL usually plans both as a semi-join."
+        equivalence_argument: >-
+          c_custkey and o_custkey are NOT NULL, so c IN (subquery) is true exactly when a qualifying order with
+          o_custkey = c_custkey exists, which is the EXISTS condition. Both count qualifying customers once.
+        preconditions:
+          - {name: o_custkey_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4111, domains: {start_date: {date_range: ["1992-02-01", "1997-06-01"]}, days: {int_range: [30, 400]}}}
+        original_sql: |
+          SELECT count(*) AS n_customers
+          FROM customer c
+          WHERE c.c_custkey IN (SELECT o.o_custkey FROM orders o
+                                WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days})
+        rewrite_sql: |
+          SELECT count(*) AS n_customers
+          FROM customer c
+          WHERE EXISTS (SELECT 1 FROM orders o
+                        WHERE o.o_custkey = c.c_custkey
+                          AND o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days})
+      - name: rw12_not_in_to_not_exists
+        holdout_reason: "RQ2 holdout: NOT IN versus anti-join (hashed versus plain subplan depends on work_mem)"
+        expected_mechanism: "NOT IN with a subquery uses a hashed SubPlan only if it fits in memory; otherwise it rescans per row. NOT EXISTS plans as an anti-join."
+        equivalence_argument: >-
+          NOT IN differs from NOT EXISTS only when the subquery yields NULL. o_custkey and c_custkey are NOT NULL,
+          so c NOT IN (subquery) is true exactly when no qualifying order references c, which is NOT EXISTS.
+        preconditions:
+          - {name: o_custkey_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"}
+          - {name: c_custkey_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'customer' AND column_name = 'c_custkey' AND is_nullable = 'NO'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4112, domains: {start_date: {date_range: ["1992-02-01", "1997-06-01"]}, days: {int_range: [30, 400]}}}
+        original_sql: |
+          SELECT count(*) AS n_customers
+          FROM customer c
+          WHERE c.c_custkey NOT IN (SELECT o.o_custkey FROM orders o
+                                    WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days})
+        rewrite_sql: |
+          SELECT count(*) AS n_customers
+          FROM customer c
+          WHERE NOT EXISTS (SELECT 1 FROM orders o
+                            WHERE o.o_custkey = c.c_custkey
+                              AND o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days})
+      - name: rw13_distinct_join_to_exists
+        expected_mechanism: "DISTINCT over a join that multiplies rows versus a semi-join that never does."
+        equivalence_argument: >-
+          c_custkey is the primary key, so (c_custkey, c_name) identifies a customer. DISTINCT over the join returns each
+          customer with at least one qualifying order exactly once; EXISTS returns the same customers exactly once.
+        preconditions:
+          - {name: customer_primary_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.customer'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (c_custkey)'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4113, domains: {start_date: {date_range: ["1992-02-01", "1997-06-01"]}, days: {int_range: [30, 400]}}}
+        original_sql: |
+          SELECT DISTINCT c.c_custkey, c.c_name
+          FROM customer c
+          JOIN orders o ON o.o_custkey = c.c_custkey
+          WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days}
+        rewrite_sql: |
+          SELECT c.c_custkey, c.c_name
+          FROM customer c
+          WHERE EXISTS (SELECT 1 FROM orders o
+                        WHERE o.o_custkey = c.c_custkey
+                          AND o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days})
+      - name: rw14_count_distinct_to_group
+        expected_mechanism: "count(DISTINCT) sorts inside the aggregate; grouping first can use hash aggregation."
+        equivalence_argument: >-
+          l_suppkey is NOT NULL, so count(DISTINCT l_suppkey) equals the number of groups of GROUP BY l_suppkey over
+          the same rows; both are 0 when no row qualifies.
+        preconditions:
+          - {name: l_suppkey_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_suppkey' AND is_nullable = 'NO'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4114, domains: {start_date: {date_range: ["1992-02-01", "1998-06-01"]}, days: {int_range: [7, 180]}}}
+        original_sql: |
+          SELECT count(DISTINCT l.l_suppkey) AS n_suppliers
+          FROM lineitem l
+          WHERE l.l_shipdate >= DATE '{start_date}' AND l.l_shipdate < DATE '{start_date}' + {days}
+        rewrite_sql: |
+          SELECT count(*) AS n_suppliers
+          FROM (SELECT l.l_suppkey
+                FROM lineitem l
+                WHERE l.l_shipdate >= DATE '{start_date}' AND l.l_shipdate < DATE '{start_date}' + {days}
+                GROUP BY l.l_suppkey) AS s
+      - name: rw15_union_to_union_all
+        expected_mechanism: "UNION deduplicates (sort or hash); UNION ALL does not need to when branches are disjoint."
+        equivalence_argument: >-
+          Each branch returns distinct rows because o_orderkey is the primary key, and the two key ranges
+          [k, k + w] and [k + w + 1, k + 2w] are disjoint, so the combined rows contain no duplicate for UNION to remove.
+        preconditions:
+          - {name: orders_primary_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.orders'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (o_orderkey)'"}
+        parameter_types: {start_key: int, width: int}
+        parameters: {kind: sample, count: 4, seed: 4115, domains: {start_key: {int_range: [1, 400000]}, width: {int_range: [1000, 50000]}}}
+        original_sql: |
+          SELECT o.o_orderkey, o.o_custkey, o.o_totalprice FROM orders o
+          WHERE o.o_orderkey BETWEEN {start_key} AND {start_key} + {width}
+          UNION
+          SELECT o.o_orderkey, o.o_custkey, o.o_totalprice FROM orders o
+          WHERE o.o_orderkey BETWEEN {start_key} + {width} + 1 AND {start_key} + 2 * {width}
+        rewrite_sql: |
+          SELECT o.o_orderkey, o.o_custkey, o.o_totalprice FROM orders o
+          WHERE o.o_orderkey BETWEEN {start_key} AND {start_key} + {width}
+          UNION ALL
+          SELECT o.o_orderkey, o.o_custkey, o.o_totalprice FROM orders o
+          WHERE o.o_orderkey BETWEEN {start_key} + {width} + 1 AND {start_key} + 2 * {width}
+      - name: rw16_having_to_where
+        expected_mechanism: "A HAVING filter on a grouping column; PostgreSQL may already push it into WHERE (no change expected)."
+        equivalence_argument: >-
+          The HAVING predicate references only the grouping column, so it removes whole groups; filtering the same
+          predicate before grouping removes exactly the rows of those groups.
+        preconditions: []
+        parameter_types: {flag: token, delta_days: int}
+        parameters: {kind: sample, count: 4, seed: 4116, domains: {flag: {choice: [A, N, R]}, delta_days: {int_range: [60, 120]}}}
+        original_sql: |
+          SELECT l_returnflag, count(*) AS n_lines, sum(l_quantity) AS total_qty
+          FROM lineitem
+          WHERE l_shipdate <= DATE '1998-12-01' - {delta_days}
+          GROUP BY l_returnflag
+          HAVING l_returnflag = '{flag}'
+        rewrite_sql: |
+          SELECT l_returnflag, count(*) AS n_lines, sum(l_quantity) AS total_qty
+          FROM lineitem
+          WHERE l_shipdate <= DATE '1998-12-01' - {delta_days}
+            AND l_returnflag = '{flag}'
+          GROUP BY l_returnflag
+      - name: rw17_correlated_max_indexed
+        expected_mechanism: "Correlated MAX per part uses the l_partkey index; the 'decorrelated' rewrite aggregates all of lineitem (likely slower)."
+        equivalence_argument: >-
+          p_partkey is the primary key and the derived table has one row per l_partkey, so each part joins at most one
+          aggregate row; parts without lineitems keep a NULL maximum, as the scalar subquery over no rows.
+        preconditions:
+          - {name: part_primary_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.part'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (p_partkey)'"}
+        parameter_types: {size: int}
+        parameters: {kind: sample, count: 4, seed: 4117, domains: {size: {int_range: [1, 50]}}}
+        original_sql: |
+          SELECT p.p_partkey,
+                 (SELECT max(l.l_extendedprice) FROM lineitem l WHERE l.l_partkey = p.p_partkey) AS max_price
+          FROM part p
+          WHERE p.p_size = {size}
+        rewrite_sql: |
+          SELECT p.p_partkey, agg.max_price
+          FROM part p
+          LEFT JOIN (SELECT l.l_partkey, max(l.l_extendedprice) AS max_price FROM lineitem l GROUP BY l.l_partkey) AS agg
+            ON agg.l_partkey = p.p_partkey
+          WHERE p.p_size = {size}
+      - name: rw18_or_to_in
+        expected_mechanism: "OR of equalities versus an IN-list on an unindexed column (little change expected)."
+        equivalence_argument: >-
+          x = a OR x = b holds exactly when x IN (a, b) for a NOT NULL column; l_shipmode is NOT NULL.
+        preconditions:
+          - {name: l_shipmode_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_shipmode' AND is_nullable = 'NO'"}
+        parameter_types: {shipmode1: token, shipmode2: token}
+        parameters:
+          kind: sample
+          count: 4
+          seed: 4118
+          distinct: [[shipmode1, shipmode2]]
+          domains:
+            shipmode1: {choice: [REG AIR, AIR, RAIL, SHIP, TRUCK, MAIL, FOB]}
+            shipmode2: {choice: [REG AIR, AIR, RAIL, SHIP, TRUCK, MAIL, FOB]}
+        original_sql: |
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+          FROM lineitem
+          WHERE l_shipmode = '{shipmode1}' OR l_shipmode = '{shipmode2}'
+        rewrite_sql: |
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+          FROM lineitem
+          WHERE l_shipmode IN ('{shipmode1}', '{shipmode2}')
+      - name: rw19_count_positive_to_exists
+        expected_mechanism: "Counting every matching order versus stopping at the first (EXISTS)."
+        equivalence_argument: >-
+          (SELECT count(*) ...) > 0 is true exactly when at least one matching row exists, which is EXISTS (...).
+        preconditions: []
+        parameter_types: {nation_key: int}
+        parameters: {kind: sample, count: 4, seed: 4119, domains: {nation_key: {int_range: [0, 24]}}}
+        original_sql: |
+          SELECT count(*) AS n_customers
+          FROM customer c
+          WHERE c.c_nationkey = {nation_key}
+            AND (SELECT count(*) FROM orders o WHERE o.o_custkey = c.c_custkey) > 0
+        rewrite_sql: |
+          SELECT count(*) AS n_customers
+          FROM customer c
+          WHERE c.c_nationkey = {nation_key}
+            AND EXISTS (SELECT 1 FROM orders o WHERE o.o_custkey = c.c_custkey)
+      - name: rw20_redundant_subquery_order
+        expected_mechanism: "An ORDER BY inside an aggregated subquery is unnecessary work."
+        equivalence_argument: >-
+          count and the exact numeric sum over a set of rows do not depend on row order, so removing the subquery's
+          ORDER BY leaves the result unchanged.
+        preconditions: []
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4120, domains: {start_date: {date_range: ["1992-02-01", "1998-01-01"]}, days: {int_range: [7, 365]}}}
+        original_sql: |
+          SELECT count(*) AS n_orders, sum(sub.o_totalprice) AS total_price
+          FROM (
+              SELECT o.o_orderkey, o.o_totalprice
+              FROM orders o
+              WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days}
+              ORDER BY o.o_totalprice DESC
+          ) AS sub
+        rewrite_sql: |
+          SELECT count(*) AS n_orders, sum(sub.o_totalprice) AS total_price
+          FROM (
+              SELECT o.o_orderkey, o.o_totalprice
+              FROM orders o
+              WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days}
+          ) AS sub
+      - name: rw21_inner_join_elimination
+        holdout_reason: "RQ2 holdout: redundant inner join over a validated foreign key"
+        expected_mechanism: "PostgreSQL 16 does not remove an inner join that only checks a foreign key; the rewrite drops it."
+        equivalence_argument: >-
+          orders.o_custkey is NOT NULL and references customer(c_custkey), which is unique, so every order joins
+          exactly one customer and the join neither removes nor duplicates orders; no customer column is used.
+        preconditions:
+          - {name: orders_customer_foreign_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.orders'::regclass AND contype = 'f' AND confrelid = 'public.customer'::regclass"}
+          - {name: o_custkey_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4121, domains: {start_date: {date_range: ["1992-02-01", "1998-01-01"]}, days: {int_range: [7, 365]}}}
+        original_sql: |
+          SELECT count(*) AS n_orders, avg(o.o_totalprice) AS avg_price, max(o.o_shippriority) AS max_priority
+          FROM orders o
+          JOIN customer c ON c.c_custkey = o.o_custkey
+          WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days}
+        rewrite_sql: |
+          SELECT count(*) AS n_orders, avg(o.o_totalprice) AS avg_price, max(o.o_shippriority) AS max_priority
+          FROM orders o
+          WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days}
+      - name: rw22_left_join_elimination
+        expected_mechanism: "An unused LEFT JOIN to a unique key; PostgreSQL already removes it (no change expected)."
+        equivalence_argument: >-
+          c_custkey is unique, so the LEFT JOIN keeps every order exactly once, and no customer column is referenced.
+        preconditions:
+          - {name: customer_primary_key, sql: "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.customer'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (c_custkey)'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4122, domains: {start_date: {date_range: ["1992-02-01", "1998-01-01"]}, days: {int_range: [7, 365]}}}
+        original_sql: |
+          SELECT o.o_orderkey, o.o_totalprice
+          FROM orders o
+          LEFT JOIN customer c ON c.c_custkey = o.o_custkey
+          WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days}
+        rewrite_sql: |
+          SELECT o.o_orderkey, o.o_totalprice
+          FROM orders o
+          WHERE o.o_orderdate >= DATE '{start_date}' AND o.o_orderdate < DATE '{start_date}' + {days}
+      - name: rw23_cte_materialized
+        holdout_reason: "RQ2 holdout: materialized CTE blocks predicate pushdown"
+        expected_mechanism: "MATERIALIZED stores every CTE row before the outer filter; NOT MATERIALIZED lets the planner push the filter down."
+        equivalence_argument: >-
+          The CTE is a side-effect-free SELECT; materializing or inlining it yields the same rows, and the outer query
+          applies the same filter and aggregates to them.
+        preconditions: []
+        parameter_types: {start_date: date, days: int, quantity: int}
+        parameters: {kind: sample, count: 4, seed: 4123, domains: {start_date: {date_range: ["1992-02-01", "1998-06-01"]}, days: {int_range: [7, 180]}, quantity: {int_range: [1, 50]}}}
+        original_sql: |
+          WITH recent AS MATERIALIZED (
+              SELECT l_orderkey, l_quantity, l_extendedprice
+              FROM lineitem
+              WHERE l_shipdate >= DATE '{start_date}' AND l_shipdate < DATE '{start_date}' + {days}
+          )
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+          FROM recent
+          WHERE l_quantity >= {quantity}
+        rewrite_sql: |
+          WITH recent AS NOT MATERIALIZED (
+              SELECT l_orderkey, l_quantity, l_extendedprice
+              FROM lineitem
+              WHERE l_shipdate >= DATE '{start_date}' AND l_shipdate < DATE '{start_date}' + {days}
+          )
+          SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue
+          FROM recent
+          WHERE l_quantity >= {quantity}
+      - name: rw24_coalesce_not_null
+        expected_mechanism: "coalesce() on the NOT NULL indexed l_shipdate blocks the index range."
+        equivalence_argument: >-
+          l_shipdate is NOT NULL, so coalesce(l_shipdate, x) = l_shipdate for every row and both predicates select
+          the same rows.
+        preconditions:
+          - {name: l_shipdate_date_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_shipdate' AND data_type = 'date' AND is_nullable = 'NO'"}
+        parameter_types: {start_date: date, days: int}
+        parameters: {kind: sample, count: 4, seed: 4124, domains: {start_date: {date_range: ["1992-02-01", "1998-06-01"]}, days: {int_range: [7, 180]}}}
+        original_sql: |
+          SELECT count(*) AS n_lines, avg(l_discount) AS avg_discount
+          FROM lineitem
+          WHERE coalesce(l_shipdate, DATE '1900-01-01') >= DATE '{start_date}'
+            AND coalesce(l_shipdate, DATE '1900-01-01') < DATE '{start_date}' + {days}
+        rewrite_sql: |
+          SELECT count(*) AS n_lines, avg(l_discount) AS avg_discount
+          FROM lineitem
+          WHERE l_shipdate >= DATE '{start_date}'
+            AND l_shipdate < DATE '{start_date}' + {days}
+      - name: rw25_or_to_union_all
+        expected_mechanism: "OR across two indexed columns (often a BitmapOr) versus two disjoint index scans."
+        equivalence_argument: >-
+          Rows matching A (o_custkey = c) or B (o_orderdate = d) split into A and (B and not A). o_custkey is NOT NULL,
+          so "not A" is o_custkey <> c, and UNION ALL of the two disjoint parts returns each matching row exactly once.
+        preconditions:
+          - {name: o_custkey_not_null, sql: "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"}
+        parameter_types: {cust_key: int, day: date}
+        parameters: {kind: sample, count: 4, seed: 4125, domains: {cust_key: {int_range: [1, 15000]}, day: {date_range: ["1992-01-01", "1998-08-01"]}}}
+        original_sql: |
+          SELECT o.o_orderkey, o.o_totalprice
+          FROM orders o
+          WHERE o.o_custkey = {cust_key} OR o.o_orderdate = DATE '{day}'
+        rewrite_sql: |
+          SELECT o.o_orderkey, o.o_totalprice
+          FROM orders o
+          WHERE o.o_custkey = {cust_key}
+          UNION ALL
+          SELECT o.o_orderkey, o.o_totalprice
+          FROM orders o
+          WHERE o.o_orderdate = DATE '{day}' AND o.o_custkey <> {cust_key}

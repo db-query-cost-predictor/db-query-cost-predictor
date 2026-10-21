@@ -188,3 +188,32 @@ version, filename, sha256, applied_at (C, provenance).
 assignments, out-of-fold predictions, claim check), `pilot_metrics.csv` (per
 model × split × scope, with keys, groups and keys per group), `pilot_data_quality.csv`,
 `pilot_claim_check.md`, `figures/pilot/*.png`.
+
+## Expanded release (`config/expanded_release_v1.yaml`; migration `V008`)
+
+`V008` adds no table or column. It allows `collection_session.session_kind =
+'expanded_collection'` (which requires a manifest) and `dataset_release.release_kind =
+'expanded_release'`.
+
+Derived files: `QCP_DATA_ROOT/derived/expanded/<manifest>/expanded-label-v1/<inputs>/`
+
+| File | Content |
+|---|---|
+| `keys.csv` | smoke key columns + release annotations + `in_sample` |
+| `executions.csv` | as for the smoke release (E) |
+| `labels.csv` | smoke label columns + release annotations + `observation_status`, `statement_censor_bound_ms`, `exec_censor_lower_bound_ms`, `censor_bound_basis`, `hr_1s_class`, `hr_10s_class`, `failure_class`, `first_error_sqlstate`, `estimate_planning_time_ms` (E/D; never features) |
+| `estimates.csv`, `features.csv` | as for the smoke release; same A-D feature set |
+| `splits.csv` | `split_role`, `fold_group` (primary), `fold_family` (stricter), `fold_seen_template` (diagnostic only) |
+| `derived_manifest.json` | inputs, outputs, counts, frozen thresholds, censoring rule |
+
+| Column | Class | Role | Meaning |
+|---|---|---|---|
+| component | A | group_key | tpch_derived, structural, probe, rewrite |
+| structure_family | A | group_key | coarse family (join path for generated groups) |
+| output_shape, index_variant, parameter_regime | A | annotation | design annotations; actual selectivity and plan are measured |
+| split_role, fold_group, fold_family, fold_seen_template, in_sample | C | split_control | never predictors |
+| observation_status | E | label | complete, right_censored, failed, incomplete, not_attempted |
+| statement_censor_bound_ms / exec_censor_lower_bound_ms | E | label | statement-level bound (= timeout) / execution-time bound used by the label |
+| hr_1s_class, hr_10s_class | E | label | positive, negative, indeterminate, unlabeled (frozen thresholds) |
+| failure_class, first_error_sqlstate | E | diagnostic | why a key failed; never a positive |
+| estimate_planning_time_ms | D | diagnostic | plain-EXPLAIN planning time; bounds censoring; never a feature |

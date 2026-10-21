@@ -38,7 +38,7 @@ sources and are never pooled into one statistic.
 | **Historical reference pilot** | Collected earlier by the team on TPC-H SF 0.1 | 220 query instances, 22 templates, 660 measured runs | `reference_pilot/` (read-only, kept byte-for-byte) |
 | **Poster smoke dataset** | Newly collected; results previously reported on **September 23, 2026** | 30 modeling keys, 17 templates, 14 semantic groups, 90 measured executions | Raw evidence in `QCP_DATA_ROOT`, outside the repository |
 | **Manual rewrite verification** | Results previously reported on **September 23, 2026** | 4 snapshot-equivalent cases: 2 rewrites faster, 2 slower. 1 non-equivalent negative control, which the harness rejected | Raw evidence in `QCP_DATA_ROOT`; summary in `reports/poster/` (git-ignored) |
-| **Final study** | Planned; nothing collected | About 4,000–5,000 modeling keys across at least 150 groups | [docs/final_dataset_plan.md](docs/final_dataset_plan.md) |
+| **Expanded release (final study data)** | Planned; collection-ready code written but unexecuted; nothing collected | 4,944 *proposed* keys in 199 semantic groups; a release needs at least 4,704 usable keys proven by validation | [docs/expanded_release_spec.md](docs/expanded_release_spec.md) |
 
 How to read these figures:
 
@@ -232,11 +232,14 @@ The package also installs it as `qcp`.
 
 None of the following has been collected or evaluated yet.
 
-* **Expanded dataset.** About 4,700 planned modeling keys across about 187
-  structural/semantic groups: TPC-H at SF 0.1 and SF 1, generated structural
-  families, point/range probes, an audited published workload (source and
-  license to be confirmed), and anti-pattern/rewrite families, five of them held
-  out entirely. See [docs/final_dataset_plan.md](docs/final_dataset_plan.md).
+* **Expanded dataset (collection-ready code, unexecuted).** 4,944 proposed
+  modeling keys in 199 semantic groups on TPC-H SF 0.1 and SF 1: 22 TPC-H-derived
+  templates, 128 generated structural groups, 24 point/range probes and 25 manual
+  rewrite pairs, five of them reserved for RQ2. Collection starts with a bounded
+  sample and continues only in approved, resumable batches; release gates must
+  pass before any count is quoted. See
+  [EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md) and
+  [docs/expanded_release_spec.md](docs/expanded_release_spec.md).
 * **Further model evaluation.** Grouped cross-validation on unseen query
   structures, compared against raw and calibrated PostgreSQL cost baselines.
   Candidates include Elastic Net, XGBoost or CatBoost, and a timeout-aware AFT
@@ -245,10 +248,12 @@ None of the following has been collected or evaluated yet.
 * **High-runtime detection.** Classifiers for queries at or above 1 s and
   10 s, evaluated mainly by PR-AUC, recall and false-negative rate. This is not
   yet evaluable with current evidence.
-* **LLM-generated rewrite evaluation (RQ2).** An uncertainty-aware gate decides
-  when to request an LLM rewrite. Every candidate then goes through the same
-  verification harness, and the full denominator is reported from generated
-  candidates to recommended ones. See
+* **LLM-generated rewrite evaluation (RQ2).** Primary question: do LLM-assisted
+  rewrites preserve SQL semantics and lower measured runtime? Every candidate goes
+  through the same verification harness, and the full denominator is reported
+  from generated candidates to recommended ones. A secondary experiment compares
+  uncertainty-aware gating policies. Manual reference results are never pooled
+  with LLM results. See
   [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md).
 * **Deferred:** API, dashboard and CI.
 
@@ -266,7 +271,12 @@ None of the following has been collected or evaluated yet.
 | [docs/poster_claim_register.md](docs/poster_claim_register.md) | Evidence labels and permitted poster claims |
 | [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md) | Planned prediction evaluation |
 | [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md) | Rewrite verification protocol |
-| [docs/final_dataset_plan.md](docs/final_dataset_plan.md) | Planned final dataset |
+| [docs/final_dataset_plan.md](docs/final_dataset_plan.md) | Earlier final-dataset plan (superseded for collection) |
+| [EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md) | Staged runbook for the expanded release (unexecuted) |
+| [docs/expanded_release_spec.md](docs/expanded_release_spec.md) | Expanded release design, arithmetic, labels, splits, gates |
+| [docs/next_phase_audit.md](docs/next_phase_audit.md) | Audit of reuse, gaps, differences from the plan, risks |
+| [docs/query_workload_evidence_register.md](docs/query_workload_evidence_register.md) | Evidence behind each expensive-query family |
+| [docs/tuesday_technical_brief.md](docs/tuesday_technical_brief.md) | Short brief on observed results |
 
 ---
 

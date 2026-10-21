@@ -179,8 +179,104 @@ def cmd_final_plan(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------------- expanded release
+def cmd_expanded_arithmetic(args: argparse.Namespace) -> int:
+    from query_cost_predictor.paths import ensure_dir, expanded_reports_dir
+    from query_cost_predictor.release_spec import load_release_spec, release_arithmetic
+
+    spec = load_release_spec(Path(args.spec) if args.spec else None)
+    arithmetic = release_arithmetic(spec)
+    out = ensure_dir(expanded_reports_dir()) / "release_arithmetic.json"
+    out.write_text(json.dumps(arithmetic, indent=2, default=str), encoding="utf-8")
+    _print_json({"totals": arithmetic["totals"], "by_component": arithmetic["by_component"],
+                 "worst_case_hours": arithmetic["worst_case_hours"], "report": str(out)})
+    verdict = "meets target" if arithmetic["meets_target_min_proposed_keys"] else "BELOW TARGET"
+    print(f"EXPANDED-ARITHMETIC: PLANNED ({verdict}; proposed keys are not measured labels)")
+    return 0 if arithmetic["meets_target_min_proposed_keys"] else 1
+
+
+def cmd_expanded_readiness(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_collect import readiness
+
+    report = readiness(Path(args.spec) if args.spec else None)
+    _print_json(report["summary"])
+    print("EXPANDED-READINESS: " + report["status"])
+    return 0 if report["status"] == "PASS" else 1
+
+
+def cmd_expanded_manifest(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_manifest import build_and_register_expanded_manifest
+
+    report = build_and_register_expanded_manifest(Path(args.spec) if args.spec else None)
+    _print_json(report["summary"])
+    print("EXPANDED-MANIFEST: " + report["status"])
+    return 0 if report["status"] == "PASS" else 1
+
+
+def cmd_expanded_plan_check(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_manifest import plan_check
+
+    report = plan_check(args.manifest_id)
+    _print_json(report["summary"])
+    print("EXPANDED-PLAN-CHECK: " + report["status"])
+    return 0 if report["status"] == "PASS" else 1
+
+
+def cmd_expanded_collect(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_collect import run_expanded_collection
+
+    return run_expanded_collection(args.manifest_id, phase=args.phase, max_keys=args.max_keys,
+                                   max_minutes=args.max_minutes)
+
+
+def cmd_expanded_derive(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_derive import derive_expanded
+
+    report = derive_expanded(args.manifest_id, write_db=not args.no_db)
+    _print_json(report["summary"])
+    print("EXPANDED-DERIVE: " + report["status"])
+    return 0 if report["status"] == "PASS" else 1
+
+
+def cmd_expanded_validate(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_validate import validate_expanded
+
+    report = validate_expanded(args.manifest_id, scope=args.scope, use_db=not args.no_db)
+    _print_json(report["summary"])
+    print("EXPANDED-VALIDATE: " + report["status"])
+    return {"PASS": 0, "STOP": 4}.get(report["status"], 1)
+
+
+def cmd_expanded_approve_full(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_collect import approve_full
+
+    report = approve_full(args.manifest_id, args.budget_hours)
+    _print_json(report["summary"])
+    print("EXPANDED-APPROVE-FULL: " + report["status"])
+    return 0 if report["status"] == "APPROVED" else 1
+
+
+def cmd_expanded_eda(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_validate import eda_summary
+
+    report = eda_summary(args.manifest_id)
+    _print_json(report["summary"])
+    print("EXPANDED-EDA: " + report["status"])
+    return 0
+
+
+def cmd_expanded_freeze(args: argparse.Namespace) -> int:
+    from query_cost_predictor.expanded_validate import freeze_release
+
+    report = freeze_release(args.manifest_id)
+    _print_json(report["summary"])
+    print("EXPANDED-FREEZE: " + report["status"])
+    return 0 if report["status"] == "FROZEN" else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="query_cost_predictor", description="Poster evidence milestone commands.")
+    parser = argparse.ArgumentParser(prog="query_cost_predictor",
+                                     description="Poster evidence milestone and expanded-release commands.")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("env-check", help="report Python/package versions and configuration sanity")
@@ -229,6 +325,53 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_build_poster_evidence)
 
     sub.add_parser("final-plan", help="print planned final-dataset arithmetic (PLANNED only)").set_defaults(func=cmd_final_plan)
+
+    p = sub.add_parser("expanded-arithmetic", help="expanded release: proposed-key arithmetic from the spec (no database)")
+    p.add_argument("--spec", default=None)
+    p.set_defaults(func=cmd_expanded_arithmetic)
+
+    p = sub.add_parser("expanded-readiness", help="expanded release: fresh preflight, V008, snapshots, disk")
+    p.add_argument("--spec", default=None)
+    p.set_defaults(func=cmd_expanded_readiness)
+
+    p = sub.add_parser("expanded-manifest", help="expanded release: build and register the manifest (no query execution)")
+    p.add_argument("--spec", default=None)
+    p.set_defaults(func=cmd_expanded_manifest)
+
+    p = sub.add_parser("expanded-plan-check", help="expanded release: plain EXPLAIN of every instance (nothing executed)")
+    p.add_argument("--manifest-id", default=None)
+    p.set_defaults(func=cmd_expanded_plan_check)
+
+    p = sub.add_parser("expanded-collect", help="expanded release: bounded sample or approved, batched full collection")
+    p.add_argument("--manifest-id", default=None)
+    p.add_argument("--phase", required=True, choices=["sample", "full"])
+    p.add_argument("--max-keys", type=int, default=None, help="batch bound (required for --phase full)")
+    p.add_argument("--max-minutes", type=float, default=None, help="stop between keys after this many minutes")
+    p.set_defaults(func=cmd_expanded_collect)
+
+    p = sub.add_parser("expanded-derive", help="expanded release: rebuild labels, features and splits from raw evidence")
+    p.add_argument("--manifest-id", default=None)
+    p.add_argument("--no-db", action="store_true", help="write derived files only")
+    p.set_defaults(func=cmd_expanded_derive)
+
+    p = sub.add_parser("expanded-validate", help="expanded release: integrity checks (+ budget for sample, gates for full)")
+    p.add_argument("--manifest-id", default=None)
+    p.add_argument("--scope", required=True, choices=["sample", "full"])
+    p.add_argument("--no-db", action="store_true", help="skip database reconciliation (reported as not checked)")
+    p.set_defaults(func=cmd_expanded_validate)
+
+    p = sub.add_parser("expanded-approve-full", help="expanded release: record the explicit decision to run the full collection")
+    p.add_argument("--manifest-id", default=None)
+    p.add_argument("--budget-hours", type=float, required=True)
+    p.set_defaults(func=cmd_expanded_approve_full)
+
+    p = sub.add_parser("expanded-eda", help="expanded release: descriptive summaries (no model is trained)")
+    p.add_argument("--manifest-id", default=None)
+    p.set_defaults(func=cmd_expanded_eda)
+
+    p = sub.add_parser("expanded-freeze", help="expanded release: immutable release record after a full PASS")
+    p.add_argument("--manifest-id", default=None)
+    p.set_defaults(func=cmd_expanded_freeze)
     return parser
 
 

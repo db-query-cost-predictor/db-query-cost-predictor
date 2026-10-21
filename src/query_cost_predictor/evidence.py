@@ -116,11 +116,17 @@ def raw_files(directory: Path) -> list[Path]:
 
 
 class EvidenceLedger:
-    """Terminal executions per (modeling_key, repeat_no) and estimates per key."""
+    """Terminal executions per (modeling_key, repeat_no) and estimates per key.
+
+    ``executions`` is the authoritative map; ``_by_key`` indexes the same records
+    per modeling key so per-key lookups stay linear for releases with thousands
+    of keys (the expanded release has about 20,000 terminal runs).
+    """
 
     def __init__(self) -> None:
         self.executions: dict[tuple[str, int], dict[str, Any]] = {}
         self.estimates: dict[str, dict[str, Any]] = {}
+        self._by_key: dict[str, dict[int, dict[str, Any]]] = {}
 
     def add_execution(self, record: dict[str, Any]) -> bool:
         """Register a terminal execution record. Returns True if it was new."""
@@ -129,6 +135,7 @@ class EvidenceLedger:
         existing = self.executions.get(key)
         if existing is None:
             self.executions[key] = record
+            self._by_key.setdefault(key[0], {})[key[1]] = record
             return True
         if existing["record_sha256"] == record["record_sha256"]:
             return False
@@ -147,9 +154,13 @@ class EvidenceLedger:
     def has_run(self, modeling_key: str, repeat_no: int) -> bool:
         return (modeling_key, repeat_no) in self.executions
 
+    def execution_records(self, modeling_key: str) -> list[dict[str, Any]]:
+        """Complete raw records (envelope and payload) of one key, ordered by repeat_no."""
+        by_repeat = self._by_key.get(modeling_key, {})
+        return [by_repeat[repeat_no] for repeat_no in sorted(by_repeat)]
+
     def runs_for(self, modeling_key: str) -> list[dict[str, Any]]:
-        runs = [r["payload"] for (mk, _), r in self.executions.items() if mk == modeling_key]
-        return sorted(runs, key=lambda p: int(p["repeat_no"]))
+        return [record["payload"] for record in self.execution_records(modeling_key)]
 
     def measured_runs(self, modeling_key: str) -> list[dict[str, Any]]:
         return [p for p in self.runs_for(modeling_key) if int(p["repeat_no"]) >= 1]

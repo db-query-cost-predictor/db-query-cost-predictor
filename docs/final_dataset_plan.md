@@ -1,5 +1,13 @@
 # Final dataset plan
 
+> **Superseded for collection.** The release that will actually be collected is
+> defined in [`config/expanded_release_v1.yaml`](../config/expanded_release_v1.yaml)
+> ([expanded_release_spec.md](expanded_release_spec.md)): 4,944 proposed keys in
+> 199 semantic groups, TPC-H SF 0.1 and SF 1 only, with a 15 s timeout. The
+> differences from this plan, and the reasons for them, are listed in
+> [next_phase_audit.md](next_phase_audit.md), section 5. This page and
+> `config/final_study_plan.yaml` remain as the historical plan.
+
 Four kinds of data must never be confused:
 
 | Kind | Status | Size | Where it lives |

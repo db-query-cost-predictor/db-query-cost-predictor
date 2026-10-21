@@ -94,9 +94,7 @@ def build_tables(manifest: dict[str, Any], ledger: EvidenceLedger, *, label_vers
         keys.append({**{c: entry.get(c) for c in KEY_COLUMNS if c in entry},
                      "parameters_json": canonical_json(entry["parameters"]),
                      "key_state": key_state(ledger, mk, planned)})
-        run_records = sorted((r for (k, _), r in ledger.executions.items() if k == mk),
-                             key=lambda r: int(r["payload"]["repeat_no"]))
-        for record in run_records:
+        for record in ledger.execution_records(mk):
             p = record["payload"]
             metrics = p.get("metrics") or {}
             executions.append({
@@ -193,14 +191,17 @@ def write_outputs(files: dict[str, bytes], target: Path) -> str:
     return "identical_rebuild_verified"
 
 
-def derived_root(manifest_id: str, label_version: str = POSTER_LABEL_VERSION) -> Path:
-    return data_root() / "derived" / "poster_smoke" / manifest_id[3:19] / label_version
+def derived_root(manifest_id: str, label_version: str = POSTER_LABEL_VERSION, kind: str = "poster_smoke") -> Path:
+    return data_root() / "derived" / kind / manifest_id[3:19] / label_version
 
 
-def load_ledger_for(protocol_version: str) -> tuple[EvidenceLedger, list[dict[str, Any]], list[Path]]:
-    files = raw_files(raw_session_dir(protocol_version))
+def load_ledger_for(protocol_version: str, kind: str = "poster_smoke"
+                    ) -> tuple[EvidenceLedger, list[dict[str, Any]], list[Path]]:
+    files = raw_files(raw_session_dir(protocol_version, kind))
     if not files:
-        raise MissingEvidenceError("no raw poster-smoke evidence; run 05_run_poster_smoke.ps1 -Step Collect")
+        hint = ("run 05_run_poster_smoke.ps1 -Step Collect" if kind == "poster_smoke"
+                else "run 08_expanded_release.ps1 -Step CollectSample")
+        raise MissingEvidenceError(f"no raw {kind} evidence; {hint}")
     records = [record for path in files for record in read_raw_file(path)]
     return EvidenceLedger.from_records(records), records, files
 
@@ -281,11 +282,13 @@ def _write_database(mid: str, tables: dict[str, list[dict[str, Any]]], inputs_sh
         ev.commit()
 
 
-def latest_derived_dir(manifest_id: str, label_version: str = POSTER_LABEL_VERSION) -> Path:
-    root = derived_root(manifest_id, label_version)
+def latest_derived_dir(manifest_id: str, label_version: str = POSTER_LABEL_VERSION, kind: str = "poster_smoke") -> Path:
+    root = derived_root(manifest_id, label_version, kind)
     pointer = root / "LATEST.txt"
     if not pointer.is_file():
-        raise MissingEvidenceError("no derived smoke evidence; run 05_run_poster_smoke.ps1 -Step Derive")
+        hint = ("run 05_run_poster_smoke.ps1 -Step Derive" if kind == "poster_smoke"
+                else "run 08_expanded_release.ps1 -Step Derive")
+        raise MissingEvidenceError(f"no derived {kind} evidence; {hint}")
     target = root / pointer.read_text(encoding="utf-8").strip()
     if not target.is_dir():
         raise MissingEvidenceError(f"derived folder {target} is missing; re-run -Step Derive")

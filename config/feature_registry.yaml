@@ -121,7 +121,7 @@ fields:
 
   # ---------------------------------------------------------------- collection_session
   - {name: collection_session.session_id, class: E, role: identifier, description: "collection session"}
-  - {name: collection_session.session_kind, class: E, role: provenance, description: "poster_smoke_collection or rewrite_verification"}
+  - {name: collection_session.session_kind, class: E, role: provenance, description: "poster_smoke_collection, rewrite_verification or expanded_collection (V008)"}
   - {name: collection_session.manifest_id, class: C, role: identifier, description: "manifest collected"}
   - {name: collection_session.started_at, class: E, role: provenance, description: "session start"}
   - {name: collection_session.host_name, class: E, role: provenance, description: "collector host name"}
@@ -289,7 +289,7 @@ fields:
 
   # ---------------------------------------------------------------- dataset_release (derived, versioned)
   - {name: dataset_release.release_id, class: E, role: identifier, description: "release id"}
-  - {name: dataset_release.release_kind, class: E, role: provenance, description: "poster_smoke or final_study"}
+  - {name: dataset_release.release_kind, class: E, role: provenance, description: "poster_smoke, final_study or expanded_release (V008)"}
   - {name: dataset_release.manifest_id, class: C, role: identifier, description: "manifest"}
   - {name: dataset_release.label_version, class: E, role: provenance, description: "label version"}
   - {name: dataset_release.feature_version, class: E, role: provenance, description: "feature version"}
@@ -428,3 +428,25 @@ fields:
   - {name: wal_bytes, class: E, role: diagnostic, description: "WAL bytes"}
   - {name: workers_launched, class: E, role: diagnostic, description: "launched workers"}
   - {name: spill_detected, class: E, role: diagnostic, description: "spill evidence"}
+
+  # ================================================================ expanded-release working columns (never features)
+  - {name: component, class: A, role: group_key, description: "release component: tpch_derived, structural, probe or rewrite"}
+  - {name: structure_family, class: A, role: group_key, description: "coarse structure family (join path for generated groups); stricter holdout unit"}
+  - {name: output_shape, class: A, role: annotation, description: "generated output shape (aggregate, sort, window ...)"}
+  - {name: index_variant, class: A, role: annotation, description: "indexed_predicate or unindexed_predicate (design annotation)"}
+  - {name: parameter_regime, class: A, role: annotation, description: "designed selectivity / parameter regime; actual selectivity is measured"}
+  - {name: split_role, class: C, role: split_control, description: "development or heldout_rq2"}
+  - {name: fold_group, class: C, role: split_control, description: "primary grouped fold (whole semantic groups)"}
+  - {name: fold_family, class: C, role: split_control, description: "stricter grouped fold (whole structure families)"}
+  - {name: fold_seen_template, class: C, role: split_control, description: "seen-template diagnostic fold (whole query instances); never unseen-structure evidence"}
+  - {name: in_sample, class: C, role: split_control, description: "key belongs to the bounded collection sample"}
+  - {name: key_state, class: E, role: label, description: "not_started, incomplete, complete, right_censored or failed (from raw evidence)"}
+  - {name: observation_status, class: E, role: label, description: "complete, right_censored, failed, incomplete or not_attempted"}
+  - {name: statement_censor_bound_ms, class: E, role: label, description: "statement-level bound of a censored key (= statement timeout)"}
+  - {name: exec_censor_lower_bound_ms, class: E, role: label, description: "execution-time lower bound of a censored key (timeout - planning - margin)"}
+  - {name: censor_bound_basis, class: E, role: provenance, description: "whether the censoring bound used an observed or the fallback planning time"}
+  - {name: hr_1s_class, class: E, role: label, description: "frozen high-runtime class at 1 s: positive, negative, indeterminate, unlabeled"}
+  - {name: hr_10s_class, class: E, role: label, description: "frozen high-runtime class at 10 s: positive, negative, indeterminate, unlabeled"}
+  - {name: failure_class, class: E, role: diagnostic, description: "none, sql_error, resource_limit, lock_timeout, watchdog_cancel, protocol_error, other_error"}
+  - {name: first_error_sqlstate, class: E, role: diagnostic, description: "SQLSTATE of the first failed execution of a key"}
+  - {name: estimate_planning_time_ms, class: D, role: diagnostic, description: "planning time of the plain EXPLAIN (SUMMARY ON); bounds censoring; never a feature"}

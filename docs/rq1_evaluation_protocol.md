@@ -3,18 +3,32 @@
 **RQ1.** How accurately can a model predict isolated PostgreSQL execution time,
 and flag high-runtime queries, for **unseen query structures**, using only
 information available before execution (SQL, schema/statistics, configuration,
-plain `EXPLAIN`)?
+plain `EXPLAIN`)? Does it improve on a **calibrated PostgreSQL plan-cost
+baseline** evaluated on the same grouped folds?
 
 Status: the poster milestone contains only the pilot diagnostic below
-(`RECOMPUTED_PILOT`). The full RQ1 study is `PLANNED`.
+(`RECOMPUTED_PILOT`). The full RQ1 study is `PLANNED`. Its data is the expanded
+release ([expanded_release_spec.md](expanded_release_spec.md)), which is not
+yet collected.
+
+## Primary comparison
+
+The headline result is the learned model versus the calibrated PostgreSQL
+plan-cost baseline, ln(runtime) = a + b ln(cost), fitted on each training fold
+only. Both use identical primary folds (whole semantic groups held out) and the
+same metrics. The raw planner cost is reported only as a rank baseline, because
+planner units are not milliseconds. The global median is a sanity floor. On the
+pilot (recomputed, 22 template groups), the calibrated baseline reached median
+q-error 1.694 and the nonlinear model 1.794 under template-grouped folds. The
+learned model has therefore not yet beaten the baseline on unseen templates.
 
 ## Targets
 
 | Target | Definition |
 |---|---|
 | Regression label | median of the measured repetitions (instrumented `EXPLAIN ANALYZE` execution time, `TIMING OFF`), modelled as ln(ms) |
-| Censoring | a timed-out run is right-censored at the statement timeout; censored labels are never imputed as completed runtimes |
-| High-runtime flag | label ≥ 1 s and label ≥ 10 s (censored keys count as positive); thresholds are frozen after calibration |
+| Censoring | a timed-out run is right-censored; censored labels are never imputed as completed runtimes. The expanded release's lower bound is the **execution-time** bound (timeout minus observed planning time minus 100 ms), because `statement_timeout` also counts parsing and planning |
+| High-runtime flag | **frozen** at 1 s and 10 s: positive if the median is at or above the threshold, or if a censored key's bound is; censored below the threshold is *indeterminate*; failed keys are unlabeled. Never changed to manufacture positives |
 
 Instrumented server time is not end-to-end latency; the final study adds a
 client-latency comparison by runtime bin during calibration.
@@ -37,6 +51,11 @@ I/O timing, WAL, launched workers, runtime status) are rejected mechanically.
 * Final study (planned) adds fingerprint, workload, scale, configuration and
   reserved anti-pattern-family holdouts; hyperparameters are selected with
   nested grouped validation, never on a held-out split.
+* Expanded release: the folds are stored in the manifest. `fold_group` (whole
+  semantic groups) is primary. `fold_family` (whole structure families) is a
+  stricter check. `fold_seen_template` is a labelled diagnostic, never presented
+  as unseen-structure performance. The 160 RQ2-reserved keys are excluded from
+  every RQ1 fold.
 
 ## Pilot diagnostic (implemented in `pilot_audit.py`, unexecuted)
 
@@ -67,8 +86,10 @@ reported for variability. Tail error is reported by runtime bin.
 
 ## High-runtime classification
 
-* Evaluable only with at least 10 positive examples at a threshold; otherwise
-  the status is `NOT_YET_EVALUABLE` and no classifier is trained or reported.
+* Evaluable only with at least 10 positive examples at a threshold. For the
+  expanded release, these must come from at least 5 semantic groups and 2
+  components (gates G-07 and G-08). Otherwise the status is `NOT_YET_EVALUABLE`
+  and no classifier is trained or reported.
   The pilot's maximum runtime is far below 1 s, so both thresholds are expected
   to be `NOT_YET_EVALUABLE` — the audit computes and reports this.
 * Final study (planned): PR-AUC as the primary ranking metric; recall and

@@ -119,8 +119,15 @@ def build_runtime_label(
     timeout_ms: int,
     label_version: str,
     probe_status: str | None = None,
+    censor_lower_bound_ms: float | None = None,
 ) -> RuntimeLabel:
-    """Construct a :class:`RuntimeLabel` from measured runs (probe excluded)."""
+    """Construct a :class:`RuntimeLabel` from measured runs (probe excluded).
+
+    ``censor_lower_bound_ms`` overrides the lower bound of a right-censored
+    label (default: the statement timeout). The expanded release passes the
+    execution-time bound from :func:`exec_censor_lower_bound`, because the
+    statement timeout also counts parsing and planning.
+    """
     run_list = sorted(runs, key=lambda r: r.repeat_no)
     repeats = [r.repeat_no for r in run_list]
     if len(repeats) != len(set(repeats)):
@@ -151,7 +158,9 @@ def build_runtime_label(
             min_ms = successes[0]
             max_ms = successes[-1]
     elif status == STATUS_CENSORED:
-        censor_bound = float(timeout_ms)
+        censor_bound = float(timeout_ms) if censor_lower_bound_ms is None else float(censor_lower_bound_ms)
+        if not math.isfinite(censor_bound) or censor_bound < 0 or censor_bound > timeout_ms:
+            raise LabelError("a censoring lower bound must lie between 0 and the statement timeout")
 
     return RuntimeLabel(
         status=status,
@@ -171,3 +180,79 @@ def build_runtime_label(
         probe_status=probe_status,
         label_version=label_version,
     )
+
+
+# ----------------------------------------------------------------------------------
+# Expanded-release rules (timeout audit, frozen high-runtime classes, failure taxonomy)
+# ----------------------------------------------------------------------------------
+HR_POSITIVE = "positive"
+HR_NEGATIVE = "negative"
+HR_INDETERMINATE = "indeterminate"  # censored below the threshold: the class cannot be decided
+HR_UNLABELED = "unlabeled"          # failed, incomplete or never attempted
+HR_CLASSES = (HR_POSITIVE, HR_NEGATIVE, HR_INDETERMINATE, HR_UNLABELED)
+
+BOUND_FROM_PLANNING = "timeout_minus_observed_planning_and_margin"
+BOUND_FROM_FALLBACK = "timeout_minus_fallback_planning_and_margin"
+
+
+def exec_censor_lower_bound(timeout_ms: int, planning_times_ms: Iterable[float | None], *, margin_ms: float,
+                            fallback_planning_ms: float) -> tuple[float, str]:
+    """Lower bound on EXPLAIN ANALYZE *execution* time for a run killed by ``statement_timeout``.
+
+    PostgreSQL measures ``statement_timeout`` from the arrival of the command
+    until its completion, so it also covers parsing, rewriting and planning,
+    whereas the label ("Execution Time") covers only the executor. A timed-out
+    run therefore proves ``execution_time >= timeout - (time before the executor
+    started)``. That time is bounded by the largest planning time observed for
+    the key (plain EXPLAIN with SUMMARY ON, or completed runs) plus ``margin_ms``
+    for parsing, rewriting and EXPLAIN output. Without an observed planning time
+    the configured fallback is used, and the basis says so.
+    """
+    if timeout_ms <= 0 or margin_ms < 0 or fallback_planning_ms < 0:
+        raise LabelError("timeout must be positive; margin and fallback must be non-negative")
+    observed = [float(p) for p in planning_times_ms if p is not None and math.isfinite(float(p)) and float(p) >= 0]
+    planning = max(observed) if observed else float(fallback_planning_ms)
+    basis = BOUND_FROM_PLANNING if observed else BOUND_FROM_FALLBACK
+    return max(0.0, float(timeout_ms) - planning - float(margin_ms)), basis
+
+
+def high_runtime_class(status: str, median_ms: float | None, censor_lower_bound_ms: float | None,
+                       threshold_ms: float) -> str:
+    """Frozen high-runtime class of one key at ``threshold_ms``.
+
+    * complete: positive if the median measured runtime is >= the threshold;
+    * right_censored: positive if the execution-time lower bound is >= the
+      threshold, otherwise indeterminate (never imputed);
+    * failed / incomplete: unlabeled (a failure is never a positive).
+    """
+    if threshold_ms <= 0:
+        raise LabelError("threshold must be positive")
+    if status == STATUS_COMPLETE:
+        if median_ms is None:
+            raise LabelError("a complete label needs a median")
+        return HR_POSITIVE if median_ms >= threshold_ms else HR_NEGATIVE
+    if status == STATUS_CENSORED:
+        if censor_lower_bound_ms is None:
+            raise LabelError("a censored label needs a lower bound")
+        return HR_POSITIVE if censor_lower_bound_ms >= threshold_ms else HR_INDETERMINATE
+    return HR_UNLABELED
+
+
+FAILURE_NONE = "none"
+FAILURE_CLASSES = ("sql_error", "resource_limit", "lock_timeout", "watchdog_cancel", "protocol_error", "other_error")
+
+
+def failure_class(sqlstate: str | None, error_class: str | None) -> str:
+    """Classify a failed execution. A failure is never a timeout and never a runtime."""
+    if error_class == "WatchdogCancelled":
+        return "watchdog_cancel"
+    if error_class == "MissingExecutionTime":
+        return "protocol_error"
+    code = (sqlstate or "").upper()
+    if code.startswith("53"):  # insufficient resources: disk_full, out_of_memory, temp_file_limit (53400)
+        return "resource_limit"
+    if code == "55P03":  # lock_not_available (lock_timeout)
+        return "lock_timeout"
+    if code[:2] in ("42", "22", "0A", "21"):  # syntax/access rule, data exception, unsupported, cardinality
+        return "sql_error"
+    return "other_error"
