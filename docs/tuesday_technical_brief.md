@@ -2,8 +2,18 @@
 
 Based only on observed results: the pilot audit, the poster smoke run and the
 manual rewrite verification of September 23, 2026 (TPC-H-derived data, SF 0.1,
-PostgreSQL 16.15, one laptop). No new measurements were made for this brief. The
-expanded release is designed but **not collected**.
+PostgreSQL 16.15, one laptop). No new measurements were made for this brief,
+which was written on 2026-10-03, before the expanded collection.
+
+> **Update 2026-10-21.** The expanded release has since been collected
+> (2026-10-04 UTC): 4,944 determined cases (4,940 complete, 4 right-censored),
+> 4,784 development and 160 reserved RQ2 cases. Full validation is **STOP at
+> G-08**. Runtime regression and 1 s classification are the next scoped modeling
+> tasks; 10 s classification remains `NOT_YET_EVALUABLE`. Final expanded model
+> scores and LLM rewrite results are pending. The cases and answers below still
+> describe only the September 23 evidence; see
+> [expanded_collection_checkpoint.md](expanded_collection_checkpoint.md) for the
+> expanded release.
 
 ## Observed so far
 
@@ -101,13 +111,15 @@ GROUP BY c.c_custkey
   which is worse than the calibrated cost baseline (1.69). We report the grouped
   number.
 * **Independent groups.** The pilot has 22 templates and the smoke run 14 groups.
-  The expanded design proposes 199 semantic groups (87 coarser families). These
-  are proposed, not collected. Every result will state keys, groups and keys per group.
-* **Missing high-runtime positives.** None so far: the pilot maximum is 284 ms and
-  the smoke maximum 103 ms. No high-runtime classifier was trained or is claimed.
-  The 1 s and 10 s definitions are frozen. The expanded release adds SF 1 and
-  heavier regimes as candidates, and a gate stops the release if positives are
-  still too few.
+  The expanded design proposed 199 semantic groups (87 coarser families); all
+  199 were collected (194 development, 5 reserved for RQ2). Every result will
+  state keys, groups and keys per group.
+* **Missing high-runtime positives.** None in the September 23 evidence: the pilot
+  maximum is 284 ms and the smoke maximum 103 ms. The 1 s and 10 s definitions
+  are frozen. In the collected expanded release, 393 development cases (106
+  groups, all at SF 1) are positive at 1 s and none at 10 s, so gate G-08 stops
+  the 10 s classifier (`NOT_YET_EVALUABLE`). No high-runtime classifier has been
+  trained or is claimed.
 * **Snapshot equivalence.** Identical result multisets on one snapshot are
   evidence, not proof. Each pair carries a written argument and checked
   preconditions, and a deliberately non-equivalent control (UNION vs UNION ALL)

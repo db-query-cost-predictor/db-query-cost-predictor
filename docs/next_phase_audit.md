@@ -1,11 +1,24 @@
 # Next-phase audit: expanded query dataset
 
 Audit date 2026-10-03, branch `feat/expanded-query-dataset` (from `cdfde49`).
-Everything this phase adds (code, configuration, tests, notebook, scripts) is
-**UNEXECUTED**: no Python, test, SQL, Docker or notebook was run while writing it.
-Numbers marked *previously reported* come from the September 23, 2026 runs. Where
-local files exist, they were compared read-only on 2026-10-03, which is not a
+This is a **historical pre-collection audit**. When it was written, nothing this
+phase adds (code, configuration, tests, notebook, scripts) had been run: no
+Python, test, SQL, Docker or notebook was executed while writing it. Numbers
+marked *previously reported* come from the September 23, 2026 runs. Where local
+files existed, they were compared read-only on 2026-10-03, which is not a
 re-measurement.
+
+> **Update 2026-10-21.** The phase has since been run. SF 1 was loaded and
+> registered, and the expanded release was collected on 2026-10-04 (UTC): 4,944
+> determined cases (4,940 complete, 4 right-censored), 4,784 development and
+> 160 reserved RQ2 cases. Full validation is **STOP at G-08**: no development
+> case reaches 10 s, so 10 s classification remains `NOT_YET_EVALUABLE`.
+> Runtime regression and 1 s classification are the next scoped modeling tasks.
+> Final expanded model scores and LLM rewrite results are pending. The
+> 2026-10-21 audit ran the unit suite (239 passed) and rebuilt every derived file
+> byte-for-byte at source checkpoint `972c00b`. See
+> [expanded_collection_checkpoint.md](expanded_collection_checkpoint.md). The
+> sections below are left as written on 2026-10-03.
 
 ## 1. What exists and is reused
 
@@ -24,7 +37,7 @@ re-measurement.
 | Grouped folds | `splits.py` | unchanged `group_kfold`, applied at three levels |
 | Evidence schema | `sql/evidence/V001`-`V007` | unchanged; new `V008` replaces two CHECK constraints only |
 
-## 2. What this phase adds (UNEXECUTED)
+## 2. What this phase adds (not yet run when this audit was written)
 
 | File | Purpose |
 |---|---|
@@ -37,7 +50,7 @@ re-measurement.
 | `sql/evidence/V008__expanded_release_kinds.sql` | allows session kind `expanded_collection` and release kind `expanded_release` |
 | `scripts/powershell/08_expanded_release.ps1` | one script, thirteen inspectable steps |
 | `tests/unit/test_release_spec.py`, `test_expanded_manifest.py`, `test_expanded_labels.py`, `test_expanded_resume.py`, `test_release_reconciliation.py`, `test_expanded_features.py` | static tests |
-| `notebooks/02_expanded_release_eda.ipynb` | unexecuted EDA notebook over derived files |
+| `notebooks/02_expanded_release_eda.ipynb` | EDA notebook over derived files (committed without outputs) |
 | `EXPANDED_DATASET_RUNBOOK.md`, `docs/expanded_release_spec.md`, `docs/query_workload_evidence_register.md`, `docs/tuesday_technical_brief.md` | runbook, design, evidence register, brief |
 
 Small fixes to existing code (behaviour-preserving):
@@ -109,9 +122,9 @@ column shows what was verified read-only on 2026-10-03 against local files.
 | High-runtime positives | none at 1 s or 10 s | same report: O-02 and O-03 `OBSERVED_ABSENT`; largest median 102.899 ms (`high_cardinality_group_by`, C1) |
 | Spill | - | O-01: 4 keys (wide sort and high-cardinality grouping, both configurations) |
 | Manual rewrites | 4 snapshot-equivalent cases: 2 faster, 2 slower; 1 non-equivalent negative control rejected | `reports/poster/rewrite_verification_summary.json`: `rp_nonsargable_year` median speedups 3.171 and 3.300 (RECOMMEND); `rp_correlated_sum` 0.414 and 0.484 (DO_NOT_RECOMMEND); negative control NOT_EQUIVALENT (5 vs 30 rows). All `MANUAL_REFERENCE_REWRITE`; no LLM |
-| Snapshot coverage | - | only `snapshot_tpch_sf0_1.json` exists: **SF 1 was never loaded** |
+| Snapshot coverage | - | on 2026-10-03 only `snapshot_tpch_sf0_1.json` existed: **SF 1 had not been loaded** (loaded before the 2026-10-04 collection) |
 | Evidence integrity | - | SHA-256 of `C:\qcp_data\manifests\poster_smoke\manifest_d87c28c4c677163a.json` and of the raw smoke JSONL equal the hashes recorded in `derived_manifest.json`. The manifest file's modification time (22:29) is later than its creation, but its bytes are unchanged |
-| Unit tests | 142 passing | not re-run; the new tests in this phase are unexecuted |
+| Unit tests | 142 passing | not re-run on 2026-10-03; the new tests had not yet been run (2026-10-21 audit: 239 passed) |
 
 ## 7. Hardware and time risks
 
@@ -120,7 +133,8 @@ column shows what was verified read-only on 2026-10-03 against local files.
   CPUs visible; bench container limited to 2 CPUs and 4 GB; 260 GB free disk.
   The readiness check requires a **fresh** preflight (younger than 24 h,
   status PASS). It warns below 3 GB of free RAM or 6 GB of Docker memory.
-* **SF 1 is not loaded.** Loading it requires the first-time `tpch-tools`
+* **SF 1 was not loaded on 2026-10-03** (it was loaded and registered before
+  the 2026-10-04 collection). Loading it requires the first-time `tpch-tools`
   build, about 1 GB of generated data, the load, `VACUUM (FREEZE, ANALYZE)`
   and registration. Its time and disk use have not been measured here.
 * **Memory pressure** on the WSL2 VM adds timing noise. `shared_buffers` keeps

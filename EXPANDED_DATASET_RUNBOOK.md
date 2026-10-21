@@ -1,11 +1,33 @@
 # Expanded Dataset Runbook
 
-> **Status:** the code, configuration, tests, notebook and scripts for this phase
-> are **UNEXECUTED**. They were written but never run. No expanded manifest,
-> sample, label or report exists until you run the commands below. **Do not
-> claim a 4,704-key dataset until stage 6 produces a full validation report with
-> status PASS that shows the count.** A manifest entry is a *proposed* key, not a
-> label.
+> **Status: run on 2026-10-03/04 (local time; 2026-10-04 UTC) and audited on
+> 2026-10-21.** Stages 1-6 were completed for manifest
+> `mf_a75c6408fb59ab8f…`. The full validation (stage 6.2) ended **STOP at G-08**:
+> 4,944 determined cases (4,940 complete, 4 right-censored), 4,784 development
+> and 160 reserved RQ2 cases, and no development case at or above 10 s. Every
+> integrity check passed. As designed, stage 6.3 (`Freeze`) refuses a STOP
+> release, so no `RELEASE_FROZEN.json` exists; nothing was relabelled. Stage 7
+> applies to G-08: the 10 s classifier is `NOT_YET_EVALUABLE`. Identities,
+> hashes and provenance limits are recorded in
+> [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md).
+> The stages below remain the procedure for reproducing or extending the
+> collection. A manifest entry is a *proposed* key; only the validation report
+> establishes labels.
+
+## Outcome of the 2026-10-03/04 run
+
+| Stage | Outcome (from the packaged reports) |
+|---|---|
+| 1 | preflight PASS; readiness PASS with an R-04 warning (1.13 GB free RAM); SF 1 loaded and registered |
+| 2 | manifest of 4,944 proposed keys; plan check PASS (2,664 plain plans, 0 failures) |
+| 3 | sample of 110 keys collected and validated: PASS |
+| 4 | projection: 1.91 h expected for the remaining keys; full collection approved with a 5 h budget |
+| 5 | 11 batches (two of up to 250 keys, nine of up to 500 keys, each capped at 30 minutes); all keys determined |
+| 6 | derive PASS; validate **STOP (G-08 only)**; freeze not possible on STOP; EDA summary written |
+
+The next scoped work is RQ1 modeling (runtime regression and the 1 s
+classifier) on the development cases, with inputs pinned by
+[config/rq1_modeling_input_v1.json](config/rq1_modeling_input_v1.json).
 
 Design: [docs/expanded_release_spec.md](docs/expanded_release_spec.md).
 Audit and risks: [docs/next_phase_audit.md](docs/next_phase_audit.md).
@@ -27,7 +49,7 @@ Why each family exists: [docs/query_workload_evidence_register.md](docs/query_wo
 * Protocol values are frozen in the spec: 15 s timeout, 1 s and 10 s thresholds,
   C2 `work_mem` = 256 kB. Changing any of them after stage 2 means a new spec
   version and a new protocol version, not an edit.
-* Before stage 1, run the new unit tests once (they have never been run):
+* Before stage 1, run the unit tests (the 2026-10-21 audit: 239 passed):
   ```powershell
   .\.venv\Scripts\python.exe -m pip install -e ".[notebook,dev]"
   .\.venv\Scripts\python.exe -m pytest
@@ -114,8 +136,9 @@ across batches (AC power, same Docker resources, no other heavy work).
 | 6.5 | `.\.venv\Scripts\python.exe -m jupyter lab notebooks\02_expanded_release_eda.ipynb`, run one cell at a time | figures from the derived files; a missing input raises `MissingEvidenceError` naming the step | - |
 | 6.6 | `.\scripts\powershell\07_stop_databases.ps1` | `STOP-DATABASES: PASS` (volumes kept) | - |
 
-Only after 6.2 PASS and 6.3 FROZEN may anyone say the release exists, quoting
-the usable-key count from the validation report.
+Only after 6.2 PASS and 6.3 FROZEN may anyone call the release validated or
+frozen. A STOP outcome, as in the 2026-10-04 run, is reported with the counts
+from the validation report together with its stop code (G-08), never as PASS.
 
 ## Stage 7: when a gate says STOP
 

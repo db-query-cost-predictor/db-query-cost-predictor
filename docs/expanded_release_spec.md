@@ -1,11 +1,20 @@
 # Expanded release v1: specification
 
-Status: **PLANNED**. The machine-readable source is
-[`config/expanded_release_v1.yaml`](../config/expanded_release_v1.yaml).
+Status: **design, collected.** This page is the design as specified before
+collection; sections 2-8 are unchanged plans and rules. The machine-readable
+source is [`config/expanded_release_v1.yaml`](../config/expanded_release_v1.yaml)
+(SHA-256 `1fc68f72…`, pinned by the manifest; never edited).
 `python -m query_cost_predictor expanded-arithmetic` recomputes every count below
 from that file, and the unit tests pin them. **A manifest with 4,944 entries is not
-4,944 labels.** A key counts only after collection, when the full validation
-report shows it as `complete` or `right_censored`.
+4,944 labels.** A key counts only when the full validation report shows it as
+`complete` or `right_censored`.
+
+**Collected outcome (2026-10-04 UTC, audited 2026-10-21):** all 4,944 proposed
+keys were determined: 4,940 `complete` and 4 `right_censored`, with 4,784
+development cases and 160 reserved RQ2 cases. Full validation is **STOP at
+G-08** (no development case at or above 10 s), so the release is not frozen and
+the 10 s classifier is `NOT_YET_EVALUABLE`. Gates G-01 to G-07 passed. See
+[expanded_collection_checkpoint.md](expanded_collection_checkpoint.md).
 
 ## 1. Identities
 

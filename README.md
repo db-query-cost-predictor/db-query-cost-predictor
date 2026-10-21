@@ -2,13 +2,16 @@
 
 The goal is to predict a SQL query's execution cost before it runs, and to recommend a cheaper rewrite only after checking that its results match and that it is faster.
 
-> **Current state: poster-evidence milestone.** This repository holds a
-> reproducible PostgreSQL 16 / TPC-H evidence pipeline with three parts: an
-> independent audit of the historical pilot, a small newly collected smoke
-> dataset, and a harness that verifies hand-written query rewrites. Large-scale
-> modelling, high-runtime detection and LLM-generated rewrites are **planned,
-> not implemented**. [Evidence status](#evidence-status) separates what has been
-> measured from what is planned.
+> **Current state: expanded dataset collected; RQ1 modeling next.** This
+> repository holds a reproducible PostgreSQL 16 / TPC-H evidence pipeline: an
+> independent audit of the historical pilot, a small smoke dataset, a harness
+> that verifies hand-written query rewrites, and the **expanded release**
+> (4,944 determined cases, collected on 2026-10-04). Its full validation is
+> **STOP at gate G-08**: no development case reaches 10 s. Runtime regression
+> and 1 s high-runtime classification are the next scoped modeling tasks; 10 s
+> classification stays `NOT_YET_EVALUABLE`. Final expanded model scores and
+> LLM-generated rewrite results are **pending**. [Evidence status](#evidence-status)
+> separates what has been measured from what is planned.
 
 ---
 
@@ -38,7 +41,7 @@ sources and are never pooled into one statistic.
 | **Historical reference pilot** | Collected earlier by the team on TPC-H SF 0.1 | 220 query instances, 22 templates, 660 measured runs | `reference_pilot/` (read-only, kept byte-for-byte) |
 | **Poster smoke dataset** | Newly collected; results previously reported on **September 23, 2026** | 30 modeling keys, 17 templates, 14 semantic groups, 90 measured executions | Raw evidence in `QCP_DATA_ROOT`, outside the repository |
 | **Manual rewrite verification** | Results previously reported on **September 23, 2026** | 4 snapshot-equivalent cases: 2 rewrites faster, 2 slower. 1 non-equivalent negative control, which the harness rejected | Raw evidence in `QCP_DATA_ROOT`; summary in `reports/poster/` (git-ignored) |
-| **Expanded release (final study data)** | Planned; collection-ready code written but unexecuted; nothing collected | 4,944 *proposed* keys in 199 semantic groups; a release needs at least 4,704 usable keys proven by validation | [docs/expanded_release_spec.md](docs/expanded_release_spec.md) |
+| **Expanded release (final study data)** | Collected on 2026-10-04 (UTC); audited 2026-10-21; full validation **STOP at G-08** (only the 10 s gate); not frozen | 4,944 determined cases (4,940 complete, 4 right-censored) in 199 semantic groups: 4,784 development cases and 160 reserved RQ2 cases | [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md) |
 
 How to read these figures:
 
@@ -50,8 +53,11 @@ How to read these figures:
 * The pilot figures are the values recorded in `reference_pilot/output/`.
   `pilot-audit` recomputes them independently from the raw files. It lists every
   mismatch with a previously reported value and never overwrites one.
-* A previous run of the unit-test suite reported **142 passing tests**. The
-  suite was not re-run while this README was prepared.
+* The expanded-release figures come from its full validation report and were
+  re-verified in the audit of 2026-10-21. That audit rebuilt every derived file
+  byte-for-byte from the raw evidence at source checkpoint `972c00b` and ran the
+  unit-test suite: **239 passed**. (The poster milestone earlier reported 142
+  passing tests.)
 * Several files (`POSTER_RUNBOOK.md`, `docs/`, `tests/fixtures/README.md`) say
   the code was written but not executed by its author. That describes how the
   code was written. The results above come from later manual runs.
@@ -124,15 +130,15 @@ prove it. See [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol
 ├── pyproject.toml             Package metadata, dependencies, `qcp` entry point, pytest settings
 ├── docker-compose.yml         PostgreSQL 16 bench-db and evidence-db (127.0.0.1 only) and TPC-H tools
 ├── .env.example               Template for the git-ignored .env (placeholder values only)
-├── config/                    Smoke manifest definition, feature registry, claim registers, final-study plan
+├── config/                    Smoke and expanded-release specs, feature registry, claim registers, RQ1 input record
 ├── docker/tpch-tools/         Image that builds the pinned TPC-H dbgen and loads the data
 ├── docs/                      Architecture, data contract and dictionary, RQ1/RQ2 protocols, claim register
-├── notebooks/                 Poster-evidence notebook (committed without outputs)
+├── notebooks/                 Poster-evidence and expanded-release EDA notebooks (committed without outputs)
 ├── reference_docs/            Planning documents cited by the claim registers (read-only)
 ├── reference_pilot/           Historical pilot: scripts, raw outputs, validation files (read-only)
 ├── reports/                   Generated poster outputs (git-ignored except reports/README.md)
-├── scripts/powershell/        Numbered runbook scripts 01–07
-├── sql/evidence/              Evidence-database migrations V001–V007
+├── scripts/powershell/        Numbered runbook scripts 01–08
+├── sql/evidence/              Evidence-database migrations V001–V008
 ├── src/query_cost_predictor/  Python package: CLI, collector, pilot audit, rewrite verification, reporting
 └── tests/                     Unit tests with synthetic fixtures only
 ```
@@ -230,24 +236,27 @@ The package also installs it as `qcp`.
 
 ## Planned work
 
-None of the following has been collected or evaluated yet.
+The expanded dataset itself is collected (see [Evidence status](#evidence-status)
+and [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md)):
+4,944 determined cases on TPC-H SF 0.1 and SF 1 from 22 TPC-H-derived templates,
+128 generated structural groups, 24 point/range probes and 25 manual rewrite
+pairs, five of them reserved for RQ2. Its design is in
+[docs/expanded_release_spec.md](docs/expanded_release_spec.md), and the
+collection steps actually run are in
+[EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md). No model has been
+trained on it yet. None of the following has been evaluated yet.
 
-* **Expanded dataset (collection-ready code, unexecuted).** 4,944 proposed
-  modeling keys in 199 semantic groups on TPC-H SF 0.1 and SF 1: 22 TPC-H-derived
-  templates, 128 generated structural groups, 24 point/range probes and 25 manual
-  rewrite pairs, five of them reserved for RQ2. Collection starts with a bounded
-  sample and continues only in approved, resumable batches; release gates must
-  pass before any count is quoted. See
-  [EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md) and
-  [docs/expanded_release_spec.md](docs/expanded_release_spec.md).
-* **Further model evaluation.** Grouped cross-validation on unseen query
-  structures, compared against raw and calibrated PostgreSQL cost baselines.
-  Candidates include Elastic Net, XGBoost or CatBoost, and a timeout-aware AFT
-  model. The random split serves only as a leakage diagnostic. See
+* **RQ1 runtime regression (next).** Grouped cross-validation on unseen query
+  structures over the 4,784 development cases, compared against calibrated
+  PostgreSQL cost, cost-only and scale-plus-cost baselines, using the frozen
+  folds in `splits.csv`. Inputs are pinned by
+  [config/rq1_modeling_input_v1.json](config/rq1_modeling_input_v1.json). The
+  random split serves only as a leakage diagnostic. See
   [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md).
-* **High-runtime detection.** Classifiers for queries at or above 1 s and
-  10 s, evaluated mainly by PR-AUC, recall and false-negative rate. This is not
-  yet evaluable with current evidence.
+* **High-runtime detection.** The 1 s classifier is evaluable (393 development
+  positives in 106 groups, all at SF 1) and is evaluated mainly by PR-AUC,
+  recall and false-negative rate. The 10 s classifier remains
+  `NOT_YET_EVALUABLE` (gate G-08); it is not trained, reported or claimed.
 * **LLM-generated rewrite evaluation (RQ2).** Primary question: do LLM-assisted
   rewrites preserve SQL semantics and lower measured runtime? Every candidate goes
   through the same verification harness, and the full denominator is reported
@@ -269,11 +278,13 @@ None of the following has been collected or evaluated yet.
 | [docs/data_dictionary.md](docs/data_dictionary.md) | Field definitions |
 | [docs/poster_evidence_scope.md](docs/poster_evidence_scope.md) | What the milestone covers and excludes |
 | [docs/poster_claim_register.md](docs/poster_claim_register.md) | Evidence labels and permitted poster claims |
-| [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md) | Planned prediction evaluation |
+| [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md) | RQ1 prediction evaluation protocol (modeling pending) |
 | [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md) | Rewrite verification protocol |
 | [docs/final_dataset_plan.md](docs/final_dataset_plan.md) | Earlier final-dataset plan (superseded for collection) |
-| [EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md) | Staged runbook for the expanded release (unexecuted) |
+| [EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md) | Staged runbook for the expanded release (run 2026-10-03/04) |
 | [docs/expanded_release_spec.md](docs/expanded_release_spec.md) | Expanded release design, arithmetic, labels, splits, gates |
+| [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md) | Collected release: identities, hashes, audit findings, provenance limits |
+| [config/rq1_modeling_input_v1.json](config/rq1_modeling_input_v1.json) | Static RQ1 modeling-input record (pinned evidence and permitted scope) |
 | [docs/next_phase_audit.md](docs/next_phase_audit.md) | Audit of reuse, gaps, differences from the plan, risks |
 | [docs/query_workload_evidence_register.md](docs/query_workload_evidence_register.md) | Evidence behind each expensive-query family |
 | [docs/tuesday_technical_brief.md](docs/tuesday_technical_brief.md) | Short brief on observed results |
