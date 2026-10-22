@@ -35,6 +35,29 @@ COMPONENTS = ["structural"] * 6 + ["tpch_derived"] * 2 + ["probe", "rewrite"]
 POSITIVE_GROUPS = (0, 3, 6, 9)
 
 
+SYNTHETIC_SOURCE_STATE = {"source_revision": "f" * 40, "tracked_dirty": False, "tracked_changes": [],
+                          "untracked_paths": [], "disallowed_untracked_paths": [], "ignored_execution_files": [],
+                          "package_from_checkout": True, "sklearn_version": "1.9.1"}
+
+
+def small_bootstrap(document: dict[str, Any], replicates: int = 40) -> None:
+    """Explicitly reduced bootstrap for the 10-group synthetic package (production stays at 2,000)."""
+    document["uncertainty"]["n_clusters"] = 10
+    document["uncertainty"]["replicates"] = replicates
+
+
+def production_context(root: Path, release: "SyntheticRelease", config: Rq1Config, run_id: str = "run_prod"):
+    """A run context set up as ``rq1-run`` does (requirements and initial provenance), plus the production stages."""
+    from query_cost_predictor.rq1_run import (create_run_context, initial_provenance, production_requirements,
+                                              production_stages)
+
+    context = create_run_context(root / "results", run_id, "synthetic", config, evidence_dir=release.evidence_dir,
+                                 repo_root=release.repo, data_root=release.data_root,
+                                 requirements=production_requirements(config))
+    context.provenance.update(initial_provenance(config, SYNTHETIC_SOURCE_STATE, []))
+    return context, production_stages(config.stages)
+
+
 @dataclass
 class SyntheticRelease:
     root: Path
@@ -99,11 +122,17 @@ def _rows() -> dict[str, list[dict[str, str]]]:
                     name: (scale if name == "snap_scale_factor" else "4096.0" if name == "cfg_work_mem_kb"
                            else repr(float((instance_index * 7 + col) % 13))) for col, name in enumerate(ALLOWLIST)}})
                 tables["estimates"].append({"modeling_key": key, "est_total_cost": repr(10.0 + 3 * g + s)})
+                # Three measured runs whose middle value is the label median (low, median, high); the
+                # positive key of group 0 straddles 1,000 ms (low run 900 ms). The probe is never measured.
+                low_factor = 0.6 if (positive and g == 0) else 0.9
+                timings = {0: median * 1.3, 1: median * 1.1, 2: median, 3: median * low_factor}
                 for repeat in range(4):
                     if censored and repeat == 3:
                         continue
-                    tables["executions"].append({"modeling_key": key, "repeat_no": str(repeat),
-                                                 "run_purpose": "probe" if repeat == 0 else "measured"})
+                    tables["executions"].append({
+                        "modeling_key": key, "repeat_no": str(repeat), "run_purpose": "probe" if repeat == 0 else "measured",
+                        "status": "timeout" if censored else "completed", "is_censored": "true" if censored else "false",
+                        "execution_time_ms": "" if censored else repr(timings[repeat])})
     return tables
 
 
@@ -184,7 +213,8 @@ def build_release(root: Path, *, mutate: Callable[[dict[str, list[dict[str, str]
                      "split_role", "fold_group", "fold_family", "fold_seen_template"]
     outputs = {
         "keys.csv": _csv(tables["keys"], key_columns),
-        "executions.csv": _csv(tables["executions"], ["modeling_key", "repeat_no", "run_purpose"]),
+        "executions.csv": _csv(tables["executions"], ["modeling_key", "repeat_no", "run_purpose", "status", "is_censored",
+                                                      "execution_time_ms"]),
         "labels.csv": _csv(tables["labels"], label_columns),
         "estimates.csv": _csv(tables["estimates"], ["modeling_key", "est_total_cost"]),
         "features.csv": _csv(tables["features"], ["modeling_key", *allowlist]),

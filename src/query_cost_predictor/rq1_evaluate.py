@@ -122,14 +122,35 @@ class Rq1NotEvaluableError(Rq1EvaluationError):
     """The requested task is NOT_YET_EVALUABLE under the release gates; nothing is fitted or reported."""
 
 
-def load_feature_allowlist(config: Rq1Config, repo_root: Path) -> list[str]:
-    """The 69-column allowlist from the input record, after re-checking the record's pinned SHA-256."""
+def load_input_record(config: Rq1Config, repo_root: Path) -> dict[str, Any]:
+    """The pinned input record, after re-checking its SHA-256 against the RQ1 YAML."""
     path = Path(repo_root) / config.input_record_path
     observed = sha256_file(path)
     if observed != config.input_record_sha256:
         raise Rq1InputError(f"{config.input_record_path}: SHA-256 {observed} differs from the pinned "
                             f"{config.input_record_sha256}")
-    return list(json.loads(path.read_text(encoding="utf-8"))["features"]["feature_columns"])
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_feature_allowlist(config: Rq1Config, repo_root: Path) -> list[str]:
+    """The 69-column allowlist from the input record, after re-checking the record's pinned SHA-256."""
+    return list(load_input_record(config, repo_root)["features"]["feature_columns"])
+
+
+def pinned_evidence_file(config: Rq1Config, repo_root: Path, evidence_dir: Path, relative: str) -> tuple[Path, str]:
+    """A packaged evidence file pinned by the input record, re-hashed now; a changed byte is an error."""
+    record = load_input_record(config, repo_root)
+    pins = {item["path"]: item["sha256"] for item in record["evidence_files"]["derived"]}
+    if relative not in pins:
+        raise Rq1InputError(f"{relative} is not a pinned evidence file")
+    root = Path(evidence_dir).resolve()
+    path = (root / relative).resolve()
+    if not path.is_relative_to(root):
+        raise Rq1InputError(f"pinned path escapes the evidence directory: {relative}")
+    observed = sha256_file(path)
+    if observed != pins[relative]:
+        raise Rq1InputError(f"{relative}: SHA-256 {observed} differs from the pinned {pins[relative]}")
+    return path, observed
 
 
 def _check_aligned(dataset: DevelopmentDataset) -> pd.Index:
@@ -535,6 +556,8 @@ def stage_regression(context: Any) -> None:
     context.write_payload(OOF_REGRESSION_FILE, csv_bytes(oof_export_rows(oof, specs), OOF_REGRESSION_COLUMNS))
     context.write_payload(METRICS_REGRESSION_CSV, csv_bytes(rows, METRIC_TABLE_COLUMNS))
     context.write_payload(METRICS_REGRESSION_JSON, json_bytes(metrics_document(rows, config)))
+    context.artifacts.setdefault("oof", {})[TASK_REGRESSION] = oof  # read by diagnostics and figures; never refitted
+    context.artifacts.setdefault("metric_rows", {})[TASK_REGRESSION] = rows
     context.artifacts.setdefault("report_sections", {})["regression"] = rq1_report.regression_section(
         rows, contribution.summary, config)
     context.provenance["regression"] = {
@@ -568,6 +591,8 @@ def stage_classification_1s(context: Any) -> None:
     context.write_payload(METRICS_CLASSIFICATION_CSV, csv_bytes(rows, METRIC_TABLE_COLUMNS))
     context.write_payload(METRICS_CLASSIFICATION_JSON, json_bytes(metrics_document(rows, config, TASK_CLASSIFICATION)))
     context.write_payload(CALIBRATION_BINS_FILE, csv_bytes(bins, CALIBRATION_COLUMNS))
+    context.artifacts.setdefault("oof", {})[TASK_CLASSIFICATION] = oof  # read by diagnostics and figures; never refitted
+    context.artifacts.setdefault("metric_rows", {})[TASK_CLASSIFICATION] = rows
     context.artifacts.setdefault("report_sections", {})[TASK_CLASSIFICATION] = rq1_report.classification_section(
         rows, contribution.summary, config)
     context.provenance[TASK_CLASSIFICATION] = {

@@ -147,16 +147,18 @@ def test_convergence_warning_fails_the_run(tmp_path):
 
 
 def test_production_pipeline_refuses_missing_stages():
-    assert unimplemented_stages(("input_check", "regression")) == []
-    assert unimplemented_stages(("input_check", "regression", "classification_1s")) == []
-    assert unimplemented_stages(("classification_1s", "diagnostics", "handoff")) == ["diagnostics", "handoff"]
-    with pytest.raises(RunRefusedError, match="not implemented"):
-        production_stages(("input_check", "regression", "classification_1s", "diagnostics", "handoff"))
+    stages = ("input_check", "regression", "classification_1s", "diagnostics", "handoff")
+    assert unimplemented_stages(stages) == []
+    assert [name for name, _ in production_stages(stages)] == list(stages)
+    assert unimplemented_stages((*stages, "not_a_stage")) == ["not_a_stage"]
+    with pytest.raises(RunRefusedError, match="not implemented"):  # an undeclared stage is never skipped
+        production_stages((*stages, "not_a_stage"))
 
 
 def test_rq1_run_cli_refuses_without_creating_a_directory(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("QCP_DATA_ROOT", str(tmp_path / "data_root"))
     (tmp_path / "data_root").mkdir()
+    monkeypatch.setattr(cli, "_rq1_source", lambda repo, config: (None, ["tracked tree is not clean (1 change(s))"]))
     code = cli.cmd_rq1_run(Namespace(evidence_dir=str(tmp_path), archive=None, run_label="test"))
     assert code == 3
     assert "RQ1-RUN: REFUSED" in capsys.readouterr().out

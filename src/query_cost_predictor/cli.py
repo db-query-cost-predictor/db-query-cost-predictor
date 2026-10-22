@@ -399,13 +399,31 @@ def cmd_rq1_check_inputs(args: argparse.Namespace) -> int:
 
 
 def cmd_rq1_run(args: argparse.Namespace) -> int:
+    """The single evidence-producing RQ1 run.
+
+    Exit codes: 0 COMPLETE (and the report copy succeeded); 3 refused before any
+    run directory was created; 4 COMPLETE and verified, but the convenience copy
+    under reports/rq1/ failed (the run itself is unchanged); 1 the run FAILED.
+    """
     from datetime import datetime, timezone
 
     from query_cost_predictor.paths import data_root, repo_root
     from query_cost_predictor.rq1_config import load_rq1_config
+    from query_cost_predictor.rq1_evaluate import load_input_record
     from query_cost_predictor.rq1_inputs import resolve_data_root
-    from query_cost_predictor.rq1_provenance import dependency_versions, full_environment
-    from query_cost_predictor.rq1_run import RunRefusedError, create_run_context, execute_run, make_run_id, production_stages
+    from query_cost_predictor.rq1_run import (
+        RunRefusedError,
+        assert_output_location_safe,
+        assert_paths_fit,
+        copy_report_after_complete,
+        create_run_context,
+        execute_run,
+        initial_provenance,
+        make_run_id,
+        production_requirements,
+        production_stages,
+        read_complete_run,
+    )
 
     config = load_rq1_config()
     try:
@@ -424,17 +442,39 @@ def cmd_rq1_run(args: argparse.Namespace) -> int:
         print("REFUSED: an evidence run needs clean, committed source: " + "; ".join(blockers))
         print("RQ1-RUN: REFUSED (source not eligible; no run directory was created)")
         return 3
+    archive = Path(args.archive) if args.archive else None
+    approval_root = resolve_data_root(config.data_root_env)
+    approval = load_input_record(config, repo)["supplementary_provenance_outside_package"]["full_collection_approval"]
+    inputs = {"evidence directory": evidence_dir, "archive": archive, "repository": repo,
+              "supplementary approval record": (approval_root / approval["data_root_path"]) if approval_root else None}
     base = data_root() / "results" / "rq1" / config.spec_id
+    report_root = repo / "reports" / "rq1"
     run_id = make_run_id(datetime.now(timezone.utc), config.sha256, (source or {}).get("source_revision"))
-    context = create_run_context(base, run_id, args.run_label, config, evidence_dir=evidence_dir,
-                                 archive=Path(args.archive) if args.archive else None,
-                                 data_root=resolve_data_root(config.data_root_env), repo_root=repo,
-                                 source_state=source or {})
-    context.provenance.update({"source_state": source, "config_sha256": config.sha256,
-                               "dependency_versions": dependency_versions(), "full_environment": full_environment()})
-    execute_run(context, stages)
+    requirements = production_requirements(config)
+    try:
+        assert_output_location_safe(base, inputs)
+        assert_output_location_safe(report_root, {k: v for k, v in inputs.items() if k != "repository"})
+        assert_paths_fit(base / run_id, requirements.outputs)
+    except RunRefusedError as exc:
+        print(f"REFUSED: {exc}")
+        print("RQ1-RUN: REFUSED (unsafe output location; no run directory was created)")
+        return 3
+    context = create_run_context(base, run_id, args.run_label, config, evidence_dir=evidence_dir, archive=archive,
+                                 data_root=approval_root, repo_root=repo, source_state=source or {},
+                                 requirements=requirements)
+    context.provenance.update(initial_provenance(config, source, blockers))
+    execute_run(context, stages)  # raises (and leaves FAILED) on any stage or finalization failure
+    read_complete_run(context.run_dir)
     print(f"run directory: {context.run_dir}")
-    print("RQ1-RUN: COMPLETE")
+    print("RQ1-RUN: COMPLETE (verified against output_manifest.json)")
+    try:
+        copy = copy_report_after_complete(context.run_dir, report_root,
+                                          {k: v for k, v in inputs.items() if k != "repository"})
+    except Exception as exc:  # noqa: BLE001 - the completed run stays valid; report the copy failure separately
+        print(f"REPORT-COPY: FAILED ({exc.__class__.__name__}: {exc}). The COMPLETE run in {context.run_dir} is "
+              "unchanged and remains the study output.")
+        return 4
+    print(f"report copy: {copy / 'report.md'} (figures copied alongside; relative links preserved)")
     return 0
 
 

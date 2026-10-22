@@ -707,9 +707,10 @@ def test_classification_stage_needs_the_checked_dataset(tmp_path, prepared):
     assert read_status(context.run_dir)["status"] == FAILED
 
 
-def test_production_pipeline_still_refuses_with_diagnostics_and_handoff_missing():
+def test_production_pipeline_registers_classification_in_order():
     config = load_rq1_config()
     assert config.uncertainty["replicates"] == 2000 and config.uncertainty["seed"] == 20261021
-    assert unimplemented_stages(config.stages) == ["diagnostics", "handoff"]
-    with pytest.raises(RunRefusedError, match="diagnostics"):
-        production_stages(config.stages)
+    assert unimplemented_stages(config.stages) == []
+    assert [name for name, _ in production_stages(config.stages)][2] == "classification_1s"
+    with pytest.raises(RunRefusedError, match="not implemented"):
+        production_stages([*config.stages, "classification_10s"])

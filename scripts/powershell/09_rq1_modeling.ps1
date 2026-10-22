@@ -5,8 +5,12 @@
     -Step CheckInputs   verify the pinned evidence package (read-only; writes no run directory).
                         Data checks and evidence-run eligibility are reported separately; the
                         original release validation (STOP, G-08) stays visible.
-    -Step Run           the single evidence-producing run. It refuses until every stage is
-                        implemented and the source is clean and committed; it never skips a stage.
+    -Step Run           the single evidence-producing run (input_check, regression, classification_1s,
+                        diagnostics, handoff). It refuses (exit 3, no run directory) unless the source is
+                        clean and committed and the output location is safe; it never skips a stage.
+                        Exit 0: COMPLETE and verified; 4: COMPLETE and verified, but the report copy under
+                        reports\rq1\ failed (the run is unchanged); 1: the run FAILED.
+                        See docs\rq1_run_guide.md.
 .EXAMPLE
     .\scripts\powershell\09_rq1_modeling.ps1 -Step CheckInputs -EvidenceDir C:\qcp_share\expanded_release -Archive C:\qcp_share\expanded_release.zip
 #>
@@ -47,6 +51,9 @@ try {
     $code = $LASTEXITCODE
     if ($Step -eq 'Run' -and $code -eq 3) {
         Write-Host 'REFUSED: no run directory was created and nothing was fitted. Read the message above.'
+    }
+    if ($Step -eq 'Run' -and $code -eq 4) {
+        Write-Host 'COMPLETE: the run is verified, but the convenience report copy failed. The run directory is the study output.'
     }
     exit $code
 } catch {

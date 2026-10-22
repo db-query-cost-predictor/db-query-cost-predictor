@@ -12,6 +12,16 @@ Evidence-producing runs happen only after the reviewed implementation is
 committed. Every number quoted below comes from the 2026-10-21 audit of the
 release, not from any model.
 
+**Implementation progress (2026-10-22).** Slices A (`501c937`), B (`dd58292`)
+and C1 (`9c3c647`) are committed. Slice C2 adds diagnostics, figures,
+hand-off refits and the final report assembly. With it, all five stages are
+registered, and a production run reaches `COMPLETE` only after its full
+artifact inventory and run-record fields have been checked. All of this has
+been tested on synthetic data only. **The official real-data study is still
+pending**: it runs once, after the reviewed C2 implementation is committed, from
+a clean source tree, as described in [rq1_run_guide.md](rq1_run_guide.md). The
+specification below is unchanged.
+
 ## 1. Scope
 
 | In v1 | Not in v1 |

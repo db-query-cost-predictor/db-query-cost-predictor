@@ -279,6 +279,7 @@ trained on it yet. None of the following has been evaluated yet.
 | [docs/poster_evidence_scope.md](docs/poster_evidence_scope.md) | What the milestone covers and excludes |
 | [docs/poster_claim_register.md](docs/poster_claim_register.md) | Evidence labels and permitted poster claims |
 | [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md) | RQ1 prediction evaluation protocol (modeling pending) |
+| [docs/rq1_run_guide.md](docs/rq1_run_guide.md) | How to run and verify the RQ1 study (implemented; official real-data run pending) |
 | [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md) | Rewrite verification protocol |
 | [docs/final_dataset_plan.md](docs/final_dataset_plan.md) | Earlier final-dataset plan (superseded for collection) |
 | [EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md) | Staged runbook for the expanded release (run 2026-10-03/04) |

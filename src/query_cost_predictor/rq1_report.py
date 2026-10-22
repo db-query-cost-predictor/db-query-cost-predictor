@@ -311,6 +311,11 @@ def render_report(config: Rq1Config, sections: dict[str, str], provenance: dict[
                   "only a COMPLETE run of every declared stage counts as the RQ1 v1 study.", ""]
     original = config.original_validation
     source = provenance.get("source_state") or {}
+    identities = {item["item"]: item for item in provenance.get("input_identities") or []}
+    release = {key.split(".", 1)[1]: item.get("value") for key, item in identities.items()
+               if key.startswith("release_identity.")}
+    checkpoint = provenance.get("historical_source_checkpoint") or {}
+    versions = provenance.get("dependency_versions") or {}
     lines += [
         "## Scope and limitations", "",
         config.limitations_text.rstrip("\n"), "",
@@ -324,9 +329,18 @@ def render_report(config: Rq1Config, sections: dict[str, str], provenance: dict[
         "- Folds: the stored `splits.csv` assignments, never regenerated.", "",
         "## Provenance", "",
         f"- Run id: `{run_id}`",
-        f"- Source revision: `{source.get('source_revision', 'not recorded')}`",
+        f"- Source revision: `{source.get('source_revision', 'not recorded')}` (tracked changes: "
+        f"{provenance.get('source_tracked_dirty', 'not recorded')}); historical derivation checkpoint "
+        f"`{checkpoint.get('commit_sha', 'not recorded')}` ({checkpoint.get('provenance', 'not recorded')}; never "
+        "compared with the run's HEAD)",
         f"- Config SHA-256: `{provenance.get('config_sha256', config.sha256)}`",
         f"- Input record SHA-256: `{config.input_record_sha256}`",
+        f"- Release: manifest `{release.get('manifest_id', 'not recorded')}`, derived release "
+        f"`{release.get('derived_release_id', 'not recorded')}` (verified this run)",
+        f"- Archive: {provenance.get('archive_status', 'not recorded')}; supplementary approval: "
+        f"{provenance.get('supplementary_approval_status', 'not recorded')}",
+        f"- scikit-learn {versions.get('scikit-learn', 'not recorded')}, Python {versions.get('python', 'not recorded')}; "
+        "thread limit 1 (requested and effective settings in `run_record.json`)",
         "",
     ]
     for name in REPORT_SECTIONS:
@@ -346,3 +360,93 @@ def write_report(context: Any, required_sections: Sequence[str] = REPORT_SECTION
         raise Rq1ReportError(f"report sections missing: {missing}")
     text = render_report(context.config, sections, context.provenance, context.run_id)
     context.write_payload(REPORT_FILE, text.encode("utf-8"))
+
+
+def assemble_final_outputs(context: Any) -> None:
+    """Production final assembly: the shared bootstrap files once, then the complete ``report.md`` last.
+
+    Every declared section is required (a partial report is refused), and both
+    bootstrap contributions must exist.
+    """
+    from query_cost_predictor.rq1_bootstrap import required_bootstrap_tasks, write_bootstrap_outputs
+
+    write_bootstrap_outputs(context, required_bootstrap_tasks(context.config))
+    write_report(context, REPORT_SECTIONS)
+
+
+def _num(value: Any, digits: int = 4) -> str:
+    return "null" if value is None else f"{value:.{digits}f}"
+
+
+def _noise_row(label: str, entry: dict[str, Any]) -> list[str]:
+    q, cv = entry["leave_one_run_out_qerror"], entry["coefficient_of_variation"]
+    return [label, str(entry["n_cases"]), str(q["n"]), _num(q["median"]), _num(q["p90"]), _num(q["p95"]),
+            _num(cv["median"]), _num(cv["p90"]), _num(cv["p95"])]
+
+
+def diagnostics_section(noise: dict[str, Any], threshold: dict[str, Any], figures: Sequence[dict[str, Any]],
+                        config: Rq1Config) -> str:
+    """Diagnostics (repetition-noise reference, near-threshold sensitivity) and the figure links."""
+    header = ["Slice", "Cases", "Measurements", "q median", "q p90", "q p95", "CV median", "CV p90", "CV p95"]
+    body = [_noise_row("all development cases", noise["overall"])]
+    for column, values in noise["by"].items():
+        body += [_noise_row(f"{column} = {value}", entry) for value, entry in values.items()]
+    counts = noise["counts"]
+    out = [
+        "## Diagnostics (descriptive; labels never change)", "",
+        "### Repetition-noise reference", "",
+        f"{_sentence(noise['interpretation'])}. Leave-one-run-out q-error: {noise['definitions']['leave_one_run_out_qerror']} "
+        "(aggregated over **measurements**, three per case). Coefficient of variation: "
+        f"{noise['definitions']['coefficient_of_variation']} (aggregated over **cases**). Source: "
+        f"`{noise['source']['file']}` (SHA-256 `{noise['source']['sha256']}`), {counts['measured_runs_used']} measured "
+        f"runs of {counts['development_cases']} development cases; "
+        f"{counts.get('development_probe_rows_excluded', 0)} probe rows excluded; every case's run median equals its "
+        "`median_ms`. It is not a proven noise floor and not a lower bound on prediction error.", "",
+        *_table(header, body), "",
+        "### Near-threshold sensitivity (retrospective; not a pre-execution filter)", "",
+        f"{_sentence(threshold['interpretation'])} S: {threshold['sets']['straddle_set']['definition']} "
+        f"({threshold['sets']['straddle_set']['n_cases']} cases, {threshold['sets']['straddle_set']['n_positive']} "
+        f"positive). B: {threshold['sets']['band_set']['definition']} ({threshold['sets']['band_set']['n_cases']} "
+        f"cases, {threshold['sets']['band_set']['n_positive']} positive). Member keys are listed in "
+        "`diagnostics_threshold.json`. Scores are the existing `fold_group` out-of-fold outputs; the headline is "
+        "all cases.", "",
+    ]
+    rows = _Rows(threshold["rows"])
+    metrics = ["average_precision", "recall", "precision", "false_positive_rate", "brier"]
+    body = []
+    for model in rows.models:
+        for evaluation in threshold["evaluations"]:
+            where = {"column": "threshold_evaluation", "value": evaluation}
+            body.append([f"`{model}`", evaluation, rows.counts("fold_group", model, **where),
+                         *(_cell(rows.get("fold_group", model, m, **where)) for m in metrics),
+                         rows.flags("fold_group", model, **where)])
+    out += _table(["Model", "Evaluation", "Rows", *(METRIC_LABELS[m] for m in metrics), "Flags"], body)
+    out += ["", "### Figures (primary `fold_group`, pooled out-of-fold)", "",
+            "Sources are recorded in `figures/figure_index.json`. Calibration figures are drawn only from the saved "
+            "`calibration_bins.csv` rows; raw ranking scores have no calibration figure.", ""]
+    for entry in figures:
+        out += [f"- [{entry['title']}]({entry['file']}) (sources: {'; '.join(entry['sources'])})"]
+    out += [""]
+    for entry in figures:
+        out += [f"![{entry['title']}]({entry['file']})", ""]
+    return "\n".join(out)
+
+
+def handoff_section(manifest: dict[str, Any]) -> str:
+    """The hand-off refits: explicitly unscored, separate from the evaluation."""
+    body = [[f"`{m['model_id']}`", m["task"], m["role"], f"`{m['file']}`", f"`{m['sha256'][:16]}…`",
+             str(m["fit_rows"]), m["output_units"]] for m in manifest["models"]]
+    constants = manifest["constant_baselines"]
+    return "\n".join([
+        "## Hand-off refits (not evaluated)", "",
+        f"Label: **{manifest['label']}**. {manifest['distinction'][0].upper()}{manifest['distinction'][1:]}. These "
+        "models were refitted on all development cases, were never scored, and produced no predictions; "
+        f"`heldout_rq2` predictions: {manifest['heldout_rq2_predictions']}.", "",
+        f"Fit rows: {manifest['fit_rows']['count']} development cases (keys SHA-256 "
+        f"`{manifest['fit_rows']['modeling_keys_sha256']}`). Inputs, transformations, targets, output units, the "
+        "label mapping and the 0.5 operating-point context are in `handoff/handoff_manifest.json`.", "",
+        *_table(["Model", "Task", "Role", "File", "SHA-256", "Fit rows", "Output units"], body), "",
+        f"Stored constants for the constant baselines: all-development median runtime "
+        f"{constants['reg_train_median']['median_ms']} ms (`reg_train_median`); positive prevalence "
+        f"{_num(constants['clf_train_prevalence']['positive_prevalence'])} (`clf_train_prevalence`).", "",
+    ])

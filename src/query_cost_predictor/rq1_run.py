@@ -29,6 +29,20 @@ refused before anything is written, and the run then fails normally.
 touching anything, so its status, files and manifest stay unchanged. Payload
 paths must be plain relative forward-slash paths that stay inside the run
 directory (:func:`validate_payload_path`; symlinks and junctions are resolved).
+
+A production run also carries :class:`RunRequirements`
+(:func:`production_requirements`): the complete artifact inventory, the
+run-record fields and a complete (not partial) report. :func:`finalize_run`
+checks them before the output manifest is written, so an output that was
+never registered, or a missing provenance field, fails the run. Executing
+the exact production stage list without requirements is refused; generic
+lifecycle tests with their own stages need none.
+
+After ``COMPLETE``, :func:`copy_report_after_complete` may copy ``report.md``
+and its figures to a run-specific convenience folder, only after
+:func:`read_complete_run` has verified the run; a failed copy never changes
+the completed run. :func:`assert_output_location_safe` refuses output
+locations that overlap the evidence, the archive or other inputs.
 """
 
 from __future__ import annotations
@@ -41,7 +55,7 @@ import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from query_cost_predictor.hashing import sha256_bytes, sha256_file
 
@@ -141,6 +155,24 @@ def _contained_target(run_dir: Path, name: str) -> Path:
     return target
 
 
+@dataclass(frozen=True)
+class RunRequirements:
+    """What a production run must contain before it may become ``COMPLETE``.
+
+    ``outputs``: payload paths that must be registered and on disk.
+    ``record_fields``: ``run_record.json`` fields that must be present and not null.
+    ``complete_report_text``: text that ``report.md`` must contain verbatim
+    (the limitations block); a report carrying the PARTIAL banner is refused.
+    """
+
+    outputs: tuple[str, ...]
+    record_fields: tuple[str, ...]
+    complete_report_text: str
+
+
+PARTIAL_REPORT_MARKER = "PARTIAL REPORT"
+
+
 @dataclass
 class RunContext:
     """State passed through every stage of one run."""
@@ -160,6 +192,7 @@ class RunContext:
     completed_stages: list[str] = field(default_factory=list)
     payloads: dict[str, str] = field(default_factory=dict)
     artifacts: dict[str, Any] = field(default_factory=dict)  # in-memory results passed between stages
+    requirements: RunRequirements | None = None              # production inventory checked before COMPLETE
 
     state: str = RUNNING
     planned_stages: list[str] | None = None  # set by execute_run; finalization needs all of them completed, in order
@@ -269,8 +302,22 @@ def finalize_run(context: RunContext) -> dict[str, Any]:
     record = {"run_id": context.run_id, "run_label": context.run_label, "created_at_utc": context.created_at_utc,
               "completed_stages": list(context.completed_stages),
               "status_history": list(context.status_history),  # up to finalization; RUN_STATUS.json holds the rest
+              "production_inventory_checked": context.requirements is not None,
               **context.provenance}
+    requirements = context.requirements
+    if requirements is not None:
+        absent = [name for name in requirements.record_fields if record.get(name) is None]
+        if absent:
+            raise RunLifecycleError(f"run_record.json would lack required provenance fields {absent}")
     context.write_json_payload(RUN_RECORD_FILE, record)
+    if requirements is not None:
+        missing = [name for name in requirements.outputs
+                   if name not in context.payloads or not (context.run_dir / name).is_file()]
+        if missing:
+            raise RunLifecycleError(f"required production outputs were never written and registered: {missing}")
+        report = (context.run_dir / REPORT_FILE).read_text(encoding="utf-8")
+        if PARTIAL_REPORT_MARKER in report or requirements.complete_report_text not in report:
+            raise RunLifecycleError("report.md is partial or lacks the verbatim limitations block")
     on_disk = [f for f in _disk_files(context.run_dir) if f not in EXCLUDED_FROM_MANIFEST]
     registered = sorted(context.payloads)
     if on_disk != registered:
@@ -307,12 +354,16 @@ def execute_run(context: RunContext, stages: Sequence[Stage]) -> RunContext:
     context.planned_stages = names
     current = None
     try:
+        if is_production_pipeline(stages) and context.requirements is None:
+            raise RunRefusedError("the production pipeline needs its RunRequirements (production_requirements); "
+                                  "a production run is never finalized without the artifact inventory check")
         with threadpool_limits(limits=THREADPOOL_LIMIT), warnings.catch_warnings():
             warnings.simplefilter("error", ConvergenceWarning)
-            context.provenance.setdefault("threadpool", {
-                "requested_limit": THREADPOOL_LIMIT,
-                "effective": [{k: info.get(k) for k in ("user_api", "internal_api", "num_threads", "version")}
-                              for info in threadpool_info()]})
+            threadpool = {"requested_limit": THREADPOOL_LIMIT,
+                          "effective": [{k: info.get(k) for k in ("user_api", "internal_api", "num_threads", "version")}
+                                        for info in threadpool_info()]}
+            context.provenance.setdefault("threadpool", threadpool)
+            context.provenance.setdefault("threadpool_info", threadpool)
             for name, function in stages:
                 current = name
                 context.active_stage = name
@@ -373,6 +424,18 @@ def stage_input_check(context: RunContext) -> None:
     context.artifacts["input_report"] = report
     context.artifacts["dataset"] = report.dataset
     context.write_json_payload(INPUT_CHECK_FILE, report.to_json())
+    identities = {item["item"]: item for item in report.identities}
+    checkpoint = identities["source_checkpoint.commit_sha"]
+    context.provenance.update({
+        "input_record_sha256": identities["input_record"]["sha256"],
+        "input_identities": report.identities,
+        "supplementary_approval_status": report.supplementary_approval_status,
+        "archive_status": report.archive_status,
+        "historical_source_checkpoint": {"commit_sha": checkpoint["value"], "provenance": checkpoint["provenance"],
+                                         "note": "historical derivation checkpoint; never compared with the run's HEAD"},
+        "collection_control_annotations": report.collection_control_annotations,
+        "original_release_validation": report.original_validation,
+    })
 
 
 def stage_regression(context: RunContext) -> None:
@@ -387,12 +450,27 @@ def stage_classification_1s(context: RunContext) -> None:
     run_classification(context)
 
 
+def stage_diagnostics(context: RunContext) -> None:
+    from query_cost_predictor.rq1_diagnostics import stage_diagnostics as run_diagnostics
+
+    run_diagnostics(context)
+
+
+def stage_handoff(context: RunContext) -> None:
+    """Hand-off refits, then the final assembly: shared bootstrap files once, and ``report.md`` last."""
+    from query_cost_predictor.rq1_handoff import stage_handoff as run_handoff
+    from query_cost_predictor.rq1_report import assemble_final_outputs
+
+    run_handoff(context)
+    assemble_final_outputs(context)
+
+
 PRODUCTION_STAGES: dict[str, Callable[[RunContext], None] | None] = {
     "input_check": stage_input_check,
     "regression": stage_regression,
     "classification_1s": stage_classification_1s,
-    "diagnostics": None,         # Slice C
-    "handoff": None,             # Slice C
+    "diagnostics": stage_diagnostics,
+    "handoff": stage_handoff,
 }
 
 
@@ -407,3 +485,111 @@ def production_stages(stage_names: Sequence[str]) -> list[Stage]:
         raise RunRefusedError(f"the RQ1 pipeline is incomplete: stages not implemented yet: {missing}. "
                               "Nothing was fitted and no run directory was created.")
     return [(name, PRODUCTION_STAGES[name]) for name in stage_names]  # type: ignore[misc]
+
+
+def is_production_pipeline(stages: Sequence[Stage]) -> bool:
+    """True when ``stages`` is exactly the registered production sequence."""
+    return [(n, f) for n, f in stages] == [(n, f) for n, f in PRODUCTION_STAGES.items()]
+
+
+def production_requirements(config: Any) -> RunRequirements:
+    """The complete production inventory: every declared output, figure and hand-off file, and run-record field."""
+    from query_cost_predictor.rq1_figures import FIGURE_INDEX_FILE, required_figure_paths
+    from query_cost_predictor.rq1_handoff import handoff_output_paths
+
+    declared = [str(p) for p in config.raw["outputs"]["cross_validation"]]
+    outputs = [p for p in declared if p not in EXCLUDED_FROM_MANIFEST and not p.endswith("/")]
+    outputs += [*required_figure_paths(config), FIGURE_INDEX_FILE, *handoff_output_paths(config)]
+    fields = [str(f) for f in config.raw["run_record"]["fields"]] + ["source_cleanliness"]
+    return RunRequirements(outputs=tuple(dict.fromkeys(outputs)), record_fields=tuple(dict.fromkeys(fields)),
+                           complete_report_text=str(config.limitations_text))
+
+
+def initial_provenance(config: Any, source_state: Mapping[str, Any] | None, blockers: Sequence[str]) -> dict[str, Any]:
+    """Run-record provenance known before any stage: source state and cleanliness, config hash, environment."""
+    from query_cost_predictor.rq1_provenance import dependency_versions, full_environment
+
+    state = dict(source_state or {})
+    return {
+        "source_state": state or None,
+        "source_revision": state.get("source_revision"),
+        "source_tracked_dirty": state.get("tracked_dirty"),
+        "untracked_paths_observed": state.get("untracked_paths"),
+        "allowed_untracked_paths": list(config.allowed_untracked_paths),
+        "source_cleanliness": {
+            "tracked_tree_clean": state.get("tracked_dirty") is False,
+            "disallowed_untracked_paths": state.get("disallowed_untracked_paths"),
+            "ignored_execution_files": state.get("ignored_execution_files"),
+            "package_from_checkout": state.get("package_from_checkout"),
+            "evidence_run_blockers": list(blockers),
+        },
+        "config_sha256": config.sha256,
+        "dependency_versions": dependency_versions(),
+        "full_environment": full_environment(),
+    }
+
+
+# ----------------------------------------------------------------------------------
+# Output locations and the post-COMPLETE convenience copy
+# ----------------------------------------------------------------------------------
+def _overlaps(first: Path, second: Path) -> bool:
+    a, b = os.path.normcase(str(first)), os.path.normcase(str(second))
+    try:
+        common = os.path.commonpath([a, b])
+    except ValueError:  # different drives
+        return False
+    return common in (a, b)
+
+
+def assert_output_location_safe(target: Path, protected: Mapping[str, Path | None]) -> None:
+    """Refuse an output location that is, contains or lies inside a protected input (resolved and literal forms).
+
+    Siblings are fine: ``QCP_DATA_ROOT/results/...`` next to ``QCP_DATA_ROOT/manifests/...`` does not overlap.
+    """
+    target = Path(target)
+    for label, path in protected.items():
+        if path is None:
+            continue
+        path = Path(path)
+        for mine, theirs in ((target.absolute(), path.absolute()),
+                             (target.resolve(strict=False), path.resolve(strict=False))):
+            if _overlaps(mine, theirs):
+                raise RunRefusedError(f"output location {target} overlaps the {label} ({path}); outputs may never "
+                                      "modify packaged evidence or other inputs")
+
+
+WINDOWS_MAX_PATH = 259
+
+
+def assert_paths_fit(root: Path, relative_paths: Sequence[str], limit: int = WINDOWS_MAX_PATH) -> None:
+    """On Windows, refuse before anything is created if a planned output path would exceed ``MAX_PATH``."""
+    if os.name != "nt" or not relative_paths:
+        return
+    longest = max((str(Path(root).absolute() / name) for name in relative_paths), key=len)
+    if len(longest) > limit:
+        raise RunRefusedError(f"the longest planned output path has {len(longest)} characters (limit {limit}): "
+                              f"{longest}; choose a shorter QCP_DATA_ROOT")
+
+
+def copy_report_after_complete(run_dir: Path, destination_root: Path,
+                               protected: Mapping[str, Path | None] | None = None) -> Path:
+    """Copy ``report.md`` and its figures to ``destination_root/<run_id>/`` after verifying the COMPLETE run.
+
+    The relative figure links of the report stay valid. The run directory is
+    only read; a failure here never changes the completed run. The
+    destination must be new (nothing is overwritten).
+    """
+    manifest = read_complete_run(run_dir)  # refuses anything but a verified COMPLETE run
+    destination = Path(destination_root) / run_dir.name
+    assert_output_location_safe(destination, {**(protected or {}), "run directory": run_dir})
+    names = [REPORT_FILE] + sorted(n for n in manifest["files"] if n.startswith("figures/"))
+    destination.mkdir(parents=True, exist_ok=False)
+    for name in names:
+        data = (run_dir / name).read_bytes()
+        if sha256_bytes(data) != manifest["files"][name]:
+            raise RunLifecycleError(f"{name} differs from the output manifest; nothing more is copied")
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("xb") as handle:
+            handle.write(data)
+    return destination

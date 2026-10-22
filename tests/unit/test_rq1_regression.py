@@ -546,9 +546,10 @@ def test_regression_stage_needs_the_checked_dataset(tmp_path, prepared):
     assert read_status(context.run_dir)["status"] == FAILED
 
 
-def test_production_pipeline_still_refuses_until_slice_c(tmp_path):
+def test_production_pipeline_registers_regression_in_order(tmp_path):
     config = load_rq1_config()
     assert config.uncertainty["replicates"] == 2000 and config.uncertainty["seed"] == 20261021
-    assert unimplemented_stages(config.stages) == ["diagnostics", "handoff"]
-    with pytest.raises(RunRefusedError, match="diagnostics"):
-        production_stages(config.stages)
+    assert unimplemented_stages(config.stages) == []
+    assert [name for name, _ in production_stages(config.stages)][1] == "regression"
+    with pytest.raises(RunRefusedError, match="not implemented"):
+        production_stages([*config.stages, "unknown_stage"])
