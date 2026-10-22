@@ -1,10 +1,11 @@
-"""RQ1 estimator factory: every declared regression model, built from the YAML.
+"""RQ1 estimator factory: every declared regression and 1 s classification model, built from the YAML.
 
-Slice B covers the six regression entries of ``regression_models`` in
-``config/rq1_modeling_v1.yaml``. Each becomes a :class:`RegressionModel` with
-one interface: :meth:`RegressionModel.fit` on training rows and
-:meth:`RegressionModel.predict` on test rows, both given the frame selected by
-:func:`model_inputs` (indexed by ``modeling_key``).
+Each entry of ``regression_models`` / ``classification_models`` in
+``config/rq1_modeling_v1.yaml`` becomes a fold model with one interface:
+``fit`` on training rows and ``predict`` on test rows, both given the frame
+selected by :func:`model_inputs` (indexed by ``modeling_key``).
+
+Regression (target ln(``median_ms``)):
 
 * ``reg_train_median``: ln(median of the training-fold ``median_ms``), the same
   value for every test row.
@@ -16,10 +17,22 @@ one interface: :meth:`RegressionModel.fit` on training rows and
 * ``reg_ridge_all`` / ``reg_hgb_all``: the declared pipeline or estimator on
   exactly the 69 allowlisted features (names and order re-checked here).
 
-Parameters are passed verbatim from the YAML; nothing is searched, selected or
-tuned. Every output is checked: a wrong shape or a non-finite value (including
-an ``exp`` overflow of a predicted log runtime) raises
-:class:`Rq1ModelOutputError` and is never repaired.
+1 s classification (target ``hr_1s``: positive 1, negative 0):
+
+* ``clf_train_prevalence``: the training fold's positive share as the
+  probability of every test row.
+* ``clf_raw_cost_rank``: the raw ``est_total_cost`` as a ranking score; no
+  probability is invented.
+* ``clf_cost_logistic`` / ``clf_scale_cost_logistic``: ``StandardScaler`` and
+  L2 ``LogisticRegression`` on ln(cost), optionally plus ln(scale factor).
+* ``clf_logistic_all`` / ``clf_hgb_all``: the declared pipeline or estimator on
+  exactly the 69 allowlisted features. ``penalty`` is never passed (L2 is
+  ``l1_ratio=0.0``).
+
+Parameters are passed verbatim from the YAML; nothing is searched, selected,
+rebalanced or calibrated. Every output is checked: a wrong shape, a non-finite
+value, an ``exp`` overflow of a predicted log runtime or a probability outside
+[0, 1] raises :class:`Rq1ModelOutputError` and is never clipped or repaired.
 """
 
 from __future__ import annotations
@@ -29,17 +42,20 @@ from typing import Any, Sequence
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingRegressor
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from query_cost_predictor.rq1_config import Rq1Config
 from query_cost_predictor.rq1_inputs import assert_exact_feature_columns
 
+TASK_REGRESSION, TASK_CLASSIFICATION = "regression", "classification_1s"
 REGRESSION_MODEL_IDS = ("reg_train_median", "reg_raw_cost_rank", "reg_cost_ols", "reg_scale_cost_ols",
                         "reg_ridge_all", "reg_hgb_all")
-RUNTIME_PREDICTION, RANK_SCORE = "runtime_prediction", "rank_score"
+CLASSIFICATION_MODEL_IDS = ("clf_train_prevalence", "clf_raw_cost_rank", "clf_cost_logistic",
+                            "clf_scale_cost_logistic", "clf_logistic_all", "clf_hgb_all")
+RUNTIME_PREDICTION, RANK_SCORE, PROBABILITY = "runtime_prediction", "rank_score", "probability"
 ALLOWLIST_INPUT = "allowlist"
 BASELINE_INPUT_COLUMNS = ("est_total_cost", "ln_cost", "ln_scale")
 REGRESSION_KINDS = {
@@ -49,12 +65,29 @@ REGRESSION_KINDS = {
     "pipeline": RUNTIME_PREDICTION,
     "estimator": RUNTIME_PREDICTION,
 }
+CLASSIFICATION_KINDS = {
+    "training_fold_prevalence": PROBABILITY,
+    "raw_planner_cost": RANK_SCORE,
+    "pipeline": PROBABILITY,
+    "estimator": PROBABILITY,
+}
 REGRESSION_ESTIMATORS = {
     "StandardScaler": StandardScaler,
     "Ridge": Ridge,
     "LinearRegression": LinearRegression,
     "HistGradientBoostingRegressor": HistGradientBoostingRegressor,
 }
+CLASSIFICATION_ESTIMATORS = {
+    "StandardScaler": StandardScaler,
+    "LogisticRegression": LogisticRegression,
+    "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
+}
+_TASKS = {
+    TASK_REGRESSION: ("regression_models", REGRESSION_KINDS, REGRESSION_ESTIMATORS, REGRESSION_MODEL_IDS),
+    TASK_CLASSIFICATION: ("classification_models", CLASSIFICATION_KINDS, CLASSIFICATION_ESTIMATORS,
+                          CLASSIFICATION_MODEL_IDS),
+}
+NEVER_PASSED_PARAMS = frozenset({"penalty"})
 
 
 class Rq1ModelSpecError(ValueError):
@@ -62,11 +95,11 @@ class Rq1ModelSpecError(ValueError):
 
 
 class Rq1ModelOutputError(ValueError):
-    """A model returned an invalid output (wrong shape or non-finite); it is never repaired."""
+    """A model returned an invalid output (wrong shape, non-finite or out of range); it is never repaired."""
 
 
 @dataclass(frozen=True)
-class RegressionModelSpec:
+class ModelSpec:
     model_id: str
     kind: str
     role: str
@@ -75,10 +108,14 @@ class RegressionModelSpec:
     steps: tuple[tuple[str, dict[str, Any]], ...] = ()
     estimator: str | None = None
     params: dict[str, Any] = field(default_factory=dict)
+    task: str = TASK_REGRESSION
 
     @property
     def uses_allowlist(self) -> bool:
         return self.inputs == (ALLOWLIST_INPUT,)
+
+
+RegressionModelSpec = ModelSpec  # Slice B name, kept for callers and tests
 
 
 def _parse_inputs(raw: Any, model_id: str) -> tuple[str, ...]:
@@ -89,25 +126,28 @@ def _parse_inputs(raw: Any, model_id: str) -> tuple[str, ...]:
     return tuple(str(i) for i in raw)
 
 
-def _check_params(estimator: str, params: dict[str, Any], model_id: str) -> None:
-    if estimator not in REGRESSION_ESTIMATORS:
-        raise Rq1ModelSpecError(f"{model_id}: estimator {estimator!r} is not a declared regression estimator")
-    accepted = REGRESSION_ESTIMATORS[estimator]().get_params()
+def _check_params(estimator: str, params: dict[str, Any], model_id: str, estimators: dict[str, type]) -> None:
+    if estimator not in estimators:
+        raise Rq1ModelSpecError(f"{model_id}: estimator {estimator!r} is not a declared estimator for this task")
+    forbidden = sorted(NEVER_PASSED_PARAMS & set(params))
+    if forbidden:
+        raise Rq1ModelSpecError(f"{model_id}: {forbidden} is never passed (L2 is expressed with l1_ratio=0.0)")
+    accepted = estimators[estimator]().get_params()
     unknown = sorted(set(params) - set(accepted))
     if unknown:
         raise Rq1ModelSpecError(f"{model_id}: {estimator} does not accept {unknown}")
 
 
-def regression_model_specs(config: Rq1Config) -> list[RegressionModelSpec]:
-    """The six declared regression models, in YAML order, validated against the approved design."""
+def _model_specs(config: Rq1Config, task: str) -> list[ModelSpec]:
+    section, kinds, estimators, expected_ids = _TASKS[task]
     specs = []
-    for entry in config.regression_models:
+    for entry in config.raw.get(section) or []:
         model_id, kind = str(entry.get("id")), str(entry.get("kind"))
-        if kind not in REGRESSION_KINDS:
-            raise Rq1ModelSpecError(f"{model_id}: unknown kind {kind!r}")
+        if kind not in kinds:
+            raise Rq1ModelSpecError(f"{model_id}: unknown kind {kind!r} for {task}")
         output_type = str(entry.get("outputs"))
-        if output_type != REGRESSION_KINDS[kind]:
-            raise Rq1ModelSpecError(f"{model_id}: kind {kind} must output {REGRESSION_KINDS[kind]}, not {output_type}")
+        if output_type != kinds[kind]:
+            raise Rq1ModelSpecError(f"{model_id}: kind {kind} must output {kinds[kind]}, not {output_type}")
         role = str(entry.get("role"))
         inputs = _parse_inputs(entry.get("inputs"), model_id)
         if role not in ("baseline", "learned") or (role == "learned") != (inputs == (ALLOWLIST_INPUT,)):
@@ -117,40 +157,52 @@ def regression_model_specs(config: Rq1Config) -> list[RegressionModelSpec]:
         if kind == "pipeline":
             for step in entry.get("steps") or []:
                 name, step_params = str(step["estimator"]), dict(step.get("params") or {})
-                _check_params(name, step_params, model_id)
+                _check_params(name, step_params, model_id, estimators)
                 steps.append((name, step_params))
             if not steps:
                 raise Rq1ModelSpecError(f"{model_id}: a pipeline needs at least one step")
         elif kind == "estimator":
             estimator, params = str(entry.get("estimator")), dict(entry.get("params") or {})
-            _check_params(estimator, params, model_id)
-        elif kind == "training_fold_median" and inputs:
-            raise Rq1ModelSpecError(f"{model_id}: the training-fold median takes no inputs")
+            _check_params(estimator, params, model_id, estimators)
+        elif kind in ("training_fold_median", "training_fold_prevalence") and inputs:
+            raise Rq1ModelSpecError(f"{model_id}: a constant training-fold baseline takes no inputs")
         elif kind == "raw_planner_cost" and inputs != ("est_total_cost",):
             raise Rq1ModelSpecError(f"{model_id}: the raw-cost ranking uses est_total_cost only")
         elif kind == "ols" and inputs not in (("ln_cost",), ("ln_cost", "ln_scale")):
             raise Rq1ModelSpecError(f"{model_id}: an OLS cost baseline uses ln_cost, optionally plus ln_scale")
-        specs.append(RegressionModelSpec(model_id=model_id, kind=kind, role=role, inputs=inputs,
-                                         output_type=output_type, steps=tuple(steps), estimator=estimator,
-                                         params=params))
+        if role == "baseline" and kind in ("pipeline", "estimator") and inputs not in (("ln_cost",), ("ln_cost", "ln_scale")):
+            raise Rq1ModelSpecError(f"{model_id}: a calibrated cost baseline uses ln_cost, optionally plus ln_scale")
+        specs.append(ModelSpec(model_id=model_id, kind=kind, role=role, inputs=inputs, output_type=output_type,
+                               steps=tuple(steps), estimator=estimator, params=params, task=task))
     ids = tuple(spec.model_id for spec in specs)
-    if ids != REGRESSION_MODEL_IDS:
-        raise Rq1ModelSpecError(f"regression_models must declare exactly {REGRESSION_MODEL_IDS} in this order, got {ids}")
+    if ids != expected_ids:
+        raise Rq1ModelSpecError(f"{section} must declare exactly {expected_ids} in this order, got {ids}")
     return specs
 
 
-def build_estimator(spec: RegressionModelSpec) -> Any:
-    """A fresh, unfitted scikit-learn estimator for ``spec`` (``None`` for the two non-fitted baselines)."""
+def regression_model_specs(config: Rq1Config) -> list[ModelSpec]:
+    """The six declared regression models, in YAML order, validated against the approved design."""
+    return _model_specs(config, TASK_REGRESSION)
+
+
+def classification_model_specs(config: Rq1Config) -> list[ModelSpec]:
+    """The six declared 1 s classifiers, in YAML order, validated against the approved design."""
+    return _model_specs(config, TASK_CLASSIFICATION)
+
+
+def build_estimator(spec: ModelSpec) -> Any:
+    """A fresh, unfitted scikit-learn estimator for ``spec`` (``None`` for the non-fitted baselines)."""
+    estimators = _TASKS[spec.task][2]
     if spec.kind == "ols":
         return LinearRegression(fit_intercept=True)
     if spec.kind == "pipeline":
-        return Pipeline([(name.lower(), REGRESSION_ESTIMATORS[name](**params)) for name, params in spec.steps])
+        return Pipeline([(name.lower(), estimators[name](**params)) for name, params in spec.steps])
     if spec.kind == "estimator":
-        return REGRESSION_ESTIMATORS[spec.estimator](**spec.params)  # type: ignore[index]
+        return estimators[spec.estimator](**spec.params)  # type: ignore[index]
     return None
 
 
-def model_inputs(dataset: Any, spec: RegressionModelSpec, allowlist: Sequence[str]) -> pd.DataFrame:
+def model_inputs(dataset: Any, spec: ModelSpec, allowlist: Sequence[str]) -> pd.DataFrame:
     """The input frame of ``spec`` over every development row (indexed by ``modeling_key``).
 
     Learned models get exactly the allowlisted feature columns (re-checked
@@ -179,17 +231,21 @@ def validate_output(model_id: str, values: Any, expected_rows: int, output_type:
             back = np.exp(array)
         if not (np.isfinite(back).all() and (back > 0).all()):
             raise Rq1ModelOutputError(f"{model_id}: exp(predicted ln runtime) is not a finite positive number")
+    elif output_type == PROBABILITY:
+        outside = int(((array < 0.0) | (array > 1.0)).sum())
+        if outside:
+            raise Rq1ModelOutputError(f"{model_id}: {outside} probability(ies) outside [0, 1]; probabilities are "
+                                      "never clipped")
     return array
 
 
-class RegressionModel:
-    """One declared regression model, fitted on one training fold."""
+class FoldModel:
+    """Shared bookkeeping: one instance is fitted once, on one training fold, and never predicts its own rows."""
 
-    def __init__(self, spec: RegressionModelSpec):
+    def __init__(self, spec: ModelSpec):
         self.spec = spec
         self.estimator = build_estimator(spec)
         self.fit_keys_: tuple[str, ...] | None = None
-        self.constant_ln_: float | None = None
 
     @property
     def model_id(self) -> str:
@@ -203,16 +259,35 @@ class RegressionModel:
     def _matrix(inputs: pd.DataFrame) -> np.ndarray:
         return np.ascontiguousarray(inputs.to_numpy(dtype="float64"))
 
-    def fit(self, inputs: pd.DataFrame, y_ms: pd.Series) -> RegressionModel:
-        """Fit on training rows only; ``y_ms`` is the training ``median_ms`` (target ln(median_ms))."""
+    def _begin_fit(self, inputs: pd.DataFrame, target: pd.Series) -> None:
         if self.fit_keys_ is not None:
             raise RuntimeError(f"{self.model_id}: a model instance is fitted once (one per training fold)")
-        if not inputs.index.equals(y_ms.index):
+        if not inputs.index.equals(target.index):
             raise ValueError(f"{self.model_id}: inputs and target rows differ")
+        self.fit_keys_ = tuple(str(k) for k in inputs.index)
+
+    def _begin_predict(self, inputs: pd.DataFrame) -> int:
+        if self.fit_keys_ is None:
+            raise RuntimeError(f"{self.model_id}: predict before fit")
+        overlap = set(self.fit_keys_) & {str(k) for k in inputs.index}
+        if overlap:
+            raise RuntimeError(f"{self.model_id}: {len(overlap)} prediction row(s) were also training rows")
+        return len(inputs)
+
+
+class RegressionModel(FoldModel):
+    """One declared regression model, fitted on one training fold."""
+
+    def __init__(self, spec: ModelSpec):
+        super().__init__(spec)
+        self.constant_ln_: float | None = None
+
+    def fit(self, inputs: pd.DataFrame, y_ms: pd.Series) -> RegressionModel:
+        """Fit on training rows only; ``y_ms`` is the training ``median_ms`` (target ln(median_ms))."""
         target = y_ms.to_numpy(dtype="float64")
         if target.size == 0 or not (np.isfinite(target).all() and (target > 0).all()):
             raise ValueError(f"{self.model_id}: training median_ms must be non-empty, finite and positive")
-        self.fit_keys_ = tuple(str(k) for k in inputs.index)
+        self._begin_fit(inputs, y_ms)
         if self.spec.kind == "training_fold_median":
             self.constant_ln_ = float(np.log(np.median(target)))
         elif self.estimator is not None:
@@ -221,12 +296,7 @@ class RegressionModel:
 
     def predict(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predicted ln runtime (runtime models) or the raw ranking score (``reg_raw_cost_rank``)."""
-        if self.fit_keys_ is None:
-            raise RuntimeError(f"{self.model_id}: predict before fit")
-        overlap = set(self.fit_keys_) & {str(k) for k in inputs.index}
-        if overlap:
-            raise RuntimeError(f"{self.model_id}: {len(overlap)} prediction row(s) were also training rows")
-        n = len(inputs)
+        n = self._begin_predict(inputs)
         if self.spec.kind == "training_fold_median":
             raw = np.full(n, self.constant_ln_, dtype="float64")
         elif self.spec.kind == "raw_planner_cost":
@@ -236,6 +306,53 @@ class RegressionModel:
         return validate_output(self.model_id, raw, n, self.output_type)
 
 
-def build_regression_model(spec: RegressionModelSpec) -> RegressionModel:
+class ClassificationModel(FoldModel):
+    """One declared 1 s classifier, fitted on one training fold."""
+
+    def __init__(self, spec: ModelSpec):
+        super().__init__(spec)
+        self.constant_probability_: float | None = None
+
+    def fit(self, inputs: pd.DataFrame, y: pd.Series) -> ClassificationModel:
+        """Fit on training rows only; ``y`` is the training ``hr_1s`` (positive 1, negative 0)."""
+        target = y.to_numpy()
+        if target.size == 0 or not np.isin(target, (0, 1)).all():
+            raise ValueError(f"{self.model_id}: the training target must be non-empty and only 0 or 1")
+        if self.estimator is not None and len(set(target.tolist())) != 2:
+            raise ValueError(f"{self.model_id}: a fitted classifier needs both classes in its training fold")
+        self._begin_fit(inputs, y)
+        if self.spec.kind == "training_fold_prevalence":
+            self.constant_probability_ = float(np.mean(target == 1))
+        elif self.estimator is not None:
+            self.estimator.fit(self._matrix(inputs), target.astype("int64"))
+        return self
+
+    def _positive_column(self, probabilities: Any, n: int) -> np.ndarray:
+        classes = [int(c) for c in getattr(self.estimator, "classes_", [])]
+        if classes != [0, 1]:
+            raise Rq1ModelOutputError(f"{self.model_id}: fitted classes are {classes}, expected [0, 1]")
+        array = np.asarray(probabilities)
+        if array.shape != (n, 2):
+            raise Rq1ModelOutputError(f"{self.model_id}: predict_proba returned shape {array.shape}, expected {(n, 2)}")
+        return array[:, classes.index(1)]
+
+    def predict(self, inputs: pd.DataFrame) -> np.ndarray:
+        """Positive-class probability, or the raw ranking score (``clf_raw_cost_rank``)."""
+        n = self._begin_predict(inputs)
+        if self.spec.kind == "training_fold_prevalence":
+            raw = np.full(n, self.constant_probability_, dtype="float64")
+        elif self.spec.kind == "raw_planner_cost":
+            raw = inputs["est_total_cost"].to_numpy(dtype="float64").copy()
+        else:
+            raw = self._positive_column(self.estimator.predict_proba(self._matrix(inputs)), n)
+        return validate_output(self.model_id, raw, n, self.output_type)
+
+
+def build_regression_model(spec: ModelSpec) -> RegressionModel:
     """A fresh, unfitted model for one training fold (the evaluator calls this through the module)."""
     return RegressionModel(spec)
+
+
+def build_classification_model(spec: ModelSpec) -> ClassificationModel:
+    """A fresh, unfitted classifier for one training fold (the evaluator calls this through the module)."""
+    return ClassificationModel(spec)

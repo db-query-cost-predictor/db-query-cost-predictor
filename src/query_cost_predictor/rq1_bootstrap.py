@@ -44,6 +44,8 @@ REPLICATE_COLUMNS = ("task", "statistic_kind", "model_id", "baseline_model_id", 
                      "invalid_reason")
 MODEL, DIFFERENCE = "model", "difference"
 TASK_ORDER = ("regression", "classification_1s")
+# ``uncertainty.applies_to`` names headline tables; contributions are keyed by task, never by table name.
+HEADLINE_TABLE_TASKS = {"headline_regression": "regression", "headline_classification": "classification_1s"}
 
 
 class Rq1BootstrapError(ValueError):
@@ -257,13 +259,27 @@ def bootstrap_output_bytes(plan: BootstrapPlan, contributions: dict[str, Bootstr
     }
 
 
+def required_bootstrap_tasks(config: Rq1Config) -> tuple[str, ...]:
+    """The contribution task ids required by ``uncertainty.applies_to`` (headline table names mapped to tasks)."""
+    tables = [str(name) for name in config.uncertainty["applies_to"]]
+    unknown = sorted(set(tables) - set(HEADLINE_TABLE_TASKS))
+    if unknown:
+        raise Rq1BootstrapError(f"uncertainty.applies_to names unknown headline tables {unknown}")
+    tasks = {HEADLINE_TABLE_TASKS[name] for name in tables}
+    return tuple(task for task in TASK_ORDER if task in tasks)
+
+
 def write_bootstrap_outputs(context: Any, required_tasks: Sequence[str]) -> None:
     """Write the four shared bootstrap files once, after every required task has contributed.
 
-    The production pipeline requires every task in ``uncertainty.applies_to``
-    (regression and 1 s classification); the files are never appended to or
-    rewritten, so a missing or extra contribution is an error.
+    The production pipeline passes :func:`required_bootstrap_tasks` (regression
+    and 1 s classification); the files are never appended to or rewritten, so a
+    missing or extra contribution is an error.
     """
+    unknown = sorted(set(required_tasks) - set(TASK_ORDER))
+    if unknown:
+        raise Rq1BootstrapError(f"{unknown} are not contribution task ids {TASK_ORDER} (headline table names are "
+                                "mapped by required_bootstrap_tasks)")
     state = _state(context)
     if state["written"]:
         raise Rq1BootstrapError("the shared bootstrap files are written once per run")

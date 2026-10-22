@@ -549,6 +549,6 @@ def test_regression_stage_needs_the_checked_dataset(tmp_path, prepared):
 def test_production_pipeline_still_refuses_until_slice_c(tmp_path):
     config = load_rq1_config()
     assert config.uncertainty["replicates"] == 2000 and config.uncertainty["seed"] == 20261021
-    assert unimplemented_stages(config.stages) == ["classification_1s", "diagnostics", "handoff"]
-    with pytest.raises(RunRefusedError, match="classification_1s"):
+    assert unimplemented_stages(config.stages) == ["diagnostics", "handoff"]
+    with pytest.raises(RunRefusedError, match="diagnostics"):
         production_stages(config.stages)

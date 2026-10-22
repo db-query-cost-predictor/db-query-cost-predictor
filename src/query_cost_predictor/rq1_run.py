@@ -362,7 +362,7 @@ def read_complete_run(run_dir: Path) -> dict[str, Any]:
 
 
 # ----------------------------------------------------------------------------------
-# Production pipeline (Slice A: input_check; Slice B: regression; Slice C: the rest)
+# Production pipeline (A: input_check; B: regression; C1: classification_1s; C2: diagnostics, handoff)
 # ----------------------------------------------------------------------------------
 def stage_input_check(context: RunContext) -> None:
     from query_cost_predictor.rq1_inputs import check_inputs
@@ -381,10 +381,16 @@ def stage_regression(context: RunContext) -> None:
     run_regression(context)
 
 
+def stage_classification_1s(context: RunContext) -> None:
+    from query_cost_predictor.rq1_evaluate import stage_classification_1s as run_classification
+
+    run_classification(context)
+
+
 PRODUCTION_STAGES: dict[str, Callable[[RunContext], None] | None] = {
     "input_check": stage_input_check,
     "regression": stage_regression,
-    "classification_1s": None,   # Slice C
+    "classification_1s": stage_classification_1s,
     "diagnostics": None,         # Slice C
     "handoff": None,             # Slice C
 }

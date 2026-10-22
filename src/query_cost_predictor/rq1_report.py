@@ -13,6 +13,13 @@ The regression section labels its parts: the primary ``fold_group`` headline
 separate rank-metric table, operational and secondary metrics, per-fold and
 stratified results, the ``fold_family`` robustness check and the
 ``fold_seen_template`` seen-template diagnostic. No model is named a winner.
+
+The 1 s classification section has the same structure: the headline average
+precision of all six classifiers with paired intervals and learned-minus-
+baseline differences, a separate table for the one predeclared operating point
+(probability >= 0.5), secondary ROC-AUC and Brier, per-fold and stratified
+results with their flags and positive counts, and the labelled robustness and
+seen-template parts. It states that 10 s classification is NOT_YET_EVALUABLE.
 """
 
 from __future__ import annotations
@@ -20,7 +27,7 @@ from __future__ import annotations
 from typing import Any, Sequence
 
 from query_cost_predictor.rq1_config import Rq1Config
-from query_cost_predictor.rq1_metrics import REASON_OUTPUT_TYPE, SCOPE_PER_FOLD, SCOPE_POOLED
+from query_cost_predictor.rq1_metrics import FLAGS, REASON_OUTPUT_TYPE, SCOPE_PER_FOLD, SCOPE_POOLED
 
 REPORT_FILE = "report.md"
 REPORT_SECTIONS = ("regression", "classification_1s", "diagnostics", "handoff")
@@ -28,6 +35,9 @@ METRIC_LABELS = {
     "log_mae": "log-MAE", "median_qerror": "median q-error", "p90_qerror": "p90 q-error",
     "p95_qerror": "p95 q-error", "mae_ms": "MAE (ms)", "rmse_ms": "RMSE (ms)", "r2_log": "R² (log; secondary)",
     "r2_ms": "R² (ms; secondary)", "spearman": "Spearman", "kendall": "Kendall",
+    "average_precision": "average precision (AP)", "roc_auc": "ROC-AUC (secondary)", "recall": "recall",
+    "false_negative_rate": "false-negative rate", "precision": "precision", "false_positive_rate": "false-positive rate",
+    "warning_rate_per_100": "warnings per 100 cases", "brier": "Brier score",
 }
 ROBUSTNESS_LABEL = ("Robustness check: `fold_family` (whole structure families held out; stricter mainly within the "
                     "structural component; not complete schema-level separation)")
@@ -56,6 +66,10 @@ def _cell(row: dict[str, Any] | None, with_ci: bool = False) -> str:
     return text
 
 
+def _sentence(text: str) -> str:
+    return text[:1].upper() + text[1:]
+
+
 def _table(header: Sequence[str], body: Sequence[Sequence[str]]) -> list[str]:
     lines = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
     lines += ["| " + " | ".join(str(c) for c in row) + " |" for row in body]
@@ -67,17 +81,48 @@ class _Rows:
         self.index = {(r["fold_scheme"], r["model_id"], r["scope"], r["fold"], r["stratum_column"], r["stratum_value"],
                        r["metric"]): r for r in rows}
         self.models = list(dict.fromkeys(r["model_id"] for r in rows))
+        self.slices: dict[tuple[Any, ...], list[dict[str, Any]]] = {}
+        for r in rows:
+            self.slices.setdefault((r["fold_scheme"], r["model_id"], r["scope"], r["fold"], r["stratum_column"],
+                                    r["stratum_value"]), []).append(r)
 
     def get(self, scheme: str, model: str, metric: str, scope: str = SCOPE_POOLED, fold: int | None = None,
             column: str | None = None, value: str | None = None) -> dict[str, Any] | None:
         return self.index.get((scheme, model, scope, fold, column, value, metric))
 
+    def _slice(self, scheme: str, model: str, scope: str = SCOPE_POOLED, fold: int | None = None,
+               column: str | None = None, value: str | None = None) -> list[dict[str, Any]]:
+        return self.slices.get((scheme, model, scope, fold, column, value), [])
+
     def counts(self, scheme: str, model: str, **where: Any) -> str:
-        row = self.get(scheme, model, "log_mae", **where)
-        if row is None:
+        rows = self._slice(scheme, model, **where)
+        if not rows:
             return "-"
+        row = rows[0]
         kpg = "null" if row["keys_per_group"] is None else f"{row['keys_per_group']:.2f}"
-        return f"{row['n_keys']} keys, {row['n_groups']} groups, {kpg} keys/group, {row['n_query_instances']} instances"
+        text = f"{row['n_keys']} keys, {row['n_groups']} groups, {kpg} keys/group, {row['n_query_instances']} instances"
+        if row["n_positive"] is not None:
+            text += (f"; {row['n_positive']} positives in {row['n_positive_groups']} groups from "
+                     f"{row['n_contributing_positive_folds']} fold(s)")
+        return text
+
+    def flags(self, scheme: str, model: str, **where: Any) -> str:
+        """Every flag on any metric row of the slice, in the declared order."""
+        present = {flag for row in self._slice(scheme, model, **where) for flag in (row["flag"] or "").split(";") if flag}
+        return "; ".join(flag for flag in FLAGS if flag in present) or "none"
+
+
+def _differences_table(bootstrap_summary: dict[str, Any]) -> list[str]:
+    body = []
+    for entry in bootstrap_summary.get("differences", []):
+        interval = (f"[{_fmt(entry['ci_lower'])}, {_fmt(entry['ci_upper'])}]" if entry["ci_lower"] is not None
+                    else "no valid replicates")
+        reasons = "; ".join(f"{k}: {v}" for k, v in entry["invalid_reasons"].items()) or "none"
+        body.append([f"`{entry['model_id']}`", f"`{entry['baseline_model_id']}`", METRIC_LABELS[entry["metric"]],
+                     _fmt(entry["point_estimate"], entry["point_null_reason"]), interval,
+                     f"{entry['n_valid']} / {entry['n_invalid']}", reasons])
+    return _table(["Learned", "Baseline", "Metric", "Difference", "95 % interval", "Valid / invalid replicates",
+                   "Invalid reasons"], body)
 
 
 def _pooled_block(rows: _Rows, scheme: str, models: Sequence[str], metrics: Sequence[str], with_ci: bool) -> list[str]:
@@ -123,16 +168,7 @@ def regression_section(metric_rows: Sequence[dict[str, Any]], bootstrap_summary:
         "multiple-comparison-adjusted significance is claimed.",
         "",
     ]
-    diff_body = []
-    for entry in bootstrap_summary.get("differences", []):
-        interval = (f"[{_fmt(entry['ci_lower'])}, {_fmt(entry['ci_upper'])}]" if entry["ci_lower"] is not None
-                    else "no valid replicates")
-        reasons = "; ".join(f"{k}: {v}" for k, v in entry["invalid_reasons"].items()) or "none"
-        diff_body.append([f"`{entry['model_id']}`", f"`{entry['baseline_model_id']}`", METRIC_LABELS[entry["metric"]],
-                          _fmt(entry["point_estimate"], entry["point_null_reason"]), interval,
-                          f"{entry['n_valid']} / {entry['n_invalid']}", reasons])
-    out += _table(["Learned", "Baseline", "Metric", "Difference", "95 % interval", "Valid / invalid replicates",
-                   "Invalid reasons"], diff_body)
+    out += _differences_table(bootstrap_summary)
     out += ["", "### Primary: rank agreement (separate table; includes the raw-cost ranking)", "",
             *_pooled_block(rows, "fold_group", rank_models, rank_metrics, with_ci=False), "",
             "### Primary: operational and secondary metrics (`fold_group`, pooled)", "",
@@ -166,6 +202,100 @@ def regression_section(metric_rows: Sequence[dict[str, Any]], bootstrap_summary:
     out += ["Complete long-format results (every scheme, model, fold and stratum, with null reasons) are in "
             "`metrics_regression.csv` and `metrics_regression.json`; out-of-fold outputs are in `oof_regression.csv`.",
             ""]
+    return "\n".join(out)
+
+
+def classification_section(metric_rows: Sequence[dict[str, Any]], bootstrap_summary: dict[str, Any],
+                           config: Rq1Config) -> str:
+    """The 1 s classification section of ``report.md`` (held in the run context until final assembly)."""
+    rows = _Rows(metric_rows)
+    tables = config.reporting["tables"]
+    headline_models = [str(m) for m in tables["headline_classification"]["models"]]
+    headline_metrics = [str(m) for m in tables["headline_classification"]["metrics"]]
+    operating_models = [str(m) for m in tables["operating_point_classification"]["models"]]
+    operating_metrics = [str(m) for m in tables["operating_point_classification"]["metrics"]]
+    roles = {str(m["id"]): str(m["role"]) for m in config.raw["classification_models"]}
+    unc = config.uncertainty
+    ten = config.raw["targets"]["classification_10s"]
+    flag_text = "; ".join(f"`{name}`: {text}" for name, text in config.metrics_spec["flags"].items())
+    out = [
+        "## High-runtime classification at 1 s",
+        "",
+        "Target: `hr_1s_class` (positive 1, negative 0) at the frozen 1,000 ms label boundary. Average precision (AP) "
+        "is `sklearn.metrics.average_precision_score`, the non-interpolated step sum; it is never trapezoidal "
+        "PR-AUC. `clf_raw_cost_rank` is a ranking score: it has AP and ROC-AUC only, and its probability and "
+        "threshold metrics are n/a (output type). The cost baselines are logistic calibrations of log planner cost; "
+        "comparisons concern these specified baselines only. No model is named a winner; accuracy is never a "
+        "headline.",
+        "",
+        f"10 s classification: {ten['status']} ({ten['reason']}); nothing is trained or reported for it.",
+        "",
+        f"Positive concentration (recorded at the release audit): {config.reporting['positive_concentration_statement']}",
+        "",
+        f"Flags are descriptive; flagged results stay visible. {flag_text}.",
+        "",
+        "### Primary: `fold_group`, pooled out-of-fold (headline)",
+        "",
+        f"Whole semantic groups held out ({rows.counts('fold_group', headline_models[0])}). Intervals are 95 % "
+        f"paired cluster bootstrap percentile intervals over semantic groups ({unc['replicates']} replicates, seed "
+        f"{unc['seed']}; the same group draws as the regression intervals), conditional on the fixed out-of-fold "
+        "predictions and folds.",
+        "",
+    ]
+    body = [[f"`{m}`", roles.get(m, "?"), *(_cell(rows.get("fold_group", m, k), True) for k in headline_metrics),
+             rows.flags("fold_group", m)] for m in headline_models]
+    out += _table(["Model", "Role", *(METRIC_LABELS[k] for k in headline_metrics), "Flags"], body)
+    model_summaries = {(e["model_id"], e["metric"]): e for e in bootstrap_summary.get("models", [])}
+    invalid = [f"`{m}` {e['n_invalid']} ({'; '.join(f'{k}: {v}' for k, v in e['invalid_reasons'].items())})"
+               for (m, _), e in model_summaries.items() if e["n_invalid"]]
+    out += ["", "Invalid bootstrap replicates: " + (", ".join(invalid) if invalid else "none") + ".", "",
+            "### Primary: paired differences, learned minus calibrated baseline (`fold_group`)", "",
+            f"Direction: {bootstrap_summary.get('direction', unc['differences']['classification']['direction'])}. A "
+            "comparative claim must name the metric, the baseline and the paired interval; no universal or "
+            "multiple-comparison-adjusted significance is claimed.", "",
+            *_differences_table(bootstrap_summary), "",
+            "### Primary: one predeclared operating point (probability >= 0.5; separate table)", "",
+            f"{_sentence(config.raw['fixed']['operating_point'])}. The threshold was fixed before any model was "
+            "fitted and is not tuned.", "",
+            *_pooled_block(rows, "fold_group", operating_models, operating_metrics, with_ci=False), "",
+            "### Primary: secondary ranking and probability metrics (`fold_group`, pooled)", "",
+            *_pooled_block(rows, "fold_group", headline_models, ["roc_auc", "brier"], with_ci=False), "",
+            "### Primary: per fold (`fold_group`)", ""]
+    per_fold_metrics = ["average_precision", "roc_auc", "recall", "precision", "brier"]
+    body = []
+    for model in headline_models:
+        for fold in config.fold_values:
+            where = {"scope": SCOPE_PER_FOLD, "fold": fold}
+            body.append([f"`{model}`", str(fold), rows.counts("fold_group", model, **where),
+                         *(_cell(rows.get("fold_group", model, m, SCOPE_PER_FOLD, fold)) for m in per_fold_metrics),
+                         rows.flags("fold_group", model, **where)])
+    out += _table(["Model", "Fold", "Rows", *(METRIC_LABELS[m] for m in per_fold_metrics), "Flags"], body)
+    out += ["", "### Primary: strata (`fold_group`, pooled out-of-fold)", "",
+            "Strata are reporting groups only (runtime bins use the actual `median_ms`, so the 1 s label is "
+            "determined by the bin); thin and single-class strata stay visible with their flags.", ""]
+    strata_metrics = ["average_precision", "recall", "false_positive_rate", "brier"]
+    for column, declared in config.reporting["strata"].items():
+        values = declared["labels"] if isinstance(declared, dict) else declared
+        body = []
+        for value in values:
+            for model in headline_models:
+                where = {"column": str(column), "value": str(value)}
+                body.append([f"`{model}`", str(value), rows.counts("fold_group", model, **where),
+                             *(_cell(rows.get("fold_group", model, m, **where)) for m in strata_metrics),
+                             rows.flags("fold_group", model, **where)])
+        out += [f"#### By `{column}`", "", *_table(["Model", "Stratum", "Rows", *(METRIC_LABELS[m] for m in strata_metrics),
+                                                    "Flags"], body), ""]
+    pooled_metrics = ["average_precision", "roc_auc", "recall", "precision", "false_positive_rate", "brier"]
+    for scheme, label in (("fold_family", ROBUSTNESS_LABEL), ("fold_seen_template", SEEN_TEMPLATE_LABEL)):
+        body = [[f"`{m}`", *(_cell(rows.get(scheme, m, k)) for k in pooled_metrics), rows.flags(scheme, m)]
+                for m in headline_models]
+        out += [f"### {label}", "", f"Pooled out-of-fold ({rows.counts(scheme, headline_models[0])}); no bootstrap "
+                "intervals (the paired bootstrap applies to the primary headline only).", "",
+                *_table(["Model", *(METRIC_LABELS[k] for k in pooled_metrics), "Flags"], body), ""]
+    out += ["Complete long-format results (every scheme, model, fold and stratum, with null reasons, counts and flags) "
+            "are in `metrics_classification.csv` and `metrics_classification.json`; out-of-fold outputs are in "
+            "`oof_classification.csv`; the ten fixed calibration bins of every probabilistic model, scheme and slice "
+            "(empty bins included) are in `calibration_bins.csv`.", ""]
     return "\n".join(out)
 
 
