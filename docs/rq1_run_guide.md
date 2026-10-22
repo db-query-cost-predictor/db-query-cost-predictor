@@ -4,8 +4,25 @@ How to run the RQ1 v1 study ([`config/rq1_modeling_v1.yaml`](../config/rq1_model
 it produced. Methodology: [rq1_evaluation_protocol.md](rq1_evaluation_protocol.md). Design:
 [rq1_modeling_implementation_plan.md](rq1_modeling_implementation_plan.md).
 
-> **Status: the official real-data study is pending.** It runs once, after the reviewed implementation is
-> committed. Only a run whose status is `COMPLETE` counts as the RQ1 v1 study.
+> **Status: the official real-data study is complete.** It ran once, on 2026-10-22, from committed source
+> `ad66662`, and ended `COMPLETE`; see [The official run](#the-official-run). Only that run counts as the
+> RQ1 v1 study. Results: [rq1_results_v1.md](rq1_results_v1.md). Setup on another machine:
+> [teammate_setup.md](teammate_setup.md).
+
+## The official run
+
+| Item | Value |
+|---|---|
+| Run id | `20261022T144433Z_5db1608ab5d0bb69_ad666623822a` |
+| Run label | `rq1-v1-official` |
+| Status | `COMPLETE`: all five stages, verified against `output_manifest.json` |
+| Source revision | `ad666623822a4c5baa911cc29e410ed0abc9c14e`, with a clean tracked tree |
+| `output_manifest.json` SHA-256 | `e7c2ba2bb2f964d3995ba0d154fc3a581f0bf62741566c4ccce2bc9f34a9b4a3` |
+| Distributed as | `rq1_results_review_20261022_100326_043.zip` (see [handoff_assets_v1.json](handoff_assets_v1.json)) |
+
+Keep the official run directory and both distributed ZIP files unchanged. A
+later run, for example a teammate's reproduction, is a separate run with its own
+id. It never replaces or edits the official one.
 
 ## Prerequisites
 
@@ -36,6 +53,11 @@ it produced. Methodology: [rq1_evaluation_protocol.md](rq1_evaluation_protocol.m
     - present with a different hash: the run stops.
 
 ## Commands (PowerShell, from the repository root)
+
+The paths below are the original machine's. On another machine, use your own
+locations, as in [teammate_setup.md](teammate_setup.md). The official run used
+`-RunLabel rq1-v1-official`; give any later run a different label, such as
+`rq1-v1-repro`.
 
 ```powershell
 # 1. Read-only input check: writes no run directory. Reports data checks and evidence-run eligibility separately.
@@ -95,8 +117,21 @@ overwritten or resumed.
 ## Verifying a completed run
 
 ```powershell
-.\.venv\Scripts\python.exe -c "from pathlib import Path; from query_cost_predictor.rq1_run import read_complete_run; m = read_complete_run(Path(r'<run directory>')); print(len(m['files']), 'files verified')"
+$RunDir = '<run directory>'
+@'
+import sys
+from pathlib import Path
+
+from query_cost_predictor.rq1_run import read_complete_run
+
+manifest = read_complete_run(Path(sys.argv[1]))
+print(len(manifest["files"]), "files verified")
+'@ | .\.venv\Scripts\python.exe - $RunDir
 ```
+
+For the official run, this prints `36 files verified`. A fuller check, which
+also prints the run identity, is step A8 of
+[teammate_setup.md](teammate_setup.md).
 
 `read_complete_run` refuses anything but `COMPLETE`. It then re-verifies `output_manifest.json` against the
 SHA-256 recorded at completion, and every file against the manifest.

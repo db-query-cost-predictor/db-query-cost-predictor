@@ -1,0 +1,151 @@
+{
+  "schema": "qcp.handoff_assets",
+  "schema_version": 1,
+  "catalogue_id": "handoff-assets-v1",
+  "prepared_on": "2026-10-22",
+  "purpose": "Human-readable catalogue of the assets needed to inspect, reproduce and integrate RQ1 v1. Generated datasets, results and models are distributed as the files below and are never committed to the repository.",
+  "documents": {
+    "results_summary": "docs/rq1_results_v1.md",
+    "teammate_setup": "docs/teammate_setup.md",
+    "team_handoff": "docs/team_handoff.md",
+    "run_guide": "docs/rq1_run_guide.md"
+  },
+  "repository": {
+    "url": "https://github.com/db-query-cost-predictor/db-query-cost-predictor",
+    "clone_url": "https://github.com/db-query-cost-predictor/db-query-cost-predictor.git",
+    "source": "git remote 'origin' of the study checkout",
+    "study_branch": "feat/expanded-query-dataset",
+    "target_branch": "main",
+    "study_source_revision": "ad666623822a4c5baa911cc29e410ed0abc9c14e",
+    "documentation_commit": "pending: not yet committed"
+  },
+  "publication": {
+    "status": "pending",
+    "branch_pushed": "pending",
+    "pull_request": "pending: not yet created",
+    "merged_into_main": "pending",
+    "recommended_merge_method": "merge commit (not squash or rebase), so that the study revision stays in main's history",
+    "assets_distributed": "pending",
+    "distribution_location": null,
+    "release_url": null,
+    "note": "Nothing has been pushed, merged or published. Record the distribution location here, in a follow-up documentation commit, after the files are hosted and their sizes and SHA-256 values have been re-verified at that location."
+  },
+  "study": {
+    "spec_id": "rq1-modeling-v1",
+    "run_id": "20261022T144433Z_5db1608ab5d0bb69_ad666623822a",
+    "run_label": "rq1-v1-official",
+    "status": "COMPLETE",
+    "created_at_utc": "2026-10-22T14:44:33+00:00",
+    "completed_at_utc": "2026-10-22T14:45:19+00:00",
+    "completed_stages": ["input_check", "regression", "classification_1s", "diagnostics", "handoff"],
+    "source_revision": "ad666623822a4c5baa911cc29e410ed0abc9c14e",
+    "source_tracked_dirty": false,
+    "config_sha256": "5db1608ab5d0bb6949d3d225d84853ea65c07e8964c8b157754e48333bf45ea0",
+    "input_record_sha256": "7a5e47a5ff7533b147b47e449e5263575df6a10a64d507dba8e99c3d32320453",
+    "output_manifest_sha256": "e7c2ba2bb2f964d3995ba0d154fc3a581f0bf62741566c4ccce2bc9f34a9b4a3",
+    "handoff_manifest_sha256": "a18200fbdd672f4d16e4c4c0697ef503ce9c5d2b94ba1d17b6a85ea8fc88859d",
+    "environment": {
+      "python": "3.11.9",
+      "scikit_learn": "1.9.1",
+      "joblib": "1.6.0",
+      "constraints_file": "requirements/rq1_constraints_v1.txt",
+      "thread_limit": 1
+    },
+    "original_release_validation": {
+      "status": "STOP",
+      "stop_codes": ["G-08"],
+      "note": "preserved as recorded; not PASS"
+    },
+    "classification_10s": "NOT_YET_EVALUABLE",
+    "fold_schemes": {
+      "fold_group": "primary: whole semantic groups held out",
+      "fold_family": "robustness check: whole structure families held out; stricter mainly within the structural component",
+      "fold_seen_template": "labelled diagnostic: whole query instances held out; templates seen in training",
+      "random_row_split": "deferred beyond v1; no numbers exist"
+    },
+    "handoff_models": {
+      "label": "REFIT_ON_ALL_DEVELOPMENT_NO_EVALUATION",
+      "scored": false,
+      "models": ["reg_cost_ols", "reg_scale_cost_ols", "reg_ridge_all", "reg_hgb_all", "clf_cost_logistic", "clf_scale_cost_logistic", "clf_logistic_all", "clf_hgb_all"]
+    }
+  },
+  "assets": [
+    {
+      "asset_id": "expanded_release_dataset",
+      "file_name": "expanded_release.zip",
+      "bytes": 18966990,
+      "sha256": "f4bc90bc74e02579ece9cbbdafb4b9b792f655d90742de143d5a5f1d60e0291a",
+      "role": "the evidence package of the expanded release expanded-v1; the input to RQ1 v1 and to any reproduction",
+      "release_identity": {
+        "manifest_id": "mf_a75c6408fb59ab8f5265ee95404ae8d25419d1244b29c51210f8e013c3591899",
+        "derived_release_id": "expanded:a75c6408fb59ab8f:expanded-label-v1:003c5455636b8843",
+        "label_version": "expanded-label-v1",
+        "feature_version": "expanded-features-v1",
+        "collected_utc": "2026-10-04"
+      },
+      "entries": 34,
+      "extracted_size_mib": 204.3,
+      "layout": "no top-level folder; extract into its own empty folder. Entry names use Windows backslash separators; extract with Expand-Archive on Windows.",
+      "contains": {
+        "derived/": "keys.csv, executions.csv, labels.csv, estimates.csv, features.csv (69 pre-execution features), splits.csv (split_role and the three stored fold schemes), derived_manifest.json",
+        "manifest/": "manifest_a75c6408fb59ab8f.json: every proposed key, with its SQL text, parameters, snapshot and configuration",
+        "raw/expanded-v1/": "12 append-only raw session files (JSONL) holding the plain EXPLAIN, warm-up and measured EXPLAIN ANALYZE records; 29,708 records with checksums",
+        "reports/": "readiness, manifest summary, plan check, sample and full validation (STOP at G-08), budget projection, EDA summary, release arithmetic, and the preflight environment report"
+      },
+      "pinned_by": "config/rq1_modeling_input_v1.json (21 required files: 7 derived files, the manifest, the full validation report and 12 raw files)",
+      "counts": {
+        "cases": 4944,
+        "development_cases": 4784,
+        "heldout_rq2_cases": 160,
+        "development_semantic_groups": 194,
+        "development_query_instances": 1292,
+        "development_1s_positives": 393,
+        "development_10s_positives": 0
+      },
+      "not_included": [
+        "the supplementary full-collection approval record (optional for RQ1; SHA-256 9112e8346475789d18f4cddcc2253985570ce60ab7eaf16fa95abb8ee6db1100)",
+        "a frozen release record: freeze refuses a STOP release"
+      ],
+      "cautions": [
+        "Raw session records contain the collection machine's host name, and four packaged reports contain absolute local paths; raw records cannot be edited without breaking their checksums.",
+        "TPC terms for redistributing TPC-H-derived query text have not been confirmed; prefer team-only access until they are."
+      ]
+    },
+    {
+      "asset_id": "rq1_v1_results",
+      "file_name": "rq1_results_review_20261022_100326_043.zip",
+      "bytes": 13692737,
+      "sha256": "e8271dbe03a95eea51ac9d7bdd91b521ada3bb04caf5231f2da634ec849c7490",
+      "role": "the complete official RQ1 v1 run directory, unchanged, plus the console transcript of the run",
+      "entries": 39,
+      "extracted_size_mib": 42.0,
+      "layout": "one folder named after the run id (38 files), plus one transcript file at the archive root. Entry names use Windows backslash separators.",
+      "contains": {
+        "20261022T144433Z_5db1608ab5d0bb69_ad666623822a/": "report.md; metrics_regression and metrics_classification (CSV and JSON; 3,240 and 2,592 rows); oof_regression.csv and oof_classification.csv; calibration_bins.csv (2,700 rows); bootstrap_summary.json, bootstrap_replicates.csv, bootstrap_indices.npz and bootstrap_groups.csv; diagnostics_noise.json and diagnostics_threshold.json; fold_membership.csv; input_check.json; run_record.json; figures/ (9 PNG files and figure_index.json); handoff/ (8 joblib refits and handoff_manifest.json); RUN_STATUS.json; output_manifest.json",
+        "rq1_official_run_20261022_094429_762.log": "Windows PowerShell transcript of the official run's console (exit code 0); not part of the run directory"
+      },
+      "verification": "read_complete_run on the extracted run folder verifies 36 files against output_manifest.json, whose SHA-256 is recorded in RUN_STATUS.json and above (study.output_manifest_sha256). See docs/teammate_setup.md, step A8.",
+      "cautions": [
+        "The transcript at the archive root contains the original machine name and user name.",
+        "The joblib files are Python pickles: load them only after their SHA-256 matches handoff/handoff_manifest.json, with scikit-learn 1.9.1 and joblib 1.6.0."
+      ]
+    }
+  ],
+  "independent_review": {
+    "reviewer": "external review in ChatGPT of the uploaded dataset and results packages",
+    "reported_matches": [
+      "the archive and all 21 pinned input hashes",
+      "all 29,708 raw record signatures",
+      "the original labels, development selection and stored folds (reconciled)",
+      "all 5,832 metric rows and 2,700 calibration bins",
+      "all 2,000 bootstrap draws, 92,000 replicate statistics and 46 intervals, against independent calculations",
+      "the noise diagnostics and the exact S/B memberships, against the raw measurements"
+    ],
+    "note": "This attributes the external review. No local audit log of it is part of the repository or of these assets."
+  },
+  "hash_check_performed_during_preparation": {
+    "date": "2026-10-22",
+    "method": "read-only Get-FileHash (SHA-256) and file length, on the author's machine",
+    "result": "both assets and the official output_manifest.json matched the values above"
+  }
+}

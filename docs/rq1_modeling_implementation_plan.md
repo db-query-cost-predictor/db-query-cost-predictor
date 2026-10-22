@@ -1,7 +1,8 @@
 # RQ1 modeling implementation plan (v1)
 
-Status: **specification for review** (for an independent methodology review
-before implementation). No model has been implemented, fitted or evaluated. The
+Status: **implemented and executed.** This specification was reviewed before
+implementation. The single official run ended `COMPLETE` on 2026-10-22; see the
+progress note below and [rq1_results_v1.md](rq1_results_v1.md). The
 machine-readable specification is
 [`config/rq1_modeling_v1.yaml`](../config/rq1_modeling_v1.yaml). Methodology:
 [rq1_evaluation_protocol.md](rq1_evaluation_protocol.md). Inputs:
@@ -10,16 +11,31 @@ machine-readable specification is
 
 Evidence-producing runs happen only after the reviewed implementation is
 committed. Every number quoted below comes from the 2026-10-21 audit of the
-release, not from any model.
+release, not from any model. Model results are in
+[rq1_results_v1.md](rq1_results_v1.md).
 
-**Implementation progress (2026-10-22).** Slices A (`501c937`), B (`dd58292`)
-and C1 (`9c3c647`) are committed. Slice C2 adds diagnostics, figures,
-hand-off refits and the final report assembly. With it, all five stages are
-registered, and a production run reaches `COMPLETE` only after its full
-artifact inventory and run-record fields have been checked. All of this has
-been tested on synthetic data only. **The official real-data study is still
-pending**: it runs once, after the reviewed C2 implementation is committed, from
-a clean source tree, as described in [rq1_run_guide.md](rq1_run_guide.md). The
+**Implementation progress (2026-10-22).** All four slices are committed:
+- A (`501c937`);
+- B (`dd58292`);
+- C1 (`9c3c647`);
+- C2 (`ad66662`): diagnostics, figures, hand-off refits and the final report
+  assembly.
+
+The single official real-data run used committed source `ad66662` with a clean
+tracked tree. Its details:
+- run id `20261022T144433Z_5db1608ab5d0bb69_ad666623822a`, label
+  `rq1-v1-official`;
+- it ended `COMPLETE` after all five stages, with its full artifact inventory
+  and run-record fields checked;
+- its `output_manifest.json` has SHA-256 `e7c2ba2b…f34a9b4a3`.
+
+Three things are as specified:
+- The original release status, STOP (G-08), is preserved.
+- 10 s classification remains `NOT_YET_EVALUABLE`.
+- The eight hand-off refits are unscored.
+
+See [rq1_run_guide.md](rq1_run_guide.md) for the run and
+[team_handoff.md](team_handoff.md) for the remaining team work. The
 specification below is unchanged.
 
 ## 1. Scope
