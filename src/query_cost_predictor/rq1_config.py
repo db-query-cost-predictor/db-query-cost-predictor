@@ -112,6 +112,31 @@ class Rq1Config:
     def run_dir_template(self) -> str:
         return str(self.raw["outputs"]["run_dir"])
 
+    # ------------------------------------------------------------- models, metrics, reporting (Slice B)
+    @property
+    def regression_models(self) -> list[dict[str, Any]]:
+        return list(_require(self.raw, "regression_models"))
+
+    @property
+    def metrics_spec(self) -> dict[str, Any]:
+        return _require(self.raw, "metrics")
+
+    @property
+    def reporting(self) -> dict[str, Any]:
+        return _require(self.raw, "reporting")
+
+    @property
+    def uncertainty(self) -> dict[str, Any]:
+        return _require(self.raw, "uncertainty")
+
+    @property
+    def metric_table_columns(self) -> tuple[str, ...]:
+        return tuple(str(c) for c in _require(self.raw, "outputs.metric_table_columns"))
+
+    @property
+    def limitations_text(self) -> str:
+        return str(_require(self.raw, "limitations_block.text"))
+
 
 def _require(mapping: Any, dotted: str) -> Any:
     node = mapping

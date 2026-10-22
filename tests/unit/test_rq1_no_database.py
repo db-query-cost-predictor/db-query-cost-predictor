@@ -12,7 +12,8 @@ import pytest
 from query_cost_predictor import cli
 from rq1_fixtures import REPO_ROOT, build_release
 
-RQ1_MODULES = ("rq1_config", "rq1_inputs", "rq1_provenance", "rq1_run")
+RQ1_MODULES = ("rq1_config", "rq1_inputs", "rq1_provenance", "rq1_run", "rq1_models", "rq1_metrics", "rq1_bootstrap",
+               "rq1_evaluate", "rq1_report")
 
 
 def test_rq1_modules_contain_no_database_or_sql_access():
@@ -24,7 +25,9 @@ def test_rq1_modules_contain_no_database_or_sql_access():
 
 def test_importing_the_rq1_commands_loads_no_database_driver():
     code = ("import sys; import query_cost_predictor.cli, query_cost_predictor.rq1_config, "
-            "query_cost_predictor.rq1_inputs, query_cost_predictor.rq1_provenance, query_cost_predictor.rq1_run; "
+            "query_cost_predictor.rq1_inputs, query_cost_predictor.rq1_provenance, query_cost_predictor.rq1_run, "
+            "query_cost_predictor.rq1_models, query_cost_predictor.rq1_metrics, query_cost_predictor.rq1_bootstrap, "
+            "query_cost_predictor.rq1_evaluate, query_cost_predictor.rq1_report; "
             "print(sorted(m for m in ('psycopg', 'query_cost_predictor.db') if m in sys.modules))")
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert result.stdout.strip() == "[]"

@@ -147,7 +147,8 @@ def test_convergence_warning_fails_the_run(tmp_path):
 
 
 def test_production_pipeline_refuses_missing_stages():
-    assert unimplemented_stages(("input_check", "regression")) == ["regression"]
+    assert unimplemented_stages(("input_check", "regression")) == []
+    assert unimplemented_stages(("input_check", "regression", "classification_1s")) == ["classification_1s"]
     with pytest.raises(RunRefusedError, match="not implemented"):
         production_stages(("input_check", "regression", "classification_1s", "diagnostics", "handoff"))
 
