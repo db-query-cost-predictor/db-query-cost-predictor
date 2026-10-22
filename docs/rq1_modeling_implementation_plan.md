@@ -43,7 +43,7 @@ marks the release PASS.
 
    | Class | Meaning | Examples |
    |---|---|---|
-   | `verified_this_run` | recomputed from bytes read in this run | the 20 packaged files, the 2 repository files, the input record, the release identities |
+   | `verified_this_run` | recomputed from bytes read in this run | the 21 packaged files, the 2 repository files, the input record, the release identities |
    | `copied_from_input_record` | taken from the record, not recomputed | the historical checkpoint SHA (always); the original archive SHA when `--archive` is not supplied |
    | `absent` | an optional item not on this machine | the supplementary approval record |
 
@@ -379,10 +379,35 @@ carries `n_keys`, `n_groups`, `keys_per_group` and `n_positive`.
 |---|---|
 | `RUNNING` | written first, before any stage starts; updated with each completed stage |
 | `FAILED` | a stage raised. It records the error, the failed stage and the last completed stage. Outputs remain as evidence of the failure only |
-| `COMPLETE` | every stage finished and `output_manifest.json` (SHA-256 of every output file) was written |
+| `COMPLETE` | published atomically and last, only after `output_manifest.json` was written and every covered file was re-verified |
 
-Partial outputs are never presented as a complete study. `report.md` and the
-`reports/rq1/` copy are written only on `COMPLETE`.
+**Output-manifest finalization.**
+- **Covered:** every file in the run directory **except** `RUN_STATUS.json`
+  (mutable lifecycle metadata) and `output_manifest.json` (the manifest
+  itself). Covered files are immutable result payloads, including
+  `run_record.json` and `report.md`. Each payload is written with exclusive
+  create and never rewritten.
+- **Write order:**
+  1. create the run directory exclusively (an existing directory is refused);
+  2. write `RUN_STATUS.json` = `RUNNING` (atomic replace);
+  3. stages write their payloads, with `report.md` last;
+  4. write `run_record.json`;
+  5. check that the files on disk equal the registered payloads (no stray or
+     temporary files);
+  6. write `output_manifest.json` (exclusive create) with the SHA-256 of every
+     covered file;
+  7. re-hash every covered file against the manifest;
+  8. replace `RUN_STATUS.json` atomically with `COMPLETE`, recording the
+     SHA-256 of `output_manifest.json`.
+- **On failure** at any step: `RUN_STATUS.json` becomes `FAILED` (atomic
+  replace), and any `report.md` or `output_manifest.json` already written is
+  renamed with a `.FAILED` suffix. A failed directory therefore never contains
+  a success-looking report or manifest.
+- **Readers** must require `COMPLETE`, then re-verify `output_manifest.json`
+  against the recorded hash and every file against the manifest. The
+  `reports/rq1/` copy is written only after `COMPLETE`.
+
+Partial outputs are never presented as a complete study.
 
 **Run safeguards:**
 - A run-scoped `threadpoolctl` limit of 1 thread applies. The requested and
@@ -425,7 +450,7 @@ Run directory: `QCP_DATA_ROOT/results/rq1/rq1-modeling-v1/<run_id>/`, with
 | `diagnostics_noise.json`, `diagnostics_threshold.json` | section 5 |
 | `figures/` | predicted vs actual ln runtime; q-error ECDF; error by runtime bin; step-wise PR curves (AP in the legend); calibration curves drawn **only** from `calibration_bins.csv` rows, each named by its fold scheme, model, scope and stratum; all on `fold_group`, using the Agg backend |
 | `report.md` | written on `COMPLETE` only. Contents: the **limitations block, verbatim** (below); the scope and STOP/G-08 note; provenance; the headline tables with paired bootstrap intervals; the separate rank-metric and operating-point tables; per-fold and stratified tables with flags; diagnostics; labelled robustness and seen-template sections |
-| `output_manifest.json` | SHA-256 of every output file; written last |
+| `output_manifest.json` | SHA-256 of every covered file (all files except `RUN_STATUS.json` and itself); written after `run_record.json` and before `COMPLETE` (section 6) |
 | `handoff/` | separate refits on all 4,784 development cases, using `joblib`, plus `handoff_manifest.json` (model ids, file hashes, fit rows, config SHA, source revision, full environment, and the all-development median runtime and positive prevalence as stored constants for the two constant baselines), labelled `REFIT_ON_ALL_DEVELOPMENT_NO_EVALUATION`. Never scored. No `heldout_rq2` predictions in v1 |
 
 **Metric table columns:** `task, fold_scheme, model_id, scope, fold,

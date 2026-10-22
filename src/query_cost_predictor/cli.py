@@ -274,6 +274,170 @@ def cmd_expanded_freeze(args: argparse.Namespace) -> int:
     return 0 if report["status"] == "FROZEN" else 1
 
 
+# ---------------------------------------------------------------------------------- RQ1 modeling (Slice A)
+def _rq1_evidence_dir(args: argparse.Namespace, config: object) -> Path | None:
+    import os
+
+    raw = args.evidence_dir or os.environ.get(config.evidence_dir_env, "").strip()  # type: ignore[attr-defined]
+    return Path(raw) if raw else None
+
+
+class Rq1ReportDestinationError(ValueError):
+    """The requested --json-out destination is not a new file outside the repository and the evidence."""
+
+
+def _path_within(child: Path, root: Path) -> bool:
+    import os
+
+    child_text, root_text = os.path.normcase(str(child)), os.path.normcase(str(root))
+    try:
+        return os.path.commonpath([child_text, root_text]) == root_text
+    except ValueError:  # different drives
+        return False
+
+
+def _rq1_report_destination(raw: str, protected: dict[str, Path]) -> Path:
+    """Validate a --json-out path; return its resolved form (symlinks and junctions followed)."""
+    import os
+
+    requested = Path(raw)
+    requested = requested if requested.is_absolute() else Path.cwd() / requested
+    resolved = requested.resolve(strict=False)
+    for label, root in protected.items():
+        for candidate, root_form in ((requested.absolute(), root.absolute()), (resolved, root.resolve(strict=False))):
+            if _path_within(candidate, root_form):
+                raise Rq1ReportDestinationError(f"--json-out must be outside the {label} ({root}); got {raw}")
+    if os.path.lexists(requested) or os.path.lexists(resolved):
+        raise Rq1ReportDestinationError(f"--json-out must name a new file; {raw} already exists")
+    for parent in resolved.parents:
+        if os.path.lexists(parent) and not parent.is_dir():
+            raise Rq1ReportDestinationError(f"--json-out parent {parent} is not a directory")
+    return resolved
+
+
+def _write_new_report(destination: Path, document: object, protected: dict[str, Path]) -> None:
+    """Create the report exclusively after re-checking containment of the (now existing) parent."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    parent = destination.parent.resolve(strict=True)
+    for label, root in protected.items():
+        if _path_within(parent, root.resolve(strict=False)):
+            raise Rq1ReportDestinationError(f"--json-out parent resolves inside the {label}")
+    with (parent / destination.name).open("x", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(document, indent=2, default=str) + "\n")
+
+
+def _rq1_source(repo: Path, config: object) -> tuple[dict[str, object] | None, list[str]]:
+    from query_cost_predictor.rq1_provenance import SourceProvenanceError, collect_source_state, evidence_run_blockers
+
+    try:
+        state = collect_source_state(repo, config.allowed_untracked_paths, config.tested_sklearn_version)  # type: ignore[attr-defined]
+    except SourceProvenanceError as exc:
+        return None, [f"source state unavailable: {exc}"]
+    return state.as_dict(), evidence_run_blockers(state)
+
+
+def cmd_rq1_check_inputs(args: argparse.Namespace) -> int:
+    from collections import Counter
+
+    from query_cost_predictor.paths import repo_root
+    from query_cost_predictor.rq1_config import load_rq1_config
+    from query_cost_predictor.rq1_inputs import check_inputs, resolve_data_root
+
+    config = load_rq1_config()
+    evidence_dir = _rq1_evidence_dir(args, config)
+    if evidence_dir is None:
+        print(f"ERROR: pass --evidence-dir or set {config.evidence_dir_env}", file=sys.stderr)
+        print("RQ1-CHECK-INPUTS: FAIL (no evidence directory)")
+        return 2
+    repo = repo_root()
+    boundaries = {"repository": repo, "evidence directory": evidence_dir}
+    destination = None
+    if args.json_out:
+        try:
+            destination = _rq1_report_destination(args.json_out, boundaries)
+        except Rq1ReportDestinationError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            print("RQ1-CHECK-INPUTS: FAIL (invalid --json-out; nothing was checked or written)")
+            return 2
+    protected = [repo / p.rstrip("/") for p in config.allowed_untracked_paths]
+    report = check_inputs(config, evidence_dir, repo_root=repo, archive=Path(args.archive) if args.archive else None,
+                          data_root=resolve_data_root(config.data_root_env), protected_paths=protected)
+    source, blockers = _rq1_source(repo, config)
+    summary = {
+        "data_checks": report.status,
+        "checks_passed": len(report.checks),
+        "development_dataset": report.dataset.summary() if report.dataset is not None else None,
+        "per_fold": report.counts.get("per_fold"),
+        "required_packaged_files_verified": report.counts.get("required_packaged_files"),
+        "provenance_classes": dict(Counter(item["provenance"] for item in report.identities)),
+        "archive": report.archive_status,
+        "supplementary_approval": report.supplementary_approval_status,
+        "collection_control_annotations": report.collection_control_annotations,
+        "original_release_validation": report.original_validation,
+        "config_sha256": config.sha256,
+        "source": None if source is None else {k: source[k] for k in (
+            "source_revision", "tracked_dirty", "tracked_changes", "disallowed_untracked_paths",
+            "ignored_execution_files", "package_location", "package_from_checkout", "sklearn_version")},
+        "evidence_run_eligibility": "ELIGIBLE" if not blockers else "NOT_ELIGIBLE",
+        "evidence_run_blockers": blockers,
+    }
+    if destination is not None:
+        try:
+            _write_new_report(destination, {**report.to_json(), "source": source, "evidence_run_blockers": blockers,
+                                            "config_sha256": config.sha256}, boundaries)
+        except (Rq1ReportDestinationError, FileExistsError, OSError) as exc:
+            print(f"ERROR: the report was not written: {exc}", file=sys.stderr)
+            print("RQ1-CHECK-INPUTS: FAIL (data checks passed, but --json-out could not be created safely)")
+            return 2
+        summary["json_out"] = str(destination)
+    _print_json(summary)
+    codes = ", ".join(report.original_validation.get("stop_codes", []))
+    print(f"Original release validation: {report.original_validation.get('status')} ({codes}) - preserved, not PASS")
+    print("Evidence-run eligibility: " + ("ELIGIBLE" if not blockers else "NOT_ELIGIBLE (" + "; ".join(blockers) + ")"))
+    print("RQ1-CHECK-INPUTS: PASS (data checks only; this command writes no run directory)")
+    return 0
+
+
+def cmd_rq1_run(args: argparse.Namespace) -> int:
+    from datetime import datetime, timezone
+
+    from query_cost_predictor.paths import data_root, repo_root
+    from query_cost_predictor.rq1_config import load_rq1_config
+    from query_cost_predictor.rq1_inputs import resolve_data_root
+    from query_cost_predictor.rq1_provenance import dependency_versions, full_environment
+    from query_cost_predictor.rq1_run import RunRefusedError, create_run_context, execute_run, make_run_id, production_stages
+
+    config = load_rq1_config()
+    try:
+        stages = production_stages(config.stages)
+    except RunRefusedError as exc:
+        print(f"REFUSED: {exc}")
+        print("RQ1-RUN: REFUSED (incomplete pipeline; no study was produced)")
+        return 3
+    evidence_dir = _rq1_evidence_dir(args, config)
+    if evidence_dir is None:
+        print(f"ERROR: pass --evidence-dir or set {config.evidence_dir_env}", file=sys.stderr)
+        return 2
+    repo = repo_root()
+    source, blockers = _rq1_source(repo, config)
+    if blockers:
+        print("REFUSED: an evidence run needs clean, committed source: " + "; ".join(blockers))
+        print("RQ1-RUN: REFUSED (source not eligible; no run directory was created)")
+        return 3
+    base = data_root() / "results" / "rq1" / config.spec_id
+    run_id = make_run_id(datetime.now(timezone.utc), config.sha256, (source or {}).get("source_revision"))
+    context = create_run_context(base, run_id, args.run_label, config, evidence_dir=evidence_dir,
+                                 archive=Path(args.archive) if args.archive else None,
+                                 data_root=resolve_data_root(config.data_root_env), repo_root=repo,
+                                 source_state=source or {})
+    context.provenance.update({"source_state": source, "config_sha256": config.sha256,
+                               "dependency_versions": dependency_versions(), "full_environment": full_environment()})
+    execute_run(context, stages)
+    print(f"run directory: {context.run_dir}")
+    print("RQ1-RUN: COMPLETE")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="query_cost_predictor",
                                      description="Poster evidence milestone and expanded-release commands.")
@@ -372,6 +536,19 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("expanded-freeze", help="expanded release: immutable release record after a full PASS")
     p.add_argument("--manifest-id", default=None)
     p.set_defaults(func=cmd_expanded_freeze)
+
+    p = sub.add_parser("rq1-check-inputs",
+                       help="RQ1: verify the pinned evidence package offline (no database; writes no run directory)")
+    p.add_argument("--evidence-dir", default=None, help="extracted evidence package (or QCP_EXPANDED_RELEASE_DIR)")
+    p.add_argument("--archive", default=None, help="optional original archive; its SHA-256 is then verified")
+    p.add_argument("--json-out", default=None, help="optional path for the full check report (outside the evidence)")
+    p.set_defaults(func=cmd_rq1_check_inputs)
+
+    p = sub.add_parser("rq1-run", help="RQ1: the single evidence-producing run (refuses until every stage exists)")
+    p.add_argument("--evidence-dir", default=None, help="extracted evidence package (or QCP_EXPANDED_RELEASE_DIR)")
+    p.add_argument("--archive", default=None, help="optional original archive; its SHA-256 is then verified")
+    p.add_argument("--run-label", required=True, help="short label recorded in the run record")
+    p.set_defaults(func=cmd_rq1_run)
     return parser
 
 

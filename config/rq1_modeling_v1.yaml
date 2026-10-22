@@ -470,10 +470,26 @@ run:
   status_file: RUN_STATUS.json
   statuses:
     RUNNING: created first; stages are executing
-    FAILED: a stage raised; the error and the last completed stage are recorded; outputs stay as partial evidence of the failure
-    COMPLETE: every stage finished and the output manifest (SHA-256 of every output file) was written
-  partial_outputs: never presented as a complete study; the report is written only on COMPLETE
+    FAILED: a stage or finalization raised; the error, the failed stage and the last completed stage are recorded; outputs stay only as evidence of the failure
+    COMPLETE: published atomically, last, only after the output manifest was written and every covered file re-verified
+  partial_outputs: never presented as a complete study; the report is written only as the last payload of a run that then finalizes
   read_only_check_command: rq1-check-inputs  # runs the input checks only and writes no run directory
+  output_manifest:
+    covers: every file in the run directory except the excluded files (immutable result payloads, including run_record.json and report.md)
+    excluded: [RUN_STATUS.json, output_manifest.json]   # mutable lifecycle metadata; the manifest itself
+    payload_writes: exclusive create; a payload is never rewritten after it is written
+    write_order:
+      - create the run directory exclusively (an existing directory is refused)
+      - write RUN_STATUS.json = RUNNING (atomic replace)
+      - stages write immutable payloads; report.md is the last payload
+      - write run_record.json (immutable, covered)
+      - check that the files on disk equal the registered payloads (no stray or temporary files)
+      - write output_manifest.json (exclusive create) with the SHA-256 of every covered file
+      - re-hash every covered file and compare with the manifest
+      - replace RUN_STATUS.json atomically with COMPLETE, recording the SHA-256 of output_manifest.json
+    on_failure: RUN_STATUS.json = FAILED (atomic replace); an existing report.md or output_manifest.json is renamed with a .FAILED suffix
+    readers: must require COMPLETE, then re-verify output_manifest.json against the recorded hash and every file against the manifest
+    report_copy: reports/rq1/ is written only after COMPLETE
 
 run_record:
   fields:
@@ -538,7 +554,7 @@ outputs:
     fold: integer for per_fold rows; null for pooled_out_of_fold rows
     stratum_column: null for unstratified rows
   calibration_bins_columns: [fold_scheme, model_id, scope, fold, stratum_column, stratum_value, bin_index,
-                             bin_lower, bin_upper, n_cases, n_positive, mean_predicted_probability, observed_positive_rate]
+                             bin_lower, bin_upper, n_cases, n_positive, mean_predicted_probability, observed_positive_fraction]
   calibration_bins_rules:
     bins: metrics.classification.probability.calibration_bins (10 fixed bins, empty bins included with zero counts and null rates)
     figures: every calibration figure is drawn only from calibration_bins.csv rows, and its file name names the matching fold_scheme, model_id, scope and stratum
