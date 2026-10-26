@@ -19,9 +19,10 @@ The goal is to predict a SQL query's execution cost before it runs, and to recom
 > (RQ2) are **pending**. [Evidence status](#evidence-status) separates what has
 > been measured from what is planned.
 >
-> New to the project? Start with
-> [docs/teammate_setup.md](docs/teammate_setup.md) and
-> [docs/team_handoff.md](docs/team_handoff.md).
+> New to the project? Start with [docs/team_handoff.md](docs/team_handoff.md)
+> and the setup guide for your system: Windows,
+> [docs/teammate_setup.md](docs/teammate_setup.md); macOS or Linux,
+> [docs/teammate_setup_posix.md](docs/teammate_setup_posix.md).
 
 ---
 
@@ -54,7 +55,7 @@ sources and are never pooled into one statistic.
 | **Poster smoke dataset** | Newly collected; results previously reported on **September 23, 2026** | 30 modeling keys, 17 templates, 14 semantic groups, 90 measured executions | Raw evidence in `QCP_DATA_ROOT`, outside the repository |
 | **Manual rewrite verification** | Results previously reported on **September 23, 2026** | 4 snapshot-equivalent cases: 2 rewrites faster, 2 slower. 1 non-equivalent negative control, which the harness rejected | Raw evidence in `QCP_DATA_ROOT`; summary in `reports/poster/` (git-ignored) |
 | **Expanded release (final study data)** | Collected on 2026-10-04 (UTC); audited 2026-10-21; full validation **STOP at G-08** (only the 10 s gate); not frozen | 4,944 determined cases (4,940 complete, 4 right-censored) in 199 semantic groups: 4,784 development cases and 160 reserved RQ2 cases | [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md); distributed as `expanded_release.zip` ([asset catalogue](docs/handoff_assets_v1.json)) |
-| **RQ1 v1 results** | Official run `COMPLETE` on 2026-10-22 (UTC) at commit `ad66662`; reviewed externally | 4,784 development cases; 6 regression and 6 classification models; 3 stored fold schemes; 8 unscored hand-off refits | [docs/rq1_results_v1.md](docs/rq1_results_v1.md); distributed as `rq1_results_review_20261022_100326_043.zip` |
+| **RQ1 v1 results** | Official run `COMPLETE` on 2026-10-22 (UTC) at commit `ad66662`; verifiable with the documented input, manifest and reproduction checks ([section 15](docs/rq1_results_v1.md#15-verification-and-available-evidence)) | 4,784 development cases; 6 regression and 6 classification models; 3 stored fold schemes; 8 unscored hand-off refits | [docs/rq1_results_v1.md](docs/rq1_results_v1.md); distributed as `rq1_results_review_20261022_100326_043.zip` |
 
 How to read these figures:
 
@@ -92,6 +93,14 @@ The pipeline keeps what a model may see apart from what it must predict.
   configuration, and **D** is a plain `EXPLAIN` estimate, which does not run the
   query. `contract.py` rejects unregistered columns and any class-E field before
   a feature matrix is built.
+* **Planner cost is a permitted input.**
+  - PostgreSQL's estimated costs from a plain `EXPLAIN` are known before
+    execution.
+  - The RQ1 learned models use `est_total_cost_log` and `est_startup_cost_log`,
+    together with the other pre-execution features.
+  - RQ1 tests whether those additional features and learned relationships
+    improve on calibrated cost-only baselines. It does not test a model built
+    without planner information.
 * **Labels are measured with `EXPLAIN ANALYZE`.** Each smoke key gets one plain
   `EXPLAIN (SETTINGS, FORMAT JSON)`, one unmeasured probe, then three measured
   `EXPLAIN (ANALYZE, BUFFERS, WAL, TIMING OFF, SUMMARY ON, SETTINGS, FORMAT JSON)`
@@ -156,6 +165,7 @@ prove it. See [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol
 ├── reports/                   Generated poster outputs (git-ignored except reports/README.md)
 ├── requirements/              RQ1 tested-environment constraints (rq1_constraints_v1.txt)
 ├── scripts/powershell/        Numbered runbook scripts 01–09
+├── scripts/python/            Standalone helpers (cross-platform handoff-archive extractor)
 ├── sql/evidence/              Evidence-database migrations V001–V008
 ├── src/query_cost_predictor/  Python package: CLI, collector, pilot audit, rewrite verification, reporting
 └── tests/                     Unit tests with synthetic fixtures only
@@ -187,8 +197,9 @@ scikit-learn, pandas, matplotlib, PyYAML and `psycopg[binary]` 3.2. The
 The RQ1 study environment was Python 3.11.9 with scikit-learn 1.9.1, installed
 with `requirements/rq1_constraints_v1.txt` as constraints. An RQ1 evidence run
 refuses any other scikit-learn version. Offline RQ1 work (inspecting or
-reproducing results) needs neither Docker nor a database; follow
-[docs/teammate_setup.md](docs/teammate_setup.md), Part A.
+reproducing results) needs neither Docker nor a database. Follow Part A of
+[docs/teammate_setup.md](docs/teammate_setup.md) on Windows, or
+[docs/teammate_setup_posix.md](docs/teammate_setup_posix.md) on macOS or Linux.
 
 ---
 
@@ -302,6 +313,11 @@ and the collection steps actually run are in
 * **1 s (complete, v1).** There are 393 development positives in 106 groups,
   all at SF 1. The classifier is evaluated mainly by average precision (AP),
   with recall and false-negative rate at a predeclared 0.5 threshold.
+  - SF 0.1 has no positives, so detection performance there is not
+    established.
+  - Good ranking does not make the probabilities reliable. See the scope and
+    calibration notes in
+    [section 7](docs/rq1_results_v1.md#7-high-runtime-classification-at-1-s-primary-fold_group).
 * **10 s.** It remains `NOT_YET_EVALUABLE` (gate G-08) and is not trained,
   reported or claimed.
 
@@ -336,6 +352,9 @@ Owners, acceptance criteria and dependencies are in
 | [docs/poster_claim_register.md](docs/poster_claim_register.md) | Evidence labels and permitted poster claims |
 | [docs/rq1_results_v1.md](docs/rq1_results_v1.md) | **RQ1 v1 results**: a scientific summary of the official run, with run identity and artifacts |
 | [docs/teammate_setup.md](docs/teammate_setup.md) | Windows PowerShell setup: offline results and reproduction (Part A); database collection and RQ2 execution (Part B) |
+| [docs/teammate_setup_posix.md](docs/teammate_setup_posix.md) | macOS/Linux offline setup: verification, extraction, input check, run verification, reproduction checks |
+| [docs/pr2_review_response.md](docs/pr2_review_response.md) | Response to the PR #2 review: action, files, validation and pending items for each point |
+| [docs/proposal_poster_update_notes.md](docs/proposal_poster_update_notes.md) | Optional reference wording for the external proposal, overview and slides. Their updates are deferred and are not a merge prerequisite |
 | [docs/team_handoff.md](docs/team_handoff.md) | What is complete, what remains, owners, acceptance criteria, the model input/output contract |
 | [docs/handoff_assets_v1.json](docs/handoff_assets_v1.json) | Dataset and results assets: file names, sizes, SHA-256, study identity, publication status |
 | [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md) | RQ1 evaluation protocol, fixed before the run. Its status table predates the official run |

@@ -3,12 +3,20 @@
   "schema_version": 1,
   "catalogue_id": "handoff-assets-v1",
   "prepared_on": "2026-10-22",
+  "updated_on": "2026-10-26",
   "purpose": "Human-readable catalogue of the assets needed to inspect, reproduce and integrate RQ1 v1. Generated datasets, results and models are distributed as the files below and are never committed to the repository.",
   "documents": {
     "results_summary": "docs/rq1_results_v1.md",
-    "teammate_setup": "docs/teammate_setup.md",
+    "teammate_setup_windows": "docs/teammate_setup.md",
+    "teammate_setup_posix": "docs/teammate_setup_posix.md",
     "team_handoff": "docs/team_handoff.md",
-    "run_guide": "docs/rq1_run_guide.md"
+    "run_guide": "docs/rq1_run_guide.md",
+    "pr2_review_response": "docs/pr2_review_response.md"
+  },
+  "extraction_helper": {
+    "script": "scripts/python/extract_handoff_archive.py",
+    "usage": "python scripts/python/extract_handoff_archive.py --asset-id <asset_id> --archive <zip> --destination <new folder>",
+    "behaviour": "verifies the size and SHA-256 recorded below, then extracts into a new folder, turning the backslash entry separators into directory separators; refuses unsafe or conflicting entries; never changes the archive (standard library only)"
   },
   "repository": {
     "url": "https://github.com/db-query-cost-predictor/db-query-cost-predictor",
@@ -17,18 +25,25 @@
     "study_branch": "feat/expanded-query-dataset",
     "target_branch": "main",
     "study_source_revision": "ad666623822a4c5baa911cc29e410ed0abc9c14e",
-    "documentation_commit": "pending: not yet committed"
+    "handoff_documentation_commit": "c32a247b4bbd80bbf2bbd0908e7b27dcab9bb1e9",
+    "review_correction_commit": "pending: the PR #2 review follow-up is not yet committed; its own commit id cannot be recorded inside its contents"
   },
   "publication": {
-    "status": "pending",
-    "branch_pushed": "pending",
-    "pull_request": "pending: not yet created",
+    "status": "partly done",
+    "checked_on": "2026-10-26",
+    "branch_pushed": "yes: origin/feat/expanded-query-dataset was at c32a247b4bbd80bbf2bbd0908e7b27dcab9bb1e9 when checked",
+    "pull_request": {
+      "number": 2,
+      "url": "https://github.com/db-query-cost-predictor/db-query-cost-predictor/pull/2",
+      "state": "open, not merged when checked"
+    },
     "merged_into_main": "pending",
     "recommended_merge_method": "merge commit (not squash or rebase), so that the study revision stays in main's history",
-    "assets_distributed": "pending",
+    "assets_distributed": "pending: having the code on GitHub does not mean these ZIP files have been uploaded anywhere",
     "distribution_location": null,
     "release_url": null,
-    "note": "Nothing has been pushed, merged or published. Record the distribution location here, in a follow-up documentation commit, after the files are hosted and their sizes and SHA-256 values have been re-verified at that location."
+    "fresh_machine_acceptance": "pending: not yet done on any machine other than the original",
+    "note": "Until a distribution location is recorded here, obtain both files from the project owner. Record the location in a follow-up documentation commit, after the files are hosted and their sizes and SHA-256 values have been re-verified at that location."
   },
   "study": {
     "spec_id": "rq1-modeling-v1",
@@ -85,11 +100,11 @@
       },
       "entries": 34,
       "extracted_size_mib": 204.3,
-      "layout": "no top-level folder; extract into its own empty folder. Entry names use Windows backslash separators; extract with Expand-Archive on Windows.",
+      "layout": "no top-level folder; extract into its own new folder. Entry names use Windows backslash separators: on Windows use Expand-Archive or the extraction helper; on macOS or Linux use the extraction helper.",
       "contains": {
         "derived/": "keys.csv, executions.csv, labels.csv, estimates.csv, features.csv (69 pre-execution features), splits.csv (split_role and the three stored fold schemes), derived_manifest.json",
         "manifest/": "manifest_a75c6408fb59ab8f.json: every proposed key, with its SQL text, parameters, snapshot and configuration",
-        "raw/expanded-v1/": "12 append-only raw session files (JSONL) holding the plain EXPLAIN, warm-up and measured EXPLAIN ANALYZE records; 29,708 records with checksums",
+        "raw/expanded-v1/": "12 append-only raw session files (JSONL) holding the plain EXPLAIN, warm-up and measured EXPLAIN ANALYZE records, each record with a checksum (29,708 records, as counted in the 2026-10-21 audit)",
         "reports/": "readiness, manifest summary, plan check, sample and full validation (STOP at G-08), budget projection, EDA summary, release arithmetic, and the preflight environment report"
       },
       "pinned_by": "config/rq1_modeling_input_v1.json (21 required files: 7 derived files, the manifest, the full validation report and 12 raw files)",
@@ -119,33 +134,40 @@
       "role": "the complete official RQ1 v1 run directory, unchanged, plus the console transcript of the run",
       "entries": 39,
       "extracted_size_mib": 42.0,
-      "layout": "one folder named after the run id (38 files), plus one transcript file at the archive root. Entry names use Windows backslash separators.",
+      "layout": "one folder named after the run id (38 files), plus one transcript file at the archive root. Entry names use Windows backslash separators: on Windows use Expand-Archive or the extraction helper; on macOS or Linux use the extraction helper.",
       "contains": {
         "20261022T144433Z_5db1608ab5d0bb69_ad666623822a/": "report.md; metrics_regression and metrics_classification (CSV and JSON; 3,240 and 2,592 rows); oof_regression.csv and oof_classification.csv; calibration_bins.csv (2,700 rows); bootstrap_summary.json, bootstrap_replicates.csv, bootstrap_indices.npz and bootstrap_groups.csv; diagnostics_noise.json and diagnostics_threshold.json; fold_membership.csv; input_check.json; run_record.json; figures/ (9 PNG files and figure_index.json); handoff/ (8 joblib refits and handoff_manifest.json); RUN_STATUS.json; output_manifest.json",
         "rq1_official_run_20261022_094429_762.log": "Windows PowerShell transcript of the official run's console (exit code 0); not part of the run directory"
       },
-      "verification": "read_complete_run on the extracted run folder verifies 36 files against output_manifest.json, whose SHA-256 is recorded in RUN_STATUS.json and above (study.output_manifest_sha256). See docs/teammate_setup.md, step A8.",
+      "verification": "read_complete_run on the extracted run folder verifies 36 files against output_manifest.json, whose SHA-256 is recorded in RUN_STATUS.json and above (study.output_manifest_sha256). This shows the files are unchanged since the run, not that the models are good. See docs/teammate_setup.md (step A8) or docs/teammate_setup_posix.md (step 8).",
       "cautions": [
         "The transcript at the archive root contains the original machine name and user name.",
         "The joblib files are Python pickles: load them only after their SHA-256 matches handoff/handoff_manifest.json, with scikit-learn 1.9.1 and joblib 1.6.0."
       ]
     }
   ],
-  "independent_review": {
-    "reviewer": "external review in ChatGPT of the uploaded dataset and results packages",
-    "reported_matches": [
-      "the archive and all 21 pinned input hashes",
-      "all 29,708 raw record signatures",
-      "the original labels, development selection and stored folds (reconciled)",
-      "all 5,832 metric rows and 2,700 calibration bins",
-      "all 2,000 bootstrap draws, 92,000 replicate statistics and 46 intervals, against independent calculations",
-      "the noise diagnostics and the exact S/B memberships, against the raw measurements"
+  "verification": {
+    "summary": "Reproducible checks that anyone with the two assets can run; see docs/rq1_results_v1.md section 15. An earlier external-review attribution was removed because no accessible record of that review exists.",
+    "checks": [
+      {"check": "asset identity", "how": "size and SHA-256 of both ZIP files, or scripts/python/extract_handoff_archive.py", "establishes": "the files are the catalogued bytes"},
+      {"check": "input check", "how": "python -m query_cost_predictor rq1-check-inputs --evidence-dir <folder> --archive <expanded_release.zip>", "establishes": "the 21 pinned packaged files and 2 repository files match by SHA-256; release identities, counts, stored folds and the 69-column feature contract match the record; STOP (G-08) is preserved", "does_not_establish": "model quality; it fits no model"},
+      {"check": "run integrity", "how": "query_cost_predictor.rq1_run.read_complete_run(<run folder>)", "establishes": "the run is COMPLETE and its 36 covered files match output_manifest.json", "does_not_establish": "model quality or correct analysis"},
+      {"check": "hand-off identities", "how": "SHA-256 of each joblib file against handoff/handoff_manifest.json, then load", "establishes": "the eight model files are the saved refits", "does_not_establish": "performance; the refits are unscored"},
+      {"check": "reproduction", "how": "rq1-run from clean committed source, then the identity and results comparisons in the setup guides", "establishes": "same frozen inputs, and metric tables and calibration bins within the documented tolerance", "status": "not yet done on any machine other than the original"}
     ],
-    "note": "This attributes the external review. No local audit log of it is part of the repository or of these assets."
+    "saved_artifacts_for_inspection": ["oof_regression.csv", "oof_classification.csv", "metrics_regression.csv/json", "metrics_classification.csv/json", "calibration_bins.csv", "bootstrap_groups.csv", "bootstrap_indices.npz", "bootstrap_replicates.csv", "diagnostics_noise.json", "diagnostics_threshold.json"],
+    "limits": "No packaged script recomputes every metric table, bootstrap interval or calibration bin from the saved files. The 2026-10-21 release audit is a dated record in docs/expanded_collection_checkpoint.md; some of its steps used code that is not in the repository."
   },
-  "hash_check_performed_during_preparation": {
-    "date": "2026-10-22",
-    "method": "read-only Get-FileHash (SHA-256) and file length, on the author's machine",
-    "result": "both assets and the official output_manifest.json matched the values above"
-  }
+  "hash_checks_performed": [
+    {
+      "date": "2026-10-22",
+      "method": "read-only Get-FileHash (SHA-256) and file length, on the author's machine",
+      "result": "both assets and the official output_manifest.json matched the values above"
+    },
+    {
+      "date": "2026-10-26",
+      "method": "read-only SHA-256 and file length on the author's machine (Windows Get-FileHash and, from WSL Ubuntu, sha256sum), then the extraction helper on Windows and Linux",
+      "result": "both assets matched the values above and extracted byte-identically to the official extracted evidence and run directory"
+    }
+  ]
 }

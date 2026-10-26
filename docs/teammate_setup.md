@@ -3,7 +3,8 @@
 This guide is for a teammate on a Windows machine. It assumes no particular user
 name or folder layout: you choose every location once, in
 [A1](#a1-choose-your-folders). The commands are written for Windows PowerShell
-5.1, the version built into Windows.
+5.1, the version built into Windows. On macOS or Linux, use
+[teammate_setup_posix.md](teammate_setup_posix.md) instead.
 
 There are three different activities. Keep them apart:
 
@@ -28,10 +29,14 @@ RQ2 execution.
 > - the A2 stop-on-failure block, run against a local clone of this
 >   repository in place of the GitHub URL.
 >
+> On 2026-10-26, three more steps were run:
+> - the extraction helper in A5, on both real archives;
+> - the A7 input check, run on that extraction;
+> - the A8 run verification, also on that extraction.
+>
 > No other step has been exercised for this guide. That includes cloning from
-> GitHub, installation, download, extraction, the input check from a fresh
-> checkout and a reproduction run. **Nothing has yet been run on another
-> machine.**
+> GitHub, installation, download, `Expand-Archive`, and a reproduction run.
+> **Nothing has yet been run on another machine.**
 > Record your outcome with the
 > [acceptance checklist](team_handoff.md#fresh-machine-acceptance-checklist).
 
@@ -94,7 +99,9 @@ only.
 | Not merged yet, but `feat/expanded-query-dataset` has been pushed to GitHub | `feat/expanded-query-dataset` |
 | Neither | none yet: the study source is not on GitHub, so wait for publication |
 
-At the time of writing, neither has happened.
+As of 2026-10-26, `feat/expanded-query-dataset` has been pushed, and PR #2 is
+open but **not merged**. Use `feat/expanded-query-dataset` until the merge, and
+`main` afterwards.
 
 **Then run the block below, as one unit.** It is wrapped in `. { … }` so that
 any `throw` ends the whole block. That holds even if PowerShell receives the
@@ -102,7 +109,7 @@ pasted lines one at a time. Set `$Branch` on its first line.
 
 ```powershell
 . {
-    $Branch = 'main'   # or 'feat/expanded-query-dataset' before the merge, once that branch is published
+    $Branch = 'feat/expanded-query-dataset'   # use 'main' once PR #2 has been merged
     git clone https://github.com/db-query-cost-predictor/db-query-cost-predictor.git $Repo
     if ($LASTEXITCODE -ne 0) { throw "STOP: git clone failed (exit $LASTEXITCODE). Nothing else was done." }
     Set-Location -LiteralPath $Repo
@@ -157,9 +164,12 @@ live databases are deselected by default.
 
 ### A4. Download and verify the two assets
 
-Both files are distributed by the Data Engineer. The location is recorded in
-[handoff_assets_v1.json](handoff_assets_v1.json) once they are published. Copy
-them into `$Assets` **unchanged**: do not rename, re-zip or open-and-save them.
+Both files are distributed by the Data Engineer, and **distribution is still
+pending**. Until a location is recorded in
+[handoff_assets_v1.json](handoff_assets_v1.json)
+(`publication.distribution_location`), obtain both files from the project
+owner. The code being on GitHub does not mean these files are. Copy them into
+`$Assets` **unchanged**: do not rename, re-zip or open-and-save them.
 
 | File | Bytes | SHA-256 |
 |---|---:|---|
@@ -197,6 +207,18 @@ Test-Path -LiteralPath (Join-Path $Evidence 'derived\features.csv')
 ```
 
 Expected: `34`, `True`, `38`.
+
+**Alternative: the repository's extraction helper.** It verifies the size and
+SHA-256 again, extracts into a new folder, and refuses unsafe entries. It was
+exercised on both real archives on 2026-10-26. Use it after A3, in place of
+the two `Expand-Archive` lines:
+
+```powershell
+& $Python scripts\python\extract_handoff_archive.py --asset-id expanded_release_dataset --archive (Join-Path $Assets 'expanded_release.zip') --destination $Evidence
+& $Python scripts\python\extract_handoff_archive.py --asset-id rq1_v1_results --archive (Join-Path $Assets 'rq1_results_review_20261022_100326_043.zip') --destination $Results
+```
+
+Each call ends with `EXTRACT-HANDOFF-ARCHIVE: PASS`.
 
 **How the archives are laid out**
 * The dataset ZIP has **no top-level folder**. It holds `derived\`,

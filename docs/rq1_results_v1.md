@@ -2,10 +2,15 @@
 
 **Status: complete.** The single official RQ1 v1 run ended `COMPLETE` on
 2026-10-22 (UTC), from committed source `ad66662` with a clean tracked tree.
-Every number on this page is copied from that run's saved outputs. Nothing was
-re-estimated for this summary. Confusion counts at the 0.5 operating point were
-tabulated from the saved out-of-fold predictions and reconcile exactly with the
-stored rates.
+Unless a passage says otherwise, every number on this page is copied from that
+run's saved outputs; no model was refitted for this summary. The labelled
+exceptions are:
+- **Confusion counts at the 0.5 operating point** were tabulated from the saved
+  out-of-fold predictions. They reconcile exactly with the stored rates.
+- **The unfloored log-MAE in section 5** was recomputed from the saved
+  out-of-fold predictions on 2026-10-26.
+- **The historical pilot figures in section 6** are quoted from the evaluation
+  protocol. They were not recomputed for this page.
 
 Related: [evaluation protocol](rq1_evaluation_protocol.md) (methodology, fixed
 before the run) · [implementation plan](rq1_modeling_implementation_plan.md) ·
@@ -23,6 +28,11 @@ before the run) · [implementation plan](rq1_modeling_implementation_plan.md) ·
   `clf_hgb_all`) had higher average precision (AP) than both cost-logistic
   baselines. The differences were +0.059 to +0.073 AP, and all four paired
   intervals exclude zero.
+  - All 393 positives are at SF 1, and SF 0.1 has none. These results
+    therefore say nothing about slow-query detection at SF 0.1; see
+    [section 7](#7-high-runtime-classification-at-1-s-primary-fold_group).
+  - Ranking quality does not make the probabilities reliable; see the
+    calibration summary in section 7.
 * **In practice, at the predeclared 0.5 threshold:**
   - the learned classifiers caught 333 and 338 of the 393 development cases
     that ran for at least 1 s, compared with 243 for the cost-logistic baseline;
@@ -111,6 +121,24 @@ fit.
 No runtime, actual row count, buffer count, query identifier or group
 identifier enters any model.
 
+**Planner-cost information is a permitted input.**
+- **The cost features.** PostgreSQL's estimated costs come from a plain
+  `EXPLAIN`, which plans the query without running it. That makes them
+  available before execution, so the learned models use
+  `est_total_cost_log` and `est_startup_cost_log`. Both are ln(1 + estimate)
+  of the root plan cost.
+- **What else the learned models combine with them.** The other plain-plan
+  estimates (rows, width, operator counts), the SQL-structure counts, the scale
+  factor and `work_mem`.
+- **What is excluded.** Post-execution outcomes are never inputs: actual
+  runtimes, actual row counts, loops, execution buffers, I/O and spill
+  measurements.
+- **What the comparison tests.** Whether the additional pre-execution features
+  and learned relationships improve on calibrated cost-only baselines: OLS or
+  logistic regression on ln(`est_total_cost`), optionally with ln(scale
+  factor). It is **not** an experiment that excludes planner information
+  entirely. No v1 model works from SQL text alone.
+
 | Model | Task | Role | Definition |
 |---|---|---|---|
 | `reg_train_median` | regression | baseline | the training-fold median runtime for every case |
@@ -183,6 +211,29 @@ as follows:
   | `reg_ridge_all` | 1.50 |
   | `reg_cost_ols` | 1.83 |
   | `reg_train_median` (constant) | 8.74 |
+* **The 0.001 ms floor.** The declared definitions of log-MAE and q-error apply
+  max(value, 0.001 ms) to both the actual and the predicted time before taking
+  logs (`metrics.py`, `EPSILON_MS`). Every actual development runtime is at
+  least 0.011 ms, so the floor only ever touches predictions. Only the cost
+  baselines produce predictions below 0.001 ms.
+  - Under `fold_group`, 16 of the 4,784 `reg_cost_ols` out-of-fold
+    predictions are below the floor (all in fold 4, for queries that actually
+    took 0.015–0.030 ms). The same holds for 16 `reg_scale_cost_ols`
+    predictions.
+  - That floor gives `reg_cost_ols` the reported log-MAE of **0.6027312922**.
+    Taking the log-space MAE directly from the unfloored predictions,
+    mean |predicted ln − actual ln|, gives **0.6074873091**. The figures for
+    `reg_scale_cost_ols` are 0.6023475505 and 0.6071329660.
+  - The median, p90 and p95 q-errors are unchanged by the floor. The learned
+    models and the constant baseline have no predictions below it, so their
+    values are the same under both definitions.
+
+  The gap comes from the metric definition. It is not a model change, and not
+  an improvement in any prediction. Flooring a prediction that is far too low
+  moves it toward the actual value, so it can only lower the baselines'
+  reported error. The learned-minus-baseline differences are therefore not
+  inflated by the floor. The official metrics, configuration and
+  implementation are unchanged.
 * **Runtime predictions.** A runtime prediction is exp(predicted ln runtime),
   with no smearing correction. It estimates a typical (median-like) runtime,
   not a mean.
@@ -200,6 +251,12 @@ as follows:
 | `reg_scale_cost_ols` | baseline | 0.6023 [0.5590, 0.6496] | 1.5127 [1.4449, 1.5961] | 3.9124 [3.5908, 4.3601] | 5.2131 [4.6434, 6.6326] |
 | `reg_ridge_all` | learned | 0.4032 [0.3655, 0.4436] | 1.3576 [1.3219, 1.3944] | 2.3861 [2.1369, 2.7819] | 3.2931 [2.7220, 3.9683] |
 | `reg_hgb_all` | learned | 0.2196 [0.1908, 0.2490] | 1.1258 [1.1127, 1.1407] | 1.7524 [1.6060, 1.9614] | 2.1812 [1.9559, 2.5396] |
+
+The log-MAE and q-error values use the declared 0.001 ms floor. For
+`reg_cost_ols`, the unfloored log-space MAE is 0.6075, not 0.6027, because 16
+of its predictions fall below the floor; see
+[section 5](#5-how-to-read-the-regression-metrics). The learned models are
+unaffected.
 
 **Table 2. Paired differences, learned minus baseline (negative = lower error), with 95 % intervals.**
 
@@ -232,6 +289,38 @@ The plan-cost baselines already rank queries well (Spearman about 0.94). The
 learned models' largest gains are in the tail: p95 q-error falls from about 5.2
 for the cost baselines to 3.3 for ridge and 2.2 for HGB.
 
+### Historical comparison with the pilot (not a controlled experiment)
+
+The earlier team pilot pointed the other way.
+
+| Study | Evaluation | Calibrated cost baseline, median q-error | Learned models, median q-error |
+|---|---|---:|---|
+| Historical pilot, as recorded in [rq1_evaluation_protocol.md](rq1_evaluation_protocol.md) | template-grouped 5-fold, 22 template groups | 1.694 | nonlinear (HGB) 1.794 |
+| Expanded RQ1 v1, primary `fold_group` (this page) | 5 folds holding out whole semantic groups; 194 groups | 1.5161 (`reg_cost_ols`) | ridge 1.3576; HGB 1.1258 |
+
+**The direction of the finding changed.**
+- On the pilot, the learned model did not beat the calibrated baseline on
+  unseen templates.
+- In RQ1 v1, both learned models have lower median q-error than the cost
+  baselines, with paired intervals (Table 2).
+
+**This is not a controlled before/after experiment.** The two results differ
+in almost everything:
+
+| Aspect | Historical pilot | Expanded RQ1 v1 |
+|---|---|---|
+| Workload | 220 query instances from the 22 TPC-H templates | 4,784 development cases: TPC-H-derived queries, generated structural groups, probes and rewrite cases |
+| Data conditions | SF 0.1 | SF 0.1 and SF 1, with two `work_mem` settings |
+| Evidence conditions | features from the estimate view of `EXPLAIN ANALYZE` plans; no plain plan was captured | features from a plain `EXPLAIN` captured before execution, plus scale factor and `work_mem` |
+| Evaluation population | grouped by template | grouped by semantic group |
+
+The comparison is historical context only. It does not show which of these
+differences caused the change.
+
+The pilot figures are quoted as recorded in the protocol, which states that
+`pilot_audit.py` recomputed them from the pilot's raw files at an earlier
+stage. They were not recomputed for this page.
+
 ## 7. High-runtime classification at 1 s (primary: `fold_group`)
 
 The headline metric is **average precision (AP)**, computed with scikit-learn's
@@ -260,6 +349,44 @@ the positive share, 0.082.
 
 The raw planner-cost ranking (`clf_raw_cost_rank`) was not part of the
 predeclared paired comparisons. No interval-backed claim is made against it.
+
+**Scope of these classification results**
+* **Where the positives are.** All 393 development positives at the 1 s
+  threshold are at SF 1. SF 0.1 has 2,392 development cases and **no**
+  positives. These data therefore do **not** establish slow-query detection
+  performance at SF 0.1.
+* **Scale factor is also an input.** `snap_scale_factor` is one of the 69
+  features. This concentration limits how far the classifier generalizes. It
+  is not, by itself, evidence of leakage, because the scale factor is known
+  before execution. The splits and features are unchanged, so the limitation
+  stays visible.
+* **The reserved cases.** The 160 RQ2 holdout cases remain excluded from RQ1.
+
+**Calibration at a glance** (primary `fold_group`, pooled out-of-fold, 10
+fixed bins; full table in [section 11](#11-calibration))
+
+| Model | Bin | Cases | Positives | Mean predicted probability | Observed positive fraction |
+|---|---|---:|---:|---:|---:|
+| `clf_hgb_all` | lowest, 0.0–0.1 | 4,361 | 23 | 0.0009 | 0.0053 |
+| `clf_hgb_all` | highest, 0.9–1.0 | 315 | 297 | 0.9928 | 0.9429 |
+| `clf_logistic_all` | lowest, 0.0–0.1 | 4,182 | 2 | 0.0028 | 0.0005 |
+| `clf_logistic_all` | highest, 0.9–1.0 | 200 | 200 | 0.9771 | 1.0000 |
+| `clf_cost_logistic` | lowest, 0.0–0.1 | 3,882 | 12 | 0.0109 | 0.0031 |
+| `clf_cost_logistic` | highest, 0.9–1.0 | 180 | 180 | 0.9531 | 1.0000 |
+
+What the table shows:
+- **High AP and ROC-AUC measure ranking. They do not make the probabilities
+  reliable.** HGB is over-confident at both ends:
+  - its top bin claims 0.993 but holds 94.3 % positives;
+  - its lowest bin claims 0.0009 but holds 23 positives.
+- **The middle bins (0.1–0.9) are sparse.** They hold only 108 HGB cases and
+  402 logistic cases.
+- **Errors cluster at the boundary.** At the predeclared 0.5 threshold, 27 of
+  HGB's 29 false alarms are cases whose median runtime is 800–1,250 ms. The
+  same holds for 27 of logistic's 29.
+
+The bins, the threshold and the probabilities are reported as produced. No
+post-hoc calibration or threshold optimization was applied.
 
 ## 8. Practical detection at the predeclared 0.5 threshold
 
@@ -520,24 +647,50 @@ them**. They exist for integration only. Their input and output contracts are
 in [team_handoff.md](team_handoff.md#model-inputoutput-contract) and in
 `handoff/handoff_manifest.json`.
 
-## 15. External review
+## 15. Verification and available evidence
 
-The uploaded dataset and results packages were independently reviewed in
-ChatGPT. That external review reported the following matches:
+These results rest on checks that anyone with the two assets can re-run, and on
+saved artifacts that can be inspected directly. An earlier version of this
+section cited an external review. It was removed because no accessible record
+of that review exists.
 
-* the archive and all 21 pinned input hashes;
-* all 29,708 raw record signatures;
-* the original labels, development selection and stored folds, which
-  reconciled;
-* all 5,832 metric rows (3,240 regression, 2,592 classification) and all 2,700
-  calibration bins;
-* all 2,000 bootstrap draws, 92,000 replicate statistics and 46 intervals,
-  against independent calculations;
-* the noise diagnostics, and the exact S and B set memberships, against the
-  raw measurements.
+**Checks with a documented command.** Steps refer to
+[teammate_setup.md](teammate_setup.md) (Windows) and
+[teammate_setup_posix.md](teammate_setup_posix.md) (macOS/Linux).
 
-This is an attribution of that external review. No local audit log of it is
-part of the repository or the assets.
+| Check | How | What it establishes | What it does not establish |
+|---|---|---|---|
+| Asset identity | size and SHA-256 of both ZIP files (step A4), or `scripts/python/extract_handoff_archive.py` | the files are the catalogued bytes | anything about their content |
+| Input check | `rq1-check-inputs` (step A7) | It verifies: the 21 pinned packaged files and 2 pinned repository files by SHA-256; the release identities, recomputed; the expected counts and the stored folds; the exact 69-column feature contract; the preserved STOP (G-08) status | that the measurements or labels are right beyond what the pins and counts fix. It fits no model |
+| Run integrity | `read_complete_run` (step A8) | The run is `COMPLETE` with all five stages, and the 36 covered files match `output_manifest.json`, whose own SHA-256 is recorded in `RUN_STATUS.json` | model quality or correct analysis. It shows the files are unchanged since the run ended, nothing more |
+| Hand-off identities | step A8, step 3 | the eight `.joblib` files match `handoff/handoff_manifest.json` and load | anything about their performance. They are unscored |
+| Reproduction | `rq1-run` from clean committed source, then the identity and results checks of step A9 | for a run on another machine: the same frozen inputs, and metric tables and calibration bins that agree within the documented tolerance | Not yet done on any other machine |
+
+**Saved artifacts for direct inspection.**
+- **Out-of-fold predictions:** `oof_regression.csv` and
+  `oof_classification.csv`.
+- **Metric tables:** `metrics_*.csv` and `metrics_*.json`.
+- **Calibration bins:** `calibration_bins.csv`.
+- **Bootstrap inputs and outputs:** `bootstrap_groups.csv`,
+  `bootstrap_indices.npz` and `bootstrap_replicates.csv`.
+- **Diagnostics:** `diagnostics_noise.json` and `diagnostics_threshold.json`,
+  which include the S and B member keys.
+
+Metrics can be recomputed from the saved predictions with the package's metric
+functions. Section 5's floored and unfloored `reg_cost_ols` log-MAE were
+checked this way on 2026-10-26. No packaged script, however, recomputes every
+metric table, bootstrap interval or calibration bin from the saved files.
+Such a full recomputation needs custom code.
+
+**Historical records.**
+- **The 2026-10-21 release audit** is recorded in
+  [expanded_collection_checkpoint.md](expanded_collection_checkpoint.md). It
+  covered raw-record checksums, a byte-for-byte rebuild of the derived files,
+  and a recomputation of the labels. It is a dated record. Some of its steps
+  used code that is not in this repository, so not every step can be repeated
+  with a repository script.
+- **The pilot figures** in section 6 come from `pilot_audit.py`, at an earlier
+  stage.
 
 ## 16. Run identity and artifacts
 

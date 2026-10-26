@@ -1,13 +1,16 @@
 # Team handoff
 
-Status as of 2026-10-22. This page records three things:
+Status as of 2026-10-26, updated after the PR #2 review. This page records
+three things:
 - what is complete;
 - what remains;
 - who owns each remaining piece, with acceptance criteria and dependencies.
 
-Setup instructions: [teammate_setup.md](teammate_setup.md). Results:
+Setup instructions: [teammate_setup.md](teammate_setup.md) (Windows) and
+[teammate_setup_posix.md](teammate_setup_posix.md) (macOS and Linux). Results:
 [rq1_results_v1.md](rq1_results_v1.md). Assets and hashes:
-[handoff_assets_v1.json](handoff_assets_v1.json).
+[handoff_assets_v1.json](handoff_assets_v1.json). Review response:
+[pr2_review_response.md](pr2_review_response.md).
 
 ## 1. Where things stand
 
@@ -19,19 +22,21 @@ Setup instructions: [teammate_setup.md](teammate_setup.md). Results:
 | RQ1 methodology and pinned inputs | Shreeyash Baranwal | [rq1_evaluation_protocol.md](rq1_evaluation_protocol.md), [`config/rq1_modeling_v1.yaml`](../config/rq1_modeling_v1.yaml), [`config/rq1_modeling_input_v1.json`](../config/rq1_modeling_input_v1.json) |
 | **RQ1 modeling and evaluation v1.** Implemented in commits `501c937`, `dd58292`, `9c3c647` and `ad66662`; the single official run ended `COMPLETE` | Shreeyash Baranwal | [rq1_results_v1.md](rq1_results_v1.md); results asset |
 | Eight hand-off refits, labelled `REFIT_ON_ALL_DEVELOPMENT_NO_EVALUATION` (never scored) | Shreeyash Baranwal | `handoff/` in the results asset |
-| Independent check of both packages | external review in ChatGPT | [rq1_results_v1.md, section 15](rq1_results_v1.md#15-external-review) |
-| Handoff documentation: this page, the setup guide, the results summary and the asset catalogue | Shreeyash Baranwal | written; **not yet committed** |
+| Reproducible verification paths: the input check, manifest verification, hand-off identity checks and reproduction comparisons, with the saved predictions, metric tables and calibration bins | Shreeyash Baranwal | [rq1_results_v1.md, section 15](rq1_results_v1.md#15-verification-and-available-evidence) |
+| Handoff documentation: this page, the Windows setup guide, the results summary and the asset catalogue | Shreeyash Baranwal | committed in `c32a247b4bbd80bbf2bbd0908e7b27dcab9bb1e9`; branch pushed; PR #2 open |
+| Review corrections for PR #2: the macOS/Linux guide, the cross-platform extraction helper with its tests, and the documentation clarifications | Shreeyash Baranwal | [pr2_review_response.md](pr2_review_response.md); this follow-up is **not yet committed** |
 
 ### Remaining
 
 | Item | Status | Owner |
 |---|---|---|
-| Commit the reviewed documentation, push, open and merge the pull request | pending | Shreeyash Baranwal |
+| Commit and push the review follow-up; merge PR #2 | the branch is pushed and PR #2 is open; the follow-up and the merge are **pending** | Shreeyash Baranwal |
 | Distribute the dataset and results assets, unchanged, with their hashes | pending | Data Engineer |
 | Fresh-machine acceptance of the setup guide | **not yet done on any other machine** | Data Engineer, then each teammate |
 | Database readiness for further experiments | not started | Data Engineer |
 | RQ2: LLM rewrite generation, semantic verification and evaluation | `NOT_YET_EVALUABLE`; not started. The 25 manual expanded-release pairs remain `NOT_YET_VERIFIED` | AI Engineer |
 | Model integration, presentation of predictions, application and reporting deliverables | not started | Backend/reporting owner |
+| Housekeeping: decide whether to migrate the tracked pilot data files under `reference_pilot/output/` (about 7.2 MB) out of normal Git tracking | not started; a separate change, not part of PR #2. See [pr2_review_response.md](pr2_review_response.md#h1-pilot-data-file) for the dependency checks needed first | Data Engineer, with the Data Scientist |
 
 Outside v1, these items have no owner until someone re-scopes them as a new,
 separately specified version:
@@ -43,35 +48,36 @@ separately specified version:
 
 ## 2. Publication sequence
 
-None of these steps has happened yet. Nothing is pushed, merged or published.
+As of 2026-10-26, steps 1 and 2 are partly done:
+- the handoff documentation is committed;
+- the branch is pushed;
+- PR #2 is open.
 
-1. **Commit.** Shreeyash reviews and commits the documentation on
-   `feat/expanded-query-dataset`. These are the only changed files:
-   - the four new documents;
-   - `README.md`, `docs/rq1_run_guide.md` and
-     `docs/rq1_modeling_implementation_plan.md`.
-2. **Push and merge.** Shreeyash pushes from PowerShell, then creates and
-   merges the pull request on GitHub.
+The PR #2 review follow-up, the merge, distribution and acceptance remain.
 
-   ```powershell
-   git push -u origin feat/expanded-query-dataset
-   ```
-
-   - Open a pull request into `main` and merge it with a **merge commit**, not
-     squash or rebase. That keeps the study revision `ad66662` in `main`'s
-     history, so `git switch --detach ad66662…` works from any clone.
+1. **Commit. Done for the handoff documentation**, in `c32a247`. The review
+   follow-up, described in [pr2_review_response.md](pr2_review_response.md),
+   is not yet committed. Shreeyash reviews and commits it.
+2. **Push and merge.** The branch `feat/expanded-query-dataset` is pushed, and
+   PR #2 into `main` is open. **Not merged yet.** Shreeyash pushes the
+   follow-up from PowerShell, then merges the pull request on GitHub.
+   - Merge with a **merge commit**, not squash or rebase. That keeps the
+     study revision `ad66662` in `main`'s history, so
+     `git switch --detach ad66662…` works from any clone.
    - Optional: tag the study revision and push the tag:
      `git tag rq1-v1-study ad666623822a4c5baa911cc29e410ed0abc9c14e`, then
      `git push origin rq1-v1-study`.
-3. **Distribute.** Share `expanded_release.zip` and
+3. **Distribute. Pending.** Having the code on GitHub does not mean the ZIP
+   files have been uploaded. Share `expanded_release.zip` and
    `rq1_results_review_20261022_100326_043.zip` unchanged, with the sizes and
    SHA-256 values in [handoff_assets_v1.json](handoff_assets_v1.json).
    - Generated datasets, results and models stay **out of normal Git
      tracking**: no commit and no `.gitignore` change.
    - Record the chosen location in the catalogue's `publication` block in a
      follow-up documentation commit.
-4. **Accept.** A teammate follows [teammate_setup.md](teammate_setup.md) on a
-   fresh machine and records the
+4. **Accept. Pending.** A teammate follows [teammate_setup.md](teammate_setup.md)
+   or [teammate_setup_posix.md](teammate_setup_posix.md) on a fresh machine
+   and records the
    [acceptance checklist](#fresh-machine-acceptance-checklist), for example in
    the pull request or an issue.
 
@@ -88,7 +94,13 @@ After these steps, both the source and the assets can be found:
   - The dataset work that unblocked the team: collection, audit and packaging.
   - RQ1 modeling and evaluation v1, complete.
 * **Remaining.**
-  - Steps 1 and 2 of the publication sequence.
+  - Commit and push the PR #2 review follow-up, then merge PR #2 (steps 1
+    and 2 of the publication sequence).
+  - **Deferred, and not a merge prerequisite:** wording updates to external
+    documents (the proposal, the Overview PDF and the slides). The poster is
+    already completed.
+    [proposal_poster_update_notes.md](proposal_poster_update_notes.md) keeps
+    optional reference wording for any future revision.
   - Answer questions on interpreting the results.
   - Review any downstream use of RQ1 numbers. A comparative claim names the
     metric, the baseline and the paired interval, and no model is called a
@@ -110,7 +122,7 @@ readiness for further experiments.
 | Task | Accept when | Depends on |
 |---|---|---|
 | **Distribution** | The hosted copies match the catalogue's size and SHA-256 exactly, checked by downloading them back. The location is recorded in `handoff_assets_v1.json`. Every teammate has access | the two files from Shreeyash |
-| **Environment and reproduction support** | Part A of [teammate_setup.md](teammate_setup.md) passes on a machine other than the original: **A4** shows both ZIPs `OK`; **A7** shows `PASS` with the expected counts and `ELIGIBLE`; **A8** shows `36 files verified` and the expected identities. The OS build, Python version and scikit-learn version are recorded. Optional: an A9 reproduction ends `COMPLETE` with `IDENTITY CHECK: PASS` and `COMPARISON: PASS`, or any `FAIL` output is reported, never used to replace official results | distribution; the pushed branch or merged PR |
+| **Environment and reproduction support** | Part A of [teammate_setup.md](teammate_setup.md), or [teammate_setup_posix.md](teammate_setup_posix.md) on macOS or Linux, passes on a machine other than the original: **A4** shows both ZIPs `OK`; **A7** shows `PASS` with the expected counts and `ELIGIBLE`; **A8** shows `36 files verified` and the expected identities. The OS build, Python version and scikit-learn version are recorded. Optional: an A9 reproduction ends `COMPLETE` with `IDENTITY CHECK: PASS` and `COMPARISON: PASS`, or any `FAIL` output is reported, never used to replace official results | distribution; the pushed branch or merged PR |
 | **Database readiness** | Part B prerequisites are met. [POSTER_RUNBOOK.md](../POSTER_RUNBOOK.md) steps 4–6c pass (`PREFLIGHT: PASS`, `START-DATABASES: PASS`, `DB-INIT: PASS` with V001–V008 applied, and SF 0.1 and SF 1 loaded and registered with the expected row counts). `.\scripts\powershell\08_expanded_release.ps1 -Step Readiness` reports `EXPANDED-READINESS: PASS`, with any R-04 or R-05 memory warning written down. The PostgreSQL server version (16.x) and the image digest are recorded. No collection is started without an explicit, recorded approval | a Docker-capable machine; independent of the other two tasks |
 
 Two distribution cautions:
@@ -333,13 +345,15 @@ typical_runtime_ms = math.exp(model.predict(x)[0])
 
 ## Fresh-machine acceptance checklist
 
-The setup guide **has not been exercised on any machine other than the
-original**. The first teammate to complete it should record the outcome below,
-for example in the pull request or an issue. Steps refer to
-[teammate_setup.md](teammate_setup.md).
+Neither setup guide **has been exercised on any machine other than the
+original**. The first teammate to complete one should record the outcome
+below, for example in the pull request or an issue.
+- Step labels refer to [teammate_setup.md](teammate_setup.md) (A2 to A9).
+- On macOS or Linux, use the matching steps 2 to 10 of
+  [teammate_setup_posix.md](teammate_setup_posix.md).
 
-- [ ] Machine recorded: Windows build, PowerShell version, Python version.
-      Record no user names.
+- [ ] Machine recorded: OS and build, processor, shell (PowerShell, bash or
+      zsh), Python version. Record no user names.
 - [ ] A2: the checkout contains `ad66662` (`study revision present: True`),
       and `git status --short` is empty.
 - [ ] A3: Python 3.11.x, scikit-learn 1.9.1 and joblib 1.6.0 are installed;
