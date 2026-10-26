@@ -9,6 +9,7 @@
 *.toml text eol=lf
 *.md text eol=lf
 *.ipynb text eol=lf
+*.json text eol=lf
 Dockerfile text eol=lf
 *.ps1 text eol=crlf
 *.png binary

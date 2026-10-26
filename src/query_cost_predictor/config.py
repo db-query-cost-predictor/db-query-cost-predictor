@@ -38,7 +38,11 @@ ALLOWED_SESSION_SETTINGS = frozenset(
         "enable_sort", "enable_hashagg", "random_page_cost",
     }
 )
-PARAMETER_TYPES = frozenset({"int", "date", "word", "decimal"})
+PARAMETER_TYPES = frozenset({"int", "date", "word", "decimal", "token"})
+#: ``token``: text placed *inside* a quoted SQL literal by the template (for example
+#: 'BUILDING', 'Brand#23', 'MED BOX'). Letters, digits, '#' and inner single spaces
+#: only, so a value can never close the literal or add a LIKE wildcard.
+TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9#](?:[A-Za-z0-9# ]{0,62}[A-Za-z0-9#])?$")
 REWRITE_ROLES = frozenset({"reference_pair", "negative_control"})
 
 
@@ -187,6 +191,10 @@ def render_parameter(value: Any, kind: str, name: str) -> str:
         if not number.is_finite():
             raise ConfigError(f"parameter {name}: decimal must be finite")
         return str(number)
+    if kind == "token":
+        if not isinstance(value, str) or "  " in value or not TOKEN_PATTERN.fullmatch(value):
+            raise ConfigError(f"parameter {name}: expected letters, digits, '#' and single inner spaces, got {value!r}")
+        return value
     raise ConfigError(f"parameter {name}: unknown type {kind!r}")
 
 
@@ -230,10 +238,8 @@ def _template(raw: dict[str, Any], *, where: str, family: str, semantic_group_id
     )
 
 
-def parse_poster_smoke_config(document: dict[str, Any], path: Path, sha256: str) -> PosterSmokeConfig:
-    if not isinstance(document, dict) or document.get("version") != 1:
-        raise ConfigError("poster smoke config must be a mapping with version: 1")
-    raw_protocol = _require(document, "protocol", "config")
+def parse_protocol(raw_protocol: dict[str, Any]) -> ProtocolConfig:
+    """Parse and validate a collection protocol block (shared by every release kind)."""
     protocol = ProtocolConfig(
         protocol_version=str(_require(raw_protocol, "protocol_version", "protocol")),
         cache_protocol=str(_require(raw_protocol, "cache_protocol", "protocol")),
@@ -253,7 +259,7 @@ def parse_poster_smoke_config(document: dict[str, Any], path: Path, sha256: str)
         max_keys=int(_require(raw_protocol, "max_keys", "protocol")),
     )
     if protocol.cache_protocol != "warm":
-        raise ConfigError("the poster smoke collection uses the warm-cache protocol only")
+        raise ConfigError("collections use the warm-cache protocol only")
     if protocol.warmup_probes != 1:
         raise ConfigError("exactly one unmeasured warm-up/probe is required")
     if protocol.measured_repetitions < 1 or protocol.measured_repetitions % 2 == 0:
@@ -265,13 +271,20 @@ def parse_poster_smoke_config(document: dict[str, Any], path: Path, sha256: str)
             raise ConfigError(f"explain_measured_options must include {required_option}")
     if "ANALYZE" in protocol.explain_estimate_options.upper():
         raise ConfigError("the pre-execution estimate must be a plain EXPLAIN (no ANALYZE)")
+    return protocol
 
+
+def parse_snapshots(raw_snapshots: dict[str, Any]) -> dict[str, SnapshotSpec]:
     snapshots = {}
-    for name, raw in _require(document, "snapshots", "config").items():
+    for name, raw in raw_snapshots.items():
         snapshots[name] = SnapshotSpec(name=name, database=str(raw["database"]), workload=str(raw["workload"]),
                                        scale_factor=str(raw["scale_factor"]), required=bool(raw["required"]))
+    return snapshots
+
+
+def parse_configurations(raw_configurations: dict[str, Any]) -> dict[str, ConfigurationSpec]:
     configurations = {}
-    for name, raw in _require(document, "configurations", "config").items():
+    for name, raw in raw_configurations.items():
         settings = {str(k): str(v) for k, v in (raw.get("session_settings") or {}).items()}
         for key, value in settings.items():
             if key not in ALLOWED_SESSION_SETTINGS:
@@ -281,6 +294,15 @@ def parse_poster_smoke_config(document: dict[str, Any], path: Path, sha256: str)
         if settings.get("jit") != "off":
             raise ConfigError(f"configuration {name}: jit must be 'off'")
         configurations[name] = ConfigurationSpec(name=name, description=str(raw.get("description", "")), session_settings=settings)
+    return configurations
+
+
+def parse_poster_smoke_config(document: dict[str, Any], path: Path, sha256: str) -> PosterSmokeConfig:
+    if not isinstance(document, dict) or document.get("version") != 1:
+        raise ConfigError("poster smoke config must be a mapping with version: 1")
+    protocol = parse_protocol(_require(document, "protocol", "config"))
+    snapshots = parse_snapshots(_require(document, "snapshots", "config"))
+    configurations = parse_configurations(_require(document, "configurations", "config"))
 
     families = []
     for raw in _require(document, "families", "config"):

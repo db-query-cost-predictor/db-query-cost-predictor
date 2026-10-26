@@ -1,0 +1,572 @@
+# RQ1 modeling specification v1 (static; for independent methodology review before implementation).
+# Status: SPECIFICATION ONLY. Nothing here has been fitted or evaluated.
+# Methodology: docs/rq1_evaluation_protocol.md. Plan: docs/rq1_modeling_implementation_plan.md.
+# Every model, setting, metric and threshold below is fixed before any model is fitted
+# or any model prediction is inspected. (The dataset itself was already audited.)
+version: 1
+spec_id: rq1-modeling-v1
+status: SPECIFICATION_ONLY
+
+# ------------------------------------------------------------------ inputs
+inputs:
+  # Static input record (committed in 4340c20). Its own SHA-256 is pinned so a changed
+  # record cannot silently change what is checked.
+  input_record:
+    path: config/rq1_modeling_input_v1.json
+    sha256: 7a5e47a5ff7533b147b47e449e5263575df6a10a64d507dba8e99c3d32320453
+    schema: qcp.rq1_modeling_input
+    schema_version: 1
+  # Root of the extracted evidence package (contains derived/, manifest/, raw/, reports/).
+  # Resolution order: --evidence-dir CLI argument, then the environment variable below.
+  # There is no default path; a missing root is an error.
+  evidence_dir_env: QCP_EXPANDED_RELEASE_DIR
+  # Optional: the original archive. If supplied, its SHA-256 is verified; if not, the
+  # archive hash is recorded as copied from the input record, never as verified.
+  archive_arg: --archive
+  checks:
+    required_packaged_files: [derived, manifest, validation_full_report, raw_evidence]  # sections of evidence_files
+    pinned_repository_files: [workload_specification, feature_registry]               # sections of repository_files
+    hash_mismatch: error
+    release_identity: error_on_mismatch      # manifest id, label/feature version, derived inputs SHA, release id
+    expected_counts: error_on_mismatch
+    unique_modeling_key_per_table: [keys.csv, labels.csv, features.csv, estimates.csv, splits.csv]
+    one_to_one_join_key: modeling_key        # every table holds exactly the same key set (4,944)
+    original_validation: {status: STOP, stop_codes: [G-08]}  # must match; never reinterpreted as PASS
+    source_checkpoint:
+      historical: true
+      head_must_equal_checkpoint: false      # later modeling commits have a different HEAD
+  supplementary_approval:                    # supplementary_provenance_outside_package.full_collection_approval
+    data_root_env: QCP_DATA_ROOT
+    if_absent: record_absent_and_continue
+    if_present_and_hash_matches: record_verified
+    if_present_and_hash_differs: error_provenance_mismatch
+  count_scopes:                              # explanation only; the historical report and input record are unchanged
+    validation_report_counts: release-scoped (all 4,944 cases)
+    gate_support_counts: development-scoped (G-07 and G-08 count development cases only)
+    one_second_positives: {release: 407, development: 393, heldout_rq2: 14}
+    ten_second_positives: {release: 4, development: 0, heldout_rq2: 4, note: all four are right-censored rw12 original-form cases}
+  provenance_classes:                        # every identity in input_check.json carries exactly one class
+    verified_this_run: hash or value recomputed from bytes read during this run
+    copied_from_input_record: value taken from the pinned input record without recomputation
+    absent: optional item not available on this machine
+    always_copied: [source_checkpoint.commit_sha]   # historical; no bytes exist to verify it against
+    copied_unless_supplied: [original_archive.sha256, supplementary_provenance_outside_package.full_collection_approval.sha256]
+
+# ------------------------------------------------------------------ rows and targets
+rows:
+  split_role_column: split_role
+  include: development                       # 4,784 cases, 194 semantic groups
+  exclude: heldout_rq2                       # 160 cases: never fitted, scaled, calibrated, selected or scored in v1
+  selection_rule: split_role == development only
+  expected_development_cases: 4784
+  expected_development_groups: 194
+  expected_development_query_instances: 1292
+  required_observation_status: complete      # every development case; anything else is an input error
+  development_runtime_range_ms: {min: 0.011, max: 6906.413}   # median_ms over development cases; checked at load
+  collection_control_annotations:
+    in_sample:                               # keys.csv; true for the 110 bounded-sample keys (all development)
+      role: collection-control annotation    # present in the data but unused for RQ1 selection, fitting and prediction
+      used_for_rq1: false
+      recorded_in: input_check.json          # observed counts: true 110, false 4,674 among development cases
+
+targets:
+  regression:
+    source: labels.csv:median_ms
+    transform: natural_log                   # ln(median_ms); no floor needed (development minimum 0.011 ms)
+    back_transform: exp                      # predictions are reported in ms via exp(predicted ln)
+    smearing_correction: none                # exp(pred_ln) does not generally estimate arithmetic-mean runtime
+    ms_scale_metrics: secondary              # MAE/RMSE in ms are operational context only
+  classification_1s:
+    source: labels.csv:hr_1s_class
+    mapping: {positive: 1, negative: 0}      # any other value on a development row is an input error
+    label_boundary_ms: 1000.0                # frozen runtime-label boundary (never changed)
+  classification_10s:
+    status: NOT_YET_EVALUABLE                # gate G-08; the evaluator refuses this task
+    reason: no development case reaches 10 s
+
+# ------------------------------------------------------------------ features
+features:
+  allowlist_source: config/rq1_modeling_input_v1.json#features.feature_columns   # exactly 69 columns, in this order
+  table: features.csv
+  exact_contract:                            # in addition to the registry check below
+    rule: learned-model matrix columns == allowlist (same names, same order)
+    reject: [extra_column, missing_column, reordered_columns]
+    tested_extra_columns: [est_total_cost, modeling_key, semantic_group_id, median_ms, hr_1s_class, fold_group]
+  contract: assert_feature_matrix_allowed    # query_cost_predictor.contract; every column must be role feature, class A-D
+  baseline_only_inputs:                      # registered pre-execution fields used only by calibrated baselines
+    est_total_cost: outside the learned-model allowlist; excluding it preserves the declared contract (not a leakage issue)
+  forbidden_column_sources:                  # a column from these tables can never enter a feature matrix
+    - labels.csv
+    - splits.csv
+    - executions.csv
+    - keys.csv
+  constant_columns: keep                     # four columns are constant; no adaptive selection in v1
+  baseline_inputs:
+    ln_cost: {source: estimates.csv:est_total_cost, transform: natural_log, require_positive: true}  # not est_total_cost_log (log1p)
+    ln_scale: {source: features.csv:snap_scale_factor, transform: natural_log, require_positive: true}
+
+# ------------------------------------------------------------------ folds
+folds:
+  source: splits.csv                         # frozen assignments; never regenerated
+  forbid_generators: [splits.group_kfold, splits.random_kfold]
+  values: [0, 1, 2, 3, 4]
+  schemes:
+    fold_group: {role: primary, description: whole semantic groups held out}
+    fold_family: {role: robustness, description: whole structure families held out; stricter mainly within the structural component}
+    fold_seen_template: {role: labelled_diagnostic, description: whole query instances held out; templates are seen in training}
+  random_row_split: deferred_beyond_v1       # would require generating folds; see the protocol
+  same_rows_and_folds_for_every_model: true
+  guards:
+    groups_disjoint_across_folds: {fold_group: semantic_group_id, fold_family: structure_family, fold_seen_template: query_instance_id}
+    fold_family_also_separates: semantic_group_id   # families contain whole groups; checked explicitly
+    every_fold_nonempty: true
+    every_classification_training_fold_has_both_classes: true
+  # Supplementary explicit expectations (read from the packaged splits.csv and labels.csv on 2026-10-21).
+  # splits.csv is already hash-pinned by the input record; these add readable per-fold checks.
+  # The input record itself is unchanged. Keys = development test-fold size; pos/neg = hr_1s_class.
+  expected_per_fold:
+    fold_group:
+      0: {keys: 960, positive: 72, negative: 888}
+      1: {keys: 960, positive: 80, negative: 880}
+      2: {keys: 960, positive: 80, negative: 880}
+      3: {keys: 960, positive: 91, negative: 869}
+      4: {keys: 944, positive: 70, negative: 874}
+    fold_family:
+      0: {keys: 960, positive: 88, negative: 872}
+      1: {keys: 960, positive: 98, negative: 862}
+      2: {keys: 960, positive: 59, negative: 901}
+      3: {keys: 960, positive: 63, negative: 897}
+      4: {keys: 944, positive: 85, negative: 859}
+    fold_seen_template:
+      0: {keys: 958, positive: 83, negative: 875}
+      1: {keys: 958, positive: 73, negative: 885}
+      2: {keys: 956, positive: 87, negative: 869}
+      3: {keys: 956, positive: 79, negative: 877}
+      4: {keys: 956, positive: 71, negative: 885}
+
+# ------------------------------------------------------------------ fixed protocol
+fixed:
+  hyperparameter_search: none
+  adaptive_feature_selection: none
+  post_hoc_probability_calibration: none
+  decision_threshold:
+    probability: 0.5                         # positive if predicted probability >= 0.5
+    fixed_when: before any model was fitted or any model prediction was inspected (not before the data were seen; the dataset was already audited)
+    tuned: false
+    applies_to: probabilistic classifiers only
+  winner_selection: none                     # every predeclared model is reported against all baselines
+  random_state: 20260923
+  operating_point: recall, false-negative rate and precision at 0.5 describe one predeclared operating point, not a recommended production threshold
+  threshold_grid: deferred                   # optional; not in v1
+  isotonic_models: none                      # not in v1
+  planning_time_features: future_version_candidate_only   # not in the v1 allowlist
+
+safeguards:
+  threadpool_limit: 1                        # run-scoped (threadpoolctl); requested and effective settings recorded in run_record.json
+  convergence_warning: fail                  # a ConvergenceWarning during an evidence fit fails the stage and marks the run FAILED
+  runtime_bin_counts_must_sum_to_evaluated_cases: true   # no silent drops
+  calibration_bin_counts_must_sum_to_evaluated_rows: true
+  diagnostics_S_and_B_are_retrospective: true            # they use observed runtimes; never deployable pre-execution filters
+
+# ------------------------------------------------------------------ software
+software:
+  tested_environment:
+    scikit_learn: "==1.9.1"                  # the RQ1 v1 environment; other versions are untested
+  constraints_file: requirements/rq1_constraints_v1.txt   # planned in slice A; RQ1-specific, does not change pyproject.toml minimums
+  evidence_run_requires_tested_versions: true             # an evidence run refuses an untested scikit-learn version
+  record_full_environment: true                           # complete installed-distribution list in the run record and handoff
+  logistic_api_note: L2 is expressed with l1_ratio=0.0 and `penalty` is never passed (deprecated in scikit-learn 1.8)
+  warnings_as_errors_in_tests: [FutureWarning, DeprecationWarning, ConvergenceWarning]
+
+# ------------------------------------------------------------------ models
+shared:
+  hgb: &hgb
+    max_iter: 300
+    learning_rate: 0.05
+    max_leaf_nodes: 15
+    min_samples_leaf: 5
+    l2_regularization: 1.0
+    early_stopping: false
+    categorical_features: null
+    random_state: 20260923
+  logistic: &logistic                        # L2 logistic regression; never pass `penalty`
+    C: 1.0
+    l1_ratio: 0.0
+    solver: lbfgs
+    max_iter: 5000
+    tol: 1.0e-6
+    fit_intercept: true
+    class_weight: null
+
+baseline_definitions:
+  regression_cost_baselines: log-linear calibration of planner cost (OLS on ln(est_total_cost), optionally plus ln(snap_scale_factor)), fitted per training fold
+  classification_cost_baselines: logistic calibration of log planner cost (optionally plus log scale factor), fitted per training fold
+  claim_scope: comparisons concern these specified baselines only, not every possible use of planner cost
+  scale_coefficient: with only two scale factors (0.1 and 1), the ln(scale) coefficient is not interpreted as an established scaling law
+  isotonic_baselines: not in v1
+
+regression_models:
+  - id: reg_train_median
+    kind: training_fold_median               # each test fold gets ln(median of its training-fold median_ms)
+    role: baseline
+    inputs: []
+    outputs: runtime_prediction
+  - id: reg_raw_cost_rank
+    kind: raw_planner_cost                   # no fitting; est_total_cost used as a ranking score
+    role: baseline
+    inputs: [est_total_cost]
+    outputs: rank_score                      # rank metrics only (output type, not invalidity)
+  - id: reg_cost_ols
+    kind: ols                                # sklearn LinearRegression(fit_intercept=True)
+    role: baseline
+    formula: ln(median_ms) ~ 1 + ln(est_total_cost)
+    inputs: [ln_cost]
+    outputs: runtime_prediction
+  - id: reg_scale_cost_ols
+    kind: ols
+    role: baseline
+    formula: ln(median_ms) ~ 1 + ln(est_total_cost) + ln(snap_scale_factor)
+    inputs: [ln_cost, ln_scale]
+    outputs: runtime_prediction
+  - id: reg_ridge_all
+    kind: pipeline
+    role: learned
+    steps:
+      - {estimator: StandardScaler, params: {with_mean: true, with_std: true}}
+      - {estimator: Ridge, params: {alpha: 1.0, solver: svd, fit_intercept: true}}
+    inputs: allowlist
+    outputs: runtime_prediction
+  - id: reg_hgb_all
+    kind: estimator
+    role: learned
+    estimator: HistGradientBoostingRegressor
+    params: {<<: *hgb, loss: squared_error}
+    inputs: allowlist
+    outputs: runtime_prediction
+
+classification_models:
+  - id: clf_train_prevalence
+    kind: training_fold_prevalence           # constant within a test fold (that fold's training prevalence); may differ across folds
+    role: baseline
+    inputs: []
+    outputs: probability
+  - id: clf_raw_cost_rank
+    kind: raw_planner_cost                   # est_total_cost as a ranking score; no probabilities are invented
+    role: baseline
+    inputs: [est_total_cost]
+    outputs: rank_score                      # average precision and ROC-AUC only
+  - id: clf_cost_logistic
+    kind: pipeline
+    role: baseline
+    steps:
+      - {estimator: StandardScaler, params: {with_mean: true, with_std: true}}
+      - {estimator: LogisticRegression, params: *logistic}
+    inputs: [ln_cost]
+    outputs: probability
+  - id: clf_scale_cost_logistic
+    kind: pipeline
+    role: baseline
+    steps:
+      - {estimator: StandardScaler, params: {with_mean: true, with_std: true}}
+      - {estimator: LogisticRegression, params: *logistic}
+    inputs: [ln_cost, ln_scale]
+    outputs: probability
+  - id: clf_logistic_all
+    kind: pipeline
+    role: learned
+    steps:
+      - {estimator: StandardScaler, params: {with_mean: true, with_std: true}}
+      - {estimator: LogisticRegression, params: *logistic}
+    inputs: allowlist
+    outputs: probability
+  - id: clf_hgb_all
+    kind: estimator
+    role: learned
+    estimator: HistGradientBoostingClassifier
+    params: {<<: *hgb, loss: log_loss, class_weight: null}
+    inputs: allowlist
+    outputs: probability
+
+# ------------------------------------------------------------------ metrics
+metrics:
+  # Pooled metrics are always computed from the actual fold-specific out-of-fold predictions.
+  # A per-fold identity (for example AP = prevalence for a constant score) is never assumed for pooled rows.
+  undefined_value: null                      # never NaN; a mathematically defined zero stays zero
+  regression:
+    # query_cost_predictor.metrics.regression_metrics on (actual_ms, exp(predicted ln)); floor EPSILON_MS = 0.001 ms
+    primary: [log_mae, median_qerror, p90_qerror, p95_qerror]
+    operational: [mae_ms, rmse_ms]
+    secondary: [r2_log, r2_ms]               # never called accuracy
+    rank: [spearman, kendall]                # metrics.rank_correlations; the only metrics for reg_raw_cost_rank
+  classification:
+    ranking:
+      average_precision: {function: sklearn.metrics.average_precision_score, pos_label: 1, role: primary,
+                          name_in_reports: average precision (AP)}
+      roc_auc: {function: sklearn.metrics.roc_auc_score, role: secondary}
+      note: average precision is the non-interpolated step sum; it is never replaced by or called trapezoidal PR-AUC (sklearn.metrics.auc on a PR curve)
+    at_fixed_threshold:                      # probabilistic models only, threshold 0.5
+      recall: {role: primary_safety}
+      false_negative_rate: {role: primary_safety}
+      precision: {role: secondary}
+      false_positive_rate: {role: secondary}
+      warning_rate_per_100: {definition: 100 * predicted positives / cases, role: secondary}
+    probability:                             # probabilistic models only
+      brier: {function: sklearn.metrics.brier_score_loss, scale_by_half: true, definition: mean((p - y)^2)}
+      calibration_bins:                      # computed directly; the complete table includes empty bins
+        role: descriptive
+        n_bins: 10
+        edges: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        boundary_convention: "bin i (0-based) holds lower_i <= p < upper_i for i = 0..8; the last bin holds 0.9 <= p <= 1.0"
+        valid_probabilities: "finite and 0 <= p <= 1 (p = 0 falls in bin 0, p = 1 in bin 9)"
+        invalid_probability: error           # nonfinite or out-of-range probabilities fail the stage
+        columns_per_bin: [n_cases, n_positive, mean_predicted_probability, observed_positive_fraction]
+        empty_bin: {n_cases: 0, n_positive: 0, mean_predicted_probability: null, observed_positive_fraction: null}
+        counts_must_sum_to_evaluated_rows: true
+        cross_check: optional sklearn.calibration.calibration_curve(n_bins=10, strategy=uniform) on nonempty bins, with matching boundary semantics; never the source of the table
+    never_headline: [accuracy]
+  definedness:                               # metric-specific; a metric is null only when its rule fails
+    mae_ms: nonempty_valid
+    log_mae: nonempty_valid
+    rmse_ms: nonempty_valid
+    median_qerror: nonempty_valid
+    p90_qerror: nonempty_valid
+    p95_qerror: nonempty_valid
+    brier: nonempty_valid
+    warning_rate_per_100: nonempty_valid
+    r2_log: [min_cases_2, nonconstant_actuals]           # constant predictions alone do not make R2 undefined
+    r2_ms: [min_cases_2, nonconstant_actuals]
+    spearman: [min_cases_2, nonconstant_actuals, nonconstant_scores]
+    kendall: [min_cases_2, nonconstant_actuals, nonconstant_scores]
+    average_precision: [has_positives]                   # an all-positive set gives AP = 1, flagged trivial_single_class
+    roc_auc: [has_positives, has_negatives]
+    recall: [has_positives]
+    false_negative_rate: [has_positives]
+    precision: [has_predicted_positives]
+    false_positive_rate: [has_negatives]
+    calibration_bins: nonempty_valid                     # bins may describe single-class strata
+  output_type_exclusions:                    # not computed because of what the model outputs, not because a score is invalid
+    rank_score: [log_mae, median_qerror, p90_qerror, p95_qerror, mae_ms, rmse_ms, r2_log, r2_ms,
+                 recall, false_negative_rate, precision, false_positive_rate, warning_rate_per_100, brier, calibration_bins]
+  null_reasons:
+    empty: "no valid observations"
+    min_cases_2: "fewer than 2 cases"
+    nonconstant_actuals: "actual values are constant"
+    nonconstant_scores: "scores are constant"
+    has_positives: "no positive cases"
+    has_negatives: "no negative cases"
+    has_predicted_positives: "no case predicted positive at the fixed threshold"
+    output_type: "not applicable to this model's output type"
+  flags:                                     # flagged rows stay visible but are descriptive only
+    trivial_single_class: "stratum contains one class only; a defined value here does not show discrimination"
+    thin_positive_support: "classification stratum with fewer than 30 positives or fewer than 5 positive semantic groups"
+    single_fold_positives: "pooled stratum whose positives all come from one test fold"   # never applied automatically to per-fold rows
+  thin_support_thresholds: {min_positives: 30, min_positive_groups: 5}
+
+# ------------------------------------------------------------------ reporting
+reporting:
+  scopes: [pooled_out_of_fold, per_fold]
+  strata:
+    snapshot_name: [tpch_sf0_1, tpch_sf1]
+    component: [tpch_derived, structural, probe, rewrite]
+    configuration_name: [C1_baseline, C2_reduced_work_mem]
+    runtime_bin_ms:                          # on the actual median_ms; reporting only, never a label
+      edges: [0, 10, 100, 1000, 10000]
+      labels: ["<10", "10-100", "100-1000", "1000-10000"]
+  every_row_reports: [n_keys, n_groups, keys_per_group, n_query_instances, n_positive, n_positive_groups,
+                      n_contributing_positive_folds]   # the positive counts on classification rows only
+  runtime_bin_counts_must_sum_to_evaluated_cases: true
+  positive_concentration_statement: "All 393 development 1 s positives are at SF 1; 351 of them (101 of the 106 positive groups) are structural; TPC-H-derived 34 (4 groups), rewrite 8 (1 group), probe 0."
+  tables:
+    headline_regression:
+      scope: pooled development OOF, fold_scheme fold_group
+      models: [reg_train_median, reg_cost_ols, reg_scale_cost_ols, reg_ridge_all, reg_hgb_all]   # runtime-predicting models
+      metrics: [log_mae, median_qerror, p90_qerror, p95_qerror]
+    headline_classification:
+      scope: pooled development OOF, fold_scheme fold_group
+      models: [clf_train_prevalence, clf_raw_cost_rank, clf_cost_logistic, clf_scale_cost_logistic, clf_logistic_all, clf_hgb_all]
+      metrics: [average_precision]
+    rank_metrics_regression:                 # separate table; includes the raw-cost ranking
+      models: [reg_raw_cost_rank, reg_train_median, reg_cost_ols, reg_scale_cost_ols, reg_ridge_all, reg_hgb_all]
+      metrics: [spearman, kendall]
+    operating_point_classification:          # separate table; one predeclared operating point (0.5)
+      models: [clf_train_prevalence, clf_cost_logistic, clf_scale_cost_logistic, clf_logistic_all, clf_hgb_all]
+      metrics: [recall, false_negative_rate, precision, false_positive_rate, warning_rate_per_100]
+    ranking_characterization: average precision and the step-wise precision-recall curve
+  winner: none
+
+uncertainty:
+  applies_to: [headline_regression, headline_classification]   # eligible headline metrics only
+  method: paired cluster bootstrap over semantic groups
+  cluster_column: semantic_group_id
+  n_clusters: 194
+  replicates: 2000
+  seed: 20261021
+  interval: {type: percentile, level: 0.95}
+  resampling: "draw 194 group ids with replacement from the ordered development group list; keep every OOF row of each drawn group, once per occurrence (repeats included)"
+  paired: identical resample indices for every model and every difference
+  statistic: the same case-weighted pooled metric definitions as the point estimates, recomputed on the resampled rows
+  differences:
+    regression:
+      learned: [reg_ridge_all, reg_hgb_all]
+      against: [reg_cost_ols, reg_scale_cost_ols]
+      direction: learned minus baseline (negative is lower error)
+    classification:
+      learned: [clf_logistic_all, clf_hgb_all]
+      against: [clf_cost_logistic, clf_scale_cost_logistic]
+      direction: learned minus baseline (positive is higher average precision)
+  saved: [ordered_group_list, resample_indices, replicate_statistics, valid_replicate_count, invalid_replicate_count, invalid_reasons]
+  invalid_replicate: a replicate whose metric is undefined under the definedness rules (for example no positives); counted with its reason, never imputed
+  interpretation: >-
+    Approximate uncertainty conditional on the fixed out-of-fold predictions and stored folds.
+    It does not capture retraining variability and does not establish generalization to other
+    databases, workloads or machines. A comparative claim must name the metric, the baseline and the
+    paired interval. No universal or multiple-comparison-adjusted significance is claimed.
+
+limitations_block:                           # required verbatim in report.md
+  required_verbatim: true
+  text: |
+    Scope and limitations. These results come from one recorded workload: TPC-H-derived
+    queries (22 TPC-H-derived templates, 128 generated structural groups, 24 point/range
+    probes and 20 development rewrite groups) on the TPC-H schema at two scale factors
+    (SF 0.1 and SF 1), with two work_mem profiles (4 MB and 256 kB, jit off), on PostgreSQL
+    16.15 (image postgres:16, digest sha256:a3b7f434b2dc57ce85a67e171163eb8ab1a1ebcb39d27484661f26b1dfbe30d6)
+    running in Docker Desktop on one Windows laptop. Each query ran in isolation: one
+    client, sequentially, with one unmeasured warm-up execution followed by three measured
+    executions under a warm-cache protocol and a 15-second statement timeout.
+    The target is the instrumented EXPLAIN ANALYZE execution time with TIMING OFF (median of
+    the three measured runs). Planning time and client or network latency are excluded. The
+    1-second label refers to this execution time only. No development case reaches 10
+    seconds, so 10-second classification is not evaluated. Development runtimes range from
+    0.011 ms to 6,906.413 ms; predictions outside this observed range are unsupported.
+    Free memory was low (1.13 GB) at the single preflight observation before collection; it
+    was not measured during collection. Uncertainty intervals are conditional on the fixed
+    out-of-fold predictions and folds and do not establish generalization to other
+    databases, workloads or machines.
+
+diagnostics:
+  repetition_noise:
+    name: repetition-noise reference
+    source: executions.csv                   # run_purpose == measured, status == completed, development rows only
+    leave_one_run_out_qerror: "for each run i of a case: max(t_i / m_i, m_i / t_i), where m_i is the mean of that case's other two measured runs"
+    coefficient_of_variation: "sample standard deviation / mean of the three measured runs"
+    report: [median, p90, p95]
+    by: [snapshot_name, component, runtime_bin_ms]
+    interpretation: descriptive reference only; not a proven lower bound on prediction error
+  threshold_sensitivity:
+    straddle_set: "development cases with min(measured runs) < 1000 ms <= max(measured runs)"   # 31 at audit
+    band_set: "development cases with 800 ms <= median_ms < 1250 ms"                           # 245 at audit
+    evaluations: [all_cases, excluding_straddle_set, excluding_band_set, band_set_only]
+    source_predictions: fold_group out-of-fold predictions (no refit)
+    headline: all_cases
+    labels_changed: false
+    retrospective: true                      # S and B use observed runtimes; they are not deployable pre-execution filters
+
+# ------------------------------------------------------------------ run orchestration
+run:
+  command: rq1-run                           # the only command that produces RQ1 results
+  arguments: [--evidence-dir, --archive (optional), --run-label]
+  stages: [input_check, regression, classification_1s, diagnostics, handoff]   # one run context passed through every stage
+  run_dir_creation: exclusive                # an existing run directory is never overwritten or reused
+  status_file: RUN_STATUS.json
+  statuses:
+    RUNNING: created first; stages are executing
+    FAILED: a stage or finalization raised; the error, the failed stage and the last completed stage are recorded; outputs stay only as evidence of the failure
+    COMPLETE: published atomically, last, only after the output manifest was written and every covered file re-verified
+  partial_outputs: never presented as a complete study; the report is written only as the last payload of a run that then finalizes
+  read_only_check_command: rq1-check-inputs  # runs the input checks only and writes no run directory
+  output_manifest:
+    covers: every file in the run directory except the excluded files (immutable result payloads, including run_record.json and report.md)
+    excluded: [RUN_STATUS.json, output_manifest.json]   # mutable lifecycle metadata; the manifest itself
+    payload_writes: exclusive create; a payload is never rewritten after it is written
+    write_order:
+      - create the run directory exclusively (an existing directory is refused)
+      - write RUN_STATUS.json = RUNNING (atomic replace)
+      - stages write immutable payloads; report.md is the last payload
+      - write run_record.json (immutable, covered)
+      - check that the files on disk equal the registered payloads (no stray or temporary files)
+      - write output_manifest.json (exclusive create) with the SHA-256 of every covered file
+      - re-hash every covered file and compare with the manifest
+      - replace RUN_STATUS.json atomically with COMPLETE, recording the SHA-256 of output_manifest.json
+    on_failure: RUN_STATUS.json = FAILED (atomic replace); an existing report.md or output_manifest.json is renamed with a .FAILED suffix
+    readers: must require COMPLETE, then re-verify output_manifest.json against the recorded hash and every file against the manifest
+    report_copy: reports/rq1/ is written only after COMPLETE
+
+run_record:
+  fields:
+    - run_id
+    - run_label
+    - created_at_utc
+    - status_history
+    - source_revision                        # git rev-parse HEAD at run time (not the checkpoint SHA)
+    - source_tracked_dirty                   # tracked modifications present
+    - untracked_paths_observed
+    - allowed_untracked_paths
+    - historical_source_checkpoint           # copied from the input record
+    - config_sha256                          # SHA-256 of this file's bytes
+    - input_record_sha256
+    - input_identities                       # each with its provenance class (verified_this_run | copied_from_input_record | absent)
+    - supplementary_approval_status          # verified | absent
+    - dependency_versions                    # python, platform, query_cost_predictor, numpy, scipy, scikit-learn, pandas, matplotlib, PyYAML, joblib, threadpoolctl
+    - full_environment                       # every installed distribution and version
+    - threadpool_info                        # requested limit (1) and effective settings
+    - collection_control_annotations         # in_sample present, unused (also in input_check.json)
+  source_cleanliness:                        # required for an evidence run; recorded for every run
+    tracked_tree_clean: required
+    untracked_non_ignored_files: none_except_allowed
+    allowed_untracked_paths: [reference_docs/, reference_pilot/README.md]   # allowed only because they are not execution inputs
+    allowed_paths_must_not_be_read: true     # the run never opens a file under an allowed untracked path
+    ignored_files_in_execution_paths: none   # no git-ignored file under src/, config/ or scripts/, other than __pycache__/ and *.egg-info/
+
+outputs:
+  root_env: QCP_DATA_ROOT
+  run_dir: results/rq1/rq1-modeling-v1/<run_id>/     # run_id = <utc yyyymmddThhmmssZ>_<config16>_<head12>
+  report_copy_dir: reports/rq1/                       # git-ignored; copied only on COMPLETE
+  cross_validation:
+    - RUN_STATUS.json
+    - run_record.json
+    - input_check.json
+    - fold_membership.csv
+    - oof_regression.csv
+    - oof_classification.csv
+    - metrics_regression.json
+    - metrics_regression.csv
+    - metrics_classification.json
+    - metrics_classification.csv
+    - calibration_bins.csv
+    - bootstrap_groups.csv
+    - bootstrap_indices.npz
+    - bootstrap_replicates.csv
+    - bootstrap_summary.json
+    - diagnostics_noise.json
+    - diagnostics_threshold.json
+    - figures/
+    - report.md
+    - output_manifest.json
+  metric_table_columns: [task, fold_scheme, model_id, scope, fold, stratum_column, stratum_value,
+                         n_keys, n_groups, keys_per_group, n_query_instances, n_positive, n_positive_groups,
+                         n_contributing_positive_folds, metric, value, ci_lower, ci_upper, null_reason, flag]
+  metric_table_column_rules:
+    ci_lower_ci_upper: filled only for bootstrapped headline rows; null elsewhere
+    n_positive_n_positive_groups_n_contributing_positive_folds: null on regression rows
+    n_contributing_positive_folds: number of distinct test folds supplying the stratum's positives (pooled rows); 1 or 0 on per-fold rows
+    flag: may hold several flags separated by ';'
+  metric_table_rules:
+    fold: integer for per_fold rows; null for pooled_out_of_fold rows
+    stratum_column: null for unstratified rows
+  calibration_bins_columns: [fold_scheme, model_id, scope, fold, stratum_column, stratum_value, bin_index,
+                             bin_lower, bin_upper, n_cases, n_positive, mean_predicted_probability, observed_positive_fraction]
+  calibration_bins_rules:
+    bins: metrics.classification.probability.calibration_bins (10 fixed bins, empty bins included with zero counts and null rates)
+    figures: every calibration figure is drawn only from calibration_bins.csv rows, and its file name names the matching fold_scheme, model_id, scope and stratum
+  bootstrap_outputs: [bootstrap_groups.csv, bootstrap_indices.npz, bootstrap_replicates.csv, bootstrap_summary.json]
+  handoff:                                   # separate from cross-validation; never scored
+    dir: handoff/
+    fit_rows: all development cases (4,784)
+    models: [reg_cost_ols, reg_scale_cost_ols, reg_ridge_all, reg_hgb_all, clf_cost_logistic, clf_scale_cost_logistic, clf_logistic_all, clf_hgb_all]
+    format: joblib
+    manifest: handoff_manifest.json          # model ids, file hashes, fit rows, config SHA, source revision, full environment
+    constant_baselines_in_manifest:          # computed on all 4,784 development cases and stored as values
+      reg_train_median: median of median_ms over all development cases
+      clf_train_prevalence: positive share over all development cases
+    label: REFIT_ON_ALL_DEVELOPMENT_NO_EVALUATION
+    heldout_rq2_predictions: not_in_v1

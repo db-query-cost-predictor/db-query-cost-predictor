@@ -35,13 +35,21 @@ from query_cost_predictor.sqltext import literal_insensitive_fingerprint, normal
 
 SKIPPED_SNAPSHOT = "SKIPPED_SNAPSHOT_UNAVAILABLE"
 
+#: Manifest kinds and the runbook step that creates each one.
+MANIFEST_HINTS = {
+    "poster_smoke": "run 05_run_poster_smoke.ps1 -Step Manifest",
+    "expanded": "run 08_expanded_release.ps1 -Step Manifest",
+}
+
 
 class ManifestError(RuntimeError):
     """The manifest cannot be built safely."""
 
 
-def manifest_dir() -> Path:
-    return data_root() / "manifests" / "poster_smoke"
+def manifest_dir(kind: str = "poster_smoke") -> Path:
+    if kind not in MANIFEST_HINTS:
+        raise ManifestError(f"unknown manifest kind {kind!r}")
+    return data_root() / "manifests" / kind
 
 
 def expand_entries(cfg: PosterSmokeConfig, snapshot_ids: dict[str, str],
@@ -178,16 +186,22 @@ def _read_image_record() -> tuple[str | None, str | None, str]:
     return record.get("configured_image"), (digests[0] if digests else None), ("CAPTURED" if digests else "NOT_CAPTURED")
 
 
+read_image_record = _read_image_record
+
+
 def _register(ev: Any, cfg: PosterSmokeConfig, entries: list[dict[str, Any]], document: dict[str, Any],
-              manifest_id: str, file_sha: str) -> None:
+              manifest_id: str, file_sha: str, *, manifest_name: str = "poster-smoke",
+              source_config: str = "config/poster_smoke.yaml", holdout_reasons: dict[str, str] | None = None) -> None:
+    holdout_reasons = holdout_reasons or {}
     groups = {}
     for tpl in cfg.templates:
         groups.setdefault(tpl.semantic_group_id, tpl)
     for group_id, tpl in groups.items():
+        reason = holdout_reasons.get(group_id)
         ev.execute(
-            "INSERT INTO qcp.semantic_group (semantic_group_id, workload, family, description) VALUES (%s, %s, %s, %s) "
-            "ON CONFLICT (semantic_group_id) DO NOTHING",
-            (group_id, "tpch", tpl.family, tpl.expected_mechanism),
+            "INSERT INTO qcp.semantic_group (semantic_group_id, workload, family, description, is_holdout_reserved, "
+            "holdout_reason) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (semantic_group_id) DO NOTHING",
+            (group_id, "tpch", tpl.family, tpl.expected_mechanism, reason is not None, reason),
         )
     for tpl in cfg.templates:
         ev.execute(
@@ -196,8 +210,15 @@ def _register(ev: Any, cfg: PosterSmokeConfig, entries: list[dict[str, Any]], do
             "source_config) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (template_id) DO NOTHING",
             (tpl.template_id, tpl.semantic_group_id, "tpch", tpl.family, tpl.form, tpl.rewrite_source, tpl.rewrite_pair_id,
              tpl.sql, sha256_text(tpl.sql), Jsonb(tpl.parameter_types), tpl.expected_mechanism, Jsonb(list(tpl.coverage)),
-             "config/poster_smoke.yaml"),
+             source_config),
         )
+    # ON CONFLICT DO NOTHING must never hide a changed template behind a reused id.
+    expected = {tpl.template_id: sha256_text(tpl.sql) for tpl in cfg.templates}
+    stored = ev.execute("SELECT template_id, template_sha256 FROM qcp.query_definition WHERE template_id = ANY(%s)",
+                        (sorted(expected),)).fetchall()
+    changed = sorted(tid for tid, sha in stored if sha != expected[tid])
+    if changed:
+        raise ManifestError(f"template ids already registered with different SQL (give changed templates a new id): {changed[:5]}")
     for e in entries:
         ev.execute(
             "INSERT INTO qcp.query_instance (query_instance_id, template_id, semantic_group_id, parameter_values, sql_text, "
@@ -213,7 +234,7 @@ def _register(ev: Any, cfg: PosterSmokeConfig, entries: list[dict[str, Any]], do
         "statement_timeout_ms, planned_final_timeout_ms, lock_timeout_ms, warmup_probes, measured_repetitions, "
         "order_seed, config_file_sha256, manifest_file_sha256, manifest_json) "
         "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (manifest_id) DO NOTHING",
-        (manifest_id, "poster-smoke", protocol.protocol_version, protocol.cache_protocol, protocol.statement_timeout_ms,
+        (manifest_id, manifest_name, protocol.protocol_version, protocol.cache_protocol, protocol.statement_timeout_ms,
          protocol.planned_final_timeout_ms, protocol.lock_timeout_ms, protocol.warmup_probes,
          protocol.measured_repetitions, protocol.order_seed, cfg.sha256, file_sha, Jsonb(document)),
     )
@@ -233,50 +254,90 @@ def _register(ev: Any, cfg: PosterSmokeConfig, entries: list[dict[str, Any]], do
         )
 
 
-def build_and_register_manifest(config_path: Path | None = None) -> dict[str, Any]:
-    cfg = load_poster_smoke_config(config_path)
-    image, digest, image_status = _read_image_record()
+def resolve_snapshots(ev: Any, cfg: Any, application_name: str) -> tuple[dict[str, str], dict[str, Any], dict[str, str]]:
+    """Registered snapshot ids per configured snapshot, after a live statistics-drift check.
+
+    Returns ``(snapshot_ids, snapshots_info, unavailable)``. A missing required
+    snapshot stops the manifest; a missing optional one is reported, never dropped silently.
+    """
     snapshot_ids: dict[str, str] = {}
     snapshots_info: dict[str, Any] = {}
     unavailable: dict[str, str] = {}
-    with connect_evidence_writer("qcp:smoke-manifest") as ev:
-        for name, spec in cfg.snapshots.items():
-            snap = latest_snapshot(ev, spec.database)
-            if snap is None:
-                if spec.required:
-                    raise ManifestError(f"required snapshot {name} is not registered; run 03b_load_tpch.ps1 -ScaleFactor {spec.scale_factor}")
-                unavailable[name] = "not registered"
-                continue
-            with connect_bench_reader(spec.database, "qcp:smoke-manifest") as conn:
-                live = statistics_sha256(conn)
-            if live != snap["statistics_sha256"]:
-                raise ManifestError(f"snapshot drift in {spec.database}: planner statistics changed since registration; "
-                                    "re-register the snapshot before building a manifest")
-            snapshot_ids[name] = snap["snapshot_id"]
-            snapshots_info[name] = {**snap, "scale_factor": spec.scale_factor, "database": spec.database}
+    for name, spec in cfg.snapshots.items():
+        snap = latest_snapshot(ev, spec.database)
+        if snap is None:
+            if spec.required:
+                raise ManifestError(f"required snapshot {name} is not registered; run 03b_load_tpch.ps1 -ScaleFactor {spec.scale_factor}")
+            unavailable[name] = "not registered"
+            continue
+        with connect_bench_reader(spec.database, application_name) as conn:
+            live = statistics_sha256(conn)
+        if live != snap["statistics_sha256"]:
+            raise ManifestError(f"snapshot drift in {spec.database}: planner statistics changed since registration; "
+                                "re-register the snapshot before building a manifest")
+        snapshot_ids[name] = snap["snapshot_id"]
+        snapshots_info[name] = {**snap, "scale_factor": spec.scale_factor, "database": spec.database}
+    return snapshot_ids, snapshots_info, unavailable
 
-        base_db = next(s.database for s in cfg.snapshots.values() if s.required)
-        config_ids: dict[str, str] = {}
-        configurations_info: dict[str, Any] = {}
-        with connect_bench_reader(base_db, "qcp:smoke-manifest") as conn:
-            server = server_identity(conn)
-            for name, spec in cfg.configurations.items():
-                effective = capture_effective_settings(conn, spec.session_settings, cfg.protocol.lock_timeout_ms)
-                effective_sha = sha256_json(effective)
-                cid = config_id(name, effective_sha, server["server_version_num"])
-                ev.execute(
-                    "INSERT INTO qcp.database_configuration (config_id, configuration_name, session_settings, "
-                    "effective_settings, effective_settings_sha256, server_version, server_version_num, postgres_image, "
-                    "postgres_image_digest, image_capture_status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
-                    "ON CONFLICT (config_id) DO NOTHING",
-                    (cid, name, Jsonb(spec.session_settings), Jsonb(effective), effective_sha, server["server_version"],
-                     server["server_version_num"], image, digest, image_status),
-                )
-                config_ids[name] = cid
-                configurations_info[name] = {"config_id": cid, "session_settings": spec.session_settings,
-                                             "effective_settings_sha256": effective_sha,
-                                             "captured_on_database": base_db,
-                                             "work_mem": effective.get("work_mem"), "image_capture_status": image_status}
+
+def capture_configurations(ev: Any, cfg: Any, application_name: str, *,
+                           include_server_provenance: bool = False) -> tuple[dict[str, str], dict[str, Any], str]:
+    """Capture and register the effective settings of every configuration.
+
+    Returns ``(config_ids, configurations_info, image_capture_status)``. The
+    poster-smoke manifest keeps its original fields so a rebuilt smoke manifest
+    still hashes to the same id; the expanded release also records the server
+    version and image reference in each configuration entry.
+    """
+    image, digest, image_status = _read_image_record()
+    base_db = next(s.database for s in cfg.snapshots.values() if s.required)
+    config_ids: dict[str, str] = {}
+    configurations_info: dict[str, Any] = {}
+    with connect_bench_reader(base_db, application_name) as conn:
+        server = server_identity(conn)
+        for name, spec in cfg.configurations.items():
+            effective = capture_effective_settings(conn, spec.session_settings, cfg.protocol.lock_timeout_ms)
+            effective_sha = sha256_json(effective)
+            cid = config_id(name, effective_sha, server["server_version_num"])
+            ev.execute(
+                "INSERT INTO qcp.database_configuration (config_id, configuration_name, session_settings, "
+                "effective_settings, effective_settings_sha256, server_version, server_version_num, postgres_image, "
+                "postgres_image_digest, image_capture_status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (config_id) DO NOTHING",
+                (cid, name, Jsonb(spec.session_settings), Jsonb(effective), effective_sha, server["server_version"],
+                 server["server_version_num"], image, digest, image_status),
+            )
+            config_ids[name] = cid
+            configurations_info[name] = {"config_id": cid, "session_settings": spec.session_settings,
+                                         "effective_settings_sha256": effective_sha,
+                                         "captured_on_database": base_db,
+                                         "work_mem": effective.get("work_mem"), "image_capture_status": image_status}
+            if include_server_provenance:
+                configurations_info[name].update(server_version=server["server_version"],
+                                                 server_version_num=server["server_version_num"],
+                                                 postgres_image=image, postgres_image_digest=digest)
+    return config_ids, configurations_info, image_status
+
+
+def write_manifest_file(folder: Path, mid: str, document: dict[str, Any]) -> tuple[Path, str]:
+    """Write ``manifest_<id>.json`` once (exclusive create); an existing file must hash to the same id."""
+    path = folder / f"manifest_{mid[3:19]}.json"
+    created = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if path.exists():
+        existing = json.loads(path.read_text(encoding="utf-8"))
+        if existing.get("manifest_id") != mid:
+            raise ManifestError(f"{path} exists with a different manifest id; refusing to overwrite")
+        return path, "manifest file already existed with identical content"
+    with path.open("x", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps({"manifest_id": mid, "created_at_utc": created, **document}, indent=2, sort_keys=True))
+    return path, "manifest file written"
+
+
+def build_and_register_manifest(config_path: Path | None = None) -> dict[str, Any]:
+    cfg = load_poster_smoke_config(config_path)
+    with connect_evidence_writer("qcp:smoke-manifest") as ev:
+        snapshot_ids, snapshots_info, unavailable = resolve_snapshots(ev, cfg, "qcp:smoke-manifest")
+        config_ids, configurations_info, image_status = capture_configurations(ev, cfg, "qcp:smoke-manifest")
 
         entries, skipped = expand_entries(cfg, snapshot_ids, config_ids)
         entries = assign_execution_order(entries, cfg.protocol.order_seed)
@@ -287,17 +348,7 @@ def build_and_register_manifest(config_path: Path | None = None) -> dict[str, An
         mid = manifest_id_for(document)
 
         folder = ensure_dir(manifest_dir())
-        path = folder / f"manifest_{mid[3:19]}.json"
-        created = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        if path.exists():
-            existing = json.loads(path.read_text(encoding="utf-8"))
-            if existing.get("manifest_id") != mid:
-                raise ManifestError(f"{path} exists with a different manifest id; refusing to overwrite")
-            status_note = "manifest file already existed with identical content"
-        else:
-            with path.open("x", encoding="utf-8", newline="\n") as handle:
-                handle.write(json.dumps({"manifest_id": mid, "created_at_utc": created, **document}, indent=2, sort_keys=True))
-            status_note = "manifest file written"
+        path, status_note = write_manifest_file(folder, mid, document)
         file_sha = sha256_file(path)
         _register(ev, cfg, entries, document, mid, file_sha)
         ev.commit()
@@ -326,17 +377,17 @@ def build_and_register_manifest(config_path: Path | None = None) -> dict[str, An
     }
 
 
-def current_manifest_id(explicit: str | None = None) -> str:
+def current_manifest_id(explicit: str | None = None, kind: str = "poster_smoke") -> str:
     if explicit:
         return explicit
-    pointer = manifest_dir() / "CURRENT_MANIFEST.txt"
+    pointer = manifest_dir(kind) / "CURRENT_MANIFEST.txt"
     if not pointer.is_file():
-        raise ManifestError("no manifest yet; run 05_run_poster_smoke.ps1 -Step Manifest")
+        raise ManifestError(f"no manifest yet; {MANIFEST_HINTS[kind]}")
     return pointer.read_text(encoding="utf-8").strip()
 
 
-def load_manifest(manifest_id: str) -> tuple[dict[str, Any], Path]:
-    path = manifest_dir() / f"manifest_{manifest_id[3:19]}.json"
+def load_manifest(manifest_id: str, kind: str = "poster_smoke") -> tuple[dict[str, Any], Path]:
+    path = manifest_dir(kind) / f"manifest_{manifest_id[3:19]}.json"
     if not path.is_file():
         raise ManifestError(f"manifest file not found: {path}")
     document = json.loads(path.read_text(encoding="utf-8"))

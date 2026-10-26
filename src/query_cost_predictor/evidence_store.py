@@ -146,8 +146,9 @@ def verify_database_matches_ledger(ev: Any, ledger: EvidenceLedger, modeling_key
     """Every raw terminal execution/estimate must be in the database with the same hash, and vice versa."""
     rows = ev.execute("SELECT modeling_key, repeat_no, raw_record_sha256 FROM qcp.query_execution "
                       "WHERE modeling_key = ANY(%s)", (modeling_keys,)).fetchall()
+    wanted = set(modeling_keys)
     db_runs = {(r[0], int(r[1])): r[2] for r in rows}
-    raw_runs = {k: v["record_sha256"] for k, v in ledger.executions.items() if k[0] in set(modeling_keys)}
+    raw_runs = {k: v["record_sha256"] for k, v in ledger.executions.items() if k[0] in wanted}
     if db_runs != raw_runs:
         only_db = sorted(set(db_runs) - set(raw_runs))[:3]
         only_raw = sorted(set(raw_runs) - set(db_runs))[:3]
@@ -156,7 +157,7 @@ def verify_database_matches_ledger(ev: Any, ledger: EvidenceLedger, modeling_key
     rows = ev.execute("SELECT modeling_key, raw_record_sha256 FROM qcp.estimated_plan WHERE modeling_key = ANY(%s)",
                       (modeling_keys,)).fetchall()
     db_est = {r[0]: r[1] for r in rows}
-    raw_est = {k: v["record_sha256"] for k, v in ledger.estimates.items() if k in set(modeling_keys)}
+    raw_est = {k: v["record_sha256"] for k, v in ledger.estimates.items() if k in wanted}
     if db_est != raw_est:
         raise EvidenceIntegrityError("database/raw estimate mismatch")
     ev.commit()

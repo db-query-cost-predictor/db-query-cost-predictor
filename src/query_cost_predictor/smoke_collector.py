@@ -14,20 +14,27 @@ Resume: previous session files are re-read, checksum-verified, reconciled into
 the database, and completed ``modeling_key + repeat_no`` pairs are skipped. A
 resumed key gets an extra warm-up (``resume_warmup``, raw JSONL only) because
 the cache state after an interruption is unknown.
+
+The same collector serves the expanded release through a :class:`CollectionProfile`
+(raw folder, session kind, status label), an optional subset of selected keys
+(the bounded sample), a wall-clock limit and a free-disk floor. Every bound
+stops *between* keys, so no execution is cut short by the collector itself.
 """
 
 from __future__ import annotations
 
 import os
 import platform
+import shutil
 import socket
 import sys
 import time
 import uuid
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 import psycopg
 
@@ -67,14 +74,49 @@ class CollectorError(RuntimeError):
     """Collection must stop (drift, exhausted retries, integrity problem)."""
 
 
-def raw_session_dir(protocol_version: str) -> Path:
-    """One raw directory per protocol version, shared by every poster-smoke manifest.
+@dataclass(frozen=True)
+class CollectionProfile:
+    """Where a collection writes, how its sessions are labelled and how it reports."""
+
+    raw_kind: str          # folder under QCP_DATA_ROOT/raw
+    session_kind: str      # qcp.collection_session.session_kind
+    manifest_kind: str     # manifest["manifest_kind"] this profile accepts
+    status_label: str      # final status line, e.g. SMOKE-COLLECT
+    manifest_hint: str     # runbook step that registers the manifest
+
+
+SMOKE_PROFILE = CollectionProfile("poster_smoke", "poster_smoke_collection", "poster_smoke", "SMOKE-COLLECT",
+                                  "run 05_run_poster_smoke.ps1 -Step Manifest")
+EXPANDED_PROFILE = CollectionProfile("expanded", "expanded_collection", "expanded_release", "EXPANDED-COLLECT",
+                                     "run 08_expanded_release.ps1 -Step Manifest")
+
+
+def raw_session_dir(protocol_version: str, kind: str = "poster_smoke") -> Path:
+    """One raw directory per release kind and protocol version, shared by every manifest of that kind.
 
     Modeling keys do not depend on the manifest, so a rebuilt manifest (for
     example after SF 1 is loaded) reuses the evidence of keys it shares with an
     earlier manifest instead of re-collecting them.
     """
-    return data_root() / "raw" / "poster_smoke" / protocol_version
+    return data_root() / "raw" / kind / protocol_version
+
+
+def pending_entries(entries: Iterable[dict[str, Any]], ledger: EvidenceLedger, planned: int,
+                    max_keys: int | None = None) -> list[dict[str, Any]]:
+    """Keys still to process, in manifest order: not started or incomplete, at most ``max_keys``.
+
+    Complete, right-censored and failed keys are never re-run, so re-running a
+    batch after an interruption can neither duplicate nor overwrite evidence.
+    """
+    if max_keys is not None and max_keys < 0:
+        raise ValueError("max_keys must be >= 0")
+    selected: list[dict[str, Any]] = []
+    for entry in sorted(entries, key=lambda e: e["execution_order"]):
+        if max_keys is not None and len(selected) >= max_keys:
+            break
+        if key_state(ledger, entry["modeling_key"], planned) in ("not_started", STATUS_INCOMPLETE):
+            selected.append(entry)
+    return selected
 
 
 def key_state(ledger: EvidenceLedger, modeling_key: str, planned: int) -> str:
@@ -139,13 +181,28 @@ def execution_payload(entry: dict[str, Any], repeat_no: int, attempt_no: int, ou
 
 
 class Collector:
-    def __init__(self, manifest: dict[str, Any], manifest_path: Path, max_keys: int | None) -> None:
+    def __init__(self, manifest: dict[str, Any], manifest_path: Path, max_keys: int | None, *,
+                 profile: CollectionProfile = SMOKE_PROFILE, selected_keys: Iterable[str] | None = None,
+                 max_minutes: float | None = None, min_free_gb: float | None = None,
+                 disk_check_every_n_keys: int = 25) -> None:
         self.manifest = manifest
         self.manifest_path = manifest_path
         self.manifest_id = manifest["manifest_id"]
         self.protocol = manifest["protocol"]
-        self.entries = sorted(manifest["entries"], key=lambda e: e["execution_order"])
+        self.profile = profile
+        self.all_entries = sorted(manifest["entries"], key=lambda e: e["execution_order"])
+        if selected_keys is None:
+            self.entries = self.all_entries
+        else:
+            wanted = set(selected_keys)
+            unknown = wanted - {e["modeling_key"] for e in self.all_entries}
+            if unknown:
+                raise CollectorError(f"{len(unknown)} selected key(s) are not in the manifest")
+            self.entries = [e for e in self.all_entries if e["modeling_key"] in wanted]
         self.max_keys = max_keys
+        self.max_minutes = max_minutes
+        self.min_free_gb = min_free_gb
+        self.disk_check_every = max(1, int(disk_check_every_n_keys))
         self.planned = int(self.protocol["measured_repetitions"])
         self.timeout_ms = int(self.protocol["statement_timeout_ms"])
         self.lock_ms = int(self.protocol["lock_timeout_ms"])
@@ -278,6 +335,9 @@ class Collector:
                     "plan_sha256": plan_json_hash(outcome.document), "plan_shape_sha256": plan_shape_hash(outcome.document),
                     "settings_block": settings_block(outcome.document), "scalars": estimate_scalars(outcome.document),
                 }
+                planning_ms = outcome.document.get("Planning Time")  # present only with SUMMARY ON (expanded protocol)
+                if planning_ms is not None:
+                    payload["planning_time_ms"] = float(planning_ms)  # provenance for the censoring bound; never a feature
                 record = self._record("estimate", payload)
                 self.ledger.add_estimate(record)
                 insert_estimate(self.ev, record)
@@ -307,36 +367,57 @@ class Collector:
         if time.monotonic() - started > budget_s:
             self._heartbeat("stalled", key, f"key exceeded its time budget of {budget_s:.0f}s")
 
+    # -------------------------------------------------------------------- bounds
+    def _free_gb(self) -> float:
+        return shutil.disk_usage(data_root()).free / 1024 ** 3
+
+    def _stop_reason(self, started_monotonic: float, processed: int) -> str | None:
+        """Why the session must stop before the next key (None: continue)."""
+        if self.max_keys is not None and processed >= self.max_keys:
+            return f"batch limit of {self.max_keys} key(s) reached"
+        if self.max_minutes is not None and (time.monotonic() - started_monotonic) / 60.0 >= self.max_minutes:
+            return f"wall-clock limit of {self.max_minutes:g} minute(s) reached"
+        if self.min_free_gb is not None and processed % self.disk_check_every == 0:
+            free = self._free_gb()
+            if free < self.min_free_gb:
+                return f"free space under QCP_DATA_ROOT is {free:.1f} GB (< {self.min_free_gb:g} GB floor)"
+        return None
+
     # -------------------------------------------------------------------- session
     def run(self) -> int:
-        raw_dir = raw_session_dir(self.protocol["protocol_version"])
+        raw_dir = raw_session_dir(self.protocol["protocol_version"], self.profile.raw_kind)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         raw_path = raw_dir / f"session_{stamp}_{self.session_id[:8]}.jsonl"
         self.ev = connect_evidence_writer(f"qcp:collect:{self.session_id[:8]}")
         exit_code = EXIT_FAILED
+        stop_note: str | None = None
         try:
             row = self.ev.execute("SELECT manifest_file_sha256 FROM qcp.collection_manifest WHERE manifest_id = %s",
                                   (self.manifest_id,)).fetchone()
             self.ev.commit()
             if row is None:
-                raise CollectorError("manifest is not registered; run 05_run_poster_smoke.ps1 -Step Manifest")
+                raise CollectorError(f"manifest is not registered; {self.profile.manifest_hint}")
             if row[0] != sha256_file(self.manifest_path):
                 raise CollectorError("manifest file differs from the registered manifest (edited?)")
+            if self.min_free_gb is not None and self._free_gb() < self.min_free_gb:
+                raise CollectorError(f"free space under QCP_DATA_ROOT is below the {self.min_free_gb:g} GB floor")
 
             previous = raw_files(raw_dir)
             reconciled = reconcile_raw_files(self.ev, previous, utc_now())
             self.ledger = EvidenceLedger.from_records(reconciled["records"])
-            keys = [e["modeling_key"] for e in self.entries]
+            keys = [e["modeling_key"] for e in self.all_entries]
             verify_database_matches_ledger(self.ev, self.ledger, keys)
 
             self.writer = RawEvidenceWriter(raw_path)
             start_payload = {
-                "session_id": self.session_id, "session_kind": "poster_smoke_collection", "manifest_id": self.manifest_id,
+                "session_id": self.session_id, "session_kind": self.profile.session_kind, "manifest_id": self.manifest_id,
                 "started_at": utc_now(), "host_name": socket.gethostname(), "process_id": os.getpid(),
                 "python_version": sys.version.split()[0], "package_version": __version__,
                 "raw_evidence_path": str(raw_path), "order_seed": int(self.protocol["order_seed"]),
                 "platform": platform.platform(), "previous_session_files": [p.name for p in previous],
                 "closed_by_reconciliation": reconciled["closed_by_reconciliation"],
+                "selected_keys": len(self.entries), "max_keys": self.max_keys, "max_minutes": self.max_minutes,
+                "min_free_gb": self.min_free_gb,
             }
             self._record("session_start", start_payload)
             insert_session(self.ev, start_payload)
@@ -348,11 +429,11 @@ class Collector:
             self._heartbeat("started", note=f"resuming with {len(previous)} earlier session file(s)" if previous else None)
 
             processed = 0
+            started_monotonic = time.monotonic()
             check_every = int(self.protocol.get("snapshot_check_every_n_keys", 10) or 10)
-            for entry in self.entries:
-                if key_state(self.ledger, entry["modeling_key"], self.planned) not in ("not_started", STATUS_INCOMPLETE):
-                    continue
-                if self.max_keys is not None and processed >= self.max_keys:
+            for entry in pending_entries(self.entries, self.ledger, self.planned):
+                stop_note = self._stop_reason(started_monotonic, processed)
+                if stop_note:
                     break
                 self.process_key(entry)
                 processed += 1
@@ -362,7 +443,8 @@ class Collector:
 
             counts = self._counts()
             remaining = counts["not_started"] + counts[STATUS_INCOMPLETE]
-            self._heartbeat("finished", note=f"{remaining} key(s) still not determined" if remaining else None)
+            notes = [n for n in (stop_note, f"{remaining} key(s) still not determined" if remaining else None) if n]
+            self._heartbeat("finished", note="; ".join(notes) or None)
             exit_code = EXIT_FINISHED if remaining == 0 else EXIT_PARTIAL
         except KeyboardInterrupt:
             if self.writer is not None:
@@ -399,15 +481,17 @@ class Collector:
                 pass
         counts = self._counts()
         print("key states: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+        if stop_note:
+            print(f"stopped between keys: {stop_note}")
         label = {EXIT_FINISHED: "FINISHED", EXIT_PARTIAL: "PARTIAL (re-run to continue)",
                  EXIT_INTERRUPTED: "INTERRUPTED (re-run to resume)", EXIT_FAILED: "FAILED"}[exit_code]
-        print(f"SMOKE-COLLECT: {label}")
+        print(f"{self.profile.status_label}: {label}")
         return exit_code
 
 
 def run_collection(manifest_id: str | None, *, max_keys: int | None = None) -> int:
     mid = current_manifest_id(manifest_id)
     manifest, path = load_manifest(mid)
-    if manifest.get("manifest_kind") != "poster_smoke":
+    if manifest.get("manifest_kind") != SMOKE_PROFILE.manifest_kind:
         raise EvidenceIntegrityError("not a poster-smoke manifest")
     return Collector(manifest, path, max_keys).run()

@@ -44,6 +44,11 @@ def environment_reports_dir() -> Path:
     return reports_dir() / "environment"
 
 
+def expanded_reports_dir() -> Path:
+    """Generated expanded-release reports (git-ignored, like reports/poster)."""
+    return repo_root() / "reports" / "expanded"
+
+
 def pilot_output_dir() -> Path:
     return repo_root() / "reference_pilot" / "output"
 

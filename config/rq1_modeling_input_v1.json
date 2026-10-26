@@ -1,0 +1,327 @@
+{
+  "schema": "qcp.rq1_modeling_input",
+  "schema_version": 1,
+  "record_id": "rq1-modeling-input-v1",
+  "description": "Static, audited input record for RQ1 modeling on the expanded release. It pins evidence by SHA-256 and states the permitted scope. It is not a release freeze and does not mark the release PASS. A runtime checker that enforces it is planned for the modeling slice.",
+  "source_checkpoint": {
+    "commit_sha": "972c00bbb19f63a8f9b658ad471837089248276e",
+    "role": "audited source checkpoint that reproduces the derivation byte-identically from the raw evidence",
+    "recorded_during_collection": false,
+    "note": "This SHA was created after collection (2026-10-21). Collection records carry package_version 0.1.0 only, not a commit or source hash."
+  },
+  "release_identity": {
+    "release_name": "expanded-v1",
+    "manifest_id": "mf_a75c6408fb59ab8f5265ee95404ae8d25419d1244b29c51210f8e013c3591899",
+    "manifest_short_id": "a75c6408fb59ab8f",
+    "protocol_version": "expanded-v1",
+    "label_version": "expanded-label-v1",
+    "feature_version": "expanded-features-v1",
+    "derived_inputs_sha256": "003c5455636b88436b0cd5d04a6fba67132981136cdfb3b645762f306fcf7b3a",
+    "derived_release_id": "expanded:a75c6408fb59ab8f:expanded-label-v1:003c5455636b8843"
+  },
+  "path_conventions": {
+    "evidence_package": "paths below are relative to the root of the extracted evidence package (the folder that contains derived/, manifest/, raw/ and reports/)",
+    "repository": "repository paths are relative to the repository root",
+    "data_root": "data_root paths are relative to QCP_DATA_ROOT"
+  },
+  "original_archive": {
+    "file_name": "expanded_release.zip",
+    "sha256": "f4bc90bc74e02579ece9cbbdafb4b9b792f655d90742de143d5a5f1d60e0291a"
+  },
+  "evidence_files": {
+    "derived": [
+      {
+        "path": "derived/keys.csv",
+        "sha256": "7e326e62933f7a9ada667d9ef51bbaf7ae5bf5d15496f6bca44a3d3b19c5558e"
+      },
+      {
+        "path": "derived/executions.csv",
+        "sha256": "6071de3e9341d1d597efbb208f2ddb562a58a67c0e6e15530ff3cd4a0868a916"
+      },
+      {
+        "path": "derived/labels.csv",
+        "sha256": "b6c59966520db901bbaadfb07c580df3b2fde20cf6b02ab692200d8236c24da3"
+      },
+      {
+        "path": "derived/estimates.csv",
+        "sha256": "474190139c27127fc6d0d550358ed0a1e3c8395cb12288dfc9b7c434254680c3"
+      },
+      {
+        "path": "derived/features.csv",
+        "sha256": "0504033443fa38f98216bf969f62338489febe4b9e6fdceaf62c008f9b6b3201"
+      },
+      {
+        "path": "derived/splits.csv",
+        "sha256": "0ccc262fc26e8862aadad7b5418fdf11057e7fdc2b0b50520ffce0b98bf68769"
+      },
+      {
+        "path": "derived/derived_manifest.json",
+        "sha256": "dbca951e7960e99f2ef60ccda46327132a80880f92bf5661760d84ffc1d8391d"
+      }
+    ],
+    "manifest": {
+      "path": "manifest/manifest_a75c6408fb59ab8f.json",
+      "sha256": "ea709574ba7b088c2c75ff6e784f867c0bfd4c7af0eeaecd6122ca2594b3aaec"
+    },
+    "validation_full_report": {
+      "path": "reports/validation_full_a75c6408fb59ab8f.json",
+      "sha256": "0489c2bb51de585ff15bc6447efc59dd1fb4010fa6024bfe56cb79070acb425d"
+    },
+    "raw_evidence": [
+      {
+        "path": "raw/expanded-v1/session_20261004T023727Z_9dfda60e.jsonl",
+        "sha256": "9c78e8d460fa5f16a02bb1b6bafedea7ff80d600e7ca9aa694a52b31d532297c"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T025539Z_ef421008.jsonl",
+        "sha256": "33447bbd3e209c82e81285245ef94284ce89a5c9fef80dc931a2b06a0c6608c3"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T030340Z_4c7eeb6d.jsonl",
+        "sha256": "498eb43d8dbb18bf6d5ebb2b85690f9ec660b4083d207ccf6d0df142f18c2624"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T031501Z_ac63d0c3.jsonl",
+        "sha256": "87a01c8d580e8087a4fbad39b277dcb0806d98ecafebae8a598323a9564e995e"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T033156Z_fa7e49ba.jsonl",
+        "sha256": "dcb47b9cd96d692a12d7f56ae9777e78f67891882db3a2d704716b30a551e5fd"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T040524Z_07d13699.jsonl",
+        "sha256": "dad6666fb4631046e21408c5dc787c9c8def4f1947cfeade92877b21c479b480"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T041620Z_b3010386.jsonl",
+        "sha256": "4be4811cdf2af705a8b60cb9bbc27a80cf8163775db4d63772ce46742d13e514"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T044059Z_ddc38872.jsonl",
+        "sha256": "a8bf56695058b1d16b0c39ea54f821124ee9cf06014a3501c3df4f9ce460c8a7"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T045534Z_831e299c.jsonl",
+        "sha256": "3584316fd5abe37a89ec148eafd44b9e0304e8081cdf58a66868ac4c5211db55"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T050954Z_8358a0b7.jsonl",
+        "sha256": "989344db23d614de4198ddf8492fd324c80e21341369f563a2c2d11bc71e5fcb"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T052538Z_53c69cd7.jsonl",
+        "sha256": "8d3b8aea6b8425dcdda95b172eabc7544e07437352b0f621a5ed14eccb0e7750"
+      },
+      {
+        "path": "raw/expanded-v1/session_20261004T053942Z_ed0617c6.jsonl",
+        "sha256": "44d3e8db6c959af5eace1305b567d9b43d73866cadf04545afe0bb4c4a4d8c2a"
+      }
+    ]
+  },
+  "repository_files": {
+    "workload_specification": {
+      "path": "config/expanded_release_v1.yaml",
+      "sha256": "1fc68f72fbd9eeda624892cdf280510fb55e695d690f0e23945e518cc033a791"
+    },
+    "feature_registry": {
+      "path": "config/feature_registry.yaml",
+      "sha256": "8b87b11d69e53d7470083b0ad6345966c9e3e94ca966a3bfec499a04a21e643b"
+    }
+  },
+  "supplementary_provenance_outside_package": {
+    "full_collection_approval": {
+      "data_root_path": "manifests/expanded/approvals/FULL_COLLECTION_a75c6408fb59ab8f.json",
+      "sha256": "9112e8346475789d18f4cddcc2253985570ce60ab7eaf16fa95abb8ee6db1100",
+      "included_in_archive": false
+    }
+  },
+  "expected_counts": {
+    "cases": 4944,
+    "observation_status": {
+      "complete": 4940,
+      "right_censored": 4
+    },
+    "split_role": {
+      "development": 4784,
+      "heldout_rq2": 160
+    },
+    "semantic_groups": {
+      "development": 194,
+      "heldout_rq2": 5
+    },
+    "development_observation_status": {
+      "complete": 4784
+    },
+    "heldout_rq2_observation_status": {
+      "complete": 156,
+      "right_censored": 4
+    },
+    "development_keys_per_fold_group": {
+      "0": 960,
+      "1": 960,
+      "2": 960,
+      "3": 960,
+      "4": 944
+    },
+    "development_hr_1s_class": {
+      "negative": 4391,
+      "positive": 393
+    },
+    "development_hr_1s_positive_groups": 106,
+    "development_hr_10s_class": {
+      "negative": 4784
+    },
+    "measured_executions": 14828,
+    "probe_executions": 4944,
+    "feature_columns": 69
+  },
+  "original_validation": {
+    "status": "STOP",
+    "stop_codes": [
+      "G-08"
+    ],
+    "failed_checks": [],
+    "warning_checks": [],
+    "created_at_utc": "2026-10-04T05:49:00+00:00",
+    "freeze": "not invoked; expanded-freeze refuses a STOP release and no RELEASE_FROZEN.json exists"
+  },
+  "scope": {
+    "permitted": [
+      {
+        "task": "runtime_regression",
+        "target": "ln(labels.median_ms)",
+        "rows": "split_role == development (all observation_status == complete)"
+      },
+      {
+        "task": "high_runtime_classification_1s",
+        "target": "labels.hr_1s_class (positive versus negative)",
+        "threshold_ms": 1000.0,
+        "rows": "split_role == development"
+      }
+    ],
+    "unsupported": [
+      {
+        "task": "high_runtime_classification_10s",
+        "status": "NOT_YET_EVALUABLE",
+        "gate": "G-08",
+        "reason": "no development case reaches 10 s; the four 10 s positives are all heldout_rq2"
+      }
+    ],
+    "frozen_thresholds_ms": [
+      1000.0,
+      10000.0
+    ],
+    "pending": [
+      "final expanded model scores",
+      "LLM rewrite results (RQ2)"
+    ]
+  },
+  "splits": {
+    "source": "derived/splits.csv (frozen at manifest time; never regenerated)",
+    "join_key": "modeling_key",
+    "required_columns": [
+      "modeling_key",
+      "semantic_group_id",
+      "structure_family",
+      "query_instance_id",
+      "template_id",
+      "split_role",
+      "fold_group",
+      "fold_family",
+      "fold_seen_template"
+    ],
+    "primary_fold_column": "fold_group",
+    "stricter_fold_column": "fold_family",
+    "diagnostic_fold_column": "fold_seen_template",
+    "n_folds": 5,
+    "rq1_rows": "split_role == development",
+    "excluded_from_rq1": {
+      "split_role": "heldout_rq2",
+      "excluded_from": [
+        "model fitting",
+        "preprocessing fitting",
+        "calibration",
+        "feature selection",
+        "hyperparameter or model selection",
+        "threshold choice"
+      ]
+    }
+  },
+  "features": {
+    "source": "derived/features.csv",
+    "columns_listed_in": "derived/derived_manifest.json#feature_columns",
+    "feature_columns": [
+      "sql_length_chars",
+      "sql_token_count",
+      "sql_literal_count",
+      "sql_select_count",
+      "sql_subquery_count",
+      "sql_join_keyword_count",
+      "sql_where_count",
+      "sql_exists_count",
+      "sql_in_count",
+      "sql_not_count",
+      "sql_like_count",
+      "sql_group_by_count",
+      "sql_order_by_count",
+      "sql_has_limit",
+      "sql_distinct_count",
+      "sql_has_cte",
+      "sql_set_operation_count",
+      "sql_window_count",
+      "sql_case_count",
+      "sql_and_count",
+      "sql_or_count",
+      "sql_function_call_count",
+      "sql_aggregate_call_count",
+      "est_total_cost_log",
+      "est_startup_cost_log",
+      "est_plan_rows_log",
+      "est_plan_width",
+      "est_node_count",
+      "est_max_depth",
+      "est_sum_node_rows_log",
+      "est_max_node_rows_log",
+      "est_join_count",
+      "est_scan_count",
+      "est_subplan_count",
+      "est_relation_count",
+      "est_workers_planned",
+      "est_parallel_aware_count",
+      "est_hashed_aggregate_count",
+      "est_n_aggregate",
+      "est_n_append",
+      "est_n_bitmap_combine",
+      "est_n_bitmap_heap_scan",
+      "est_n_bitmap_index_scan",
+      "est_n_cte_scan",
+      "est_n_function_scan",
+      "est_n_gather",
+      "est_n_gather_merge",
+      "est_n_group",
+      "est_n_hash",
+      "est_n_hash_join",
+      "est_n_incremental_sort",
+      "est_n_index_only_scan",
+      "est_n_index_scan",
+      "est_n_limit",
+      "est_n_materialize",
+      "est_n_memoize",
+      "est_n_merge_join",
+      "est_n_nested_loop",
+      "est_n_other",
+      "est_n_result",
+      "est_n_seq_scan",
+      "est_n_setop",
+      "est_n_sort",
+      "est_n_subquery_scan",
+      "est_n_unique",
+      "est_n_values_scan",
+      "est_n_window_agg",
+      "snap_scale_factor",
+      "cfg_work_mem_kb"
+    ],
+    "contract": "config/feature_registry.yaml: role feature, single availability class A-D",
+    "baseline_cost_column": "derived/estimates.csv est_total_cost; calibrated baselines use ln(est_total_cost), whereas the feature est_total_cost_log is log1p(est_total_cost)"
+  }
+}

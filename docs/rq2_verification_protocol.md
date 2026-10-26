@@ -1,14 +1,33 @@
 # RQ2 verification protocol
 
-**RQ2 (planned).** Does an uncertainty-aware gate that decides *when* to ask an
-LLM for a rewrite produce more verified runtime improvement — with fewer wasted
-calls and fewer slowdowns — than never rewriting, rewriting everything, or
-gating on PostgreSQL's own cost estimate or on a point prediction?
+**RQ2 (primary, planned).** Do LLM-assisted SQL rewrites preserve the query's
+semantics and lower its measured runtime? Every generated candidate is counted
+through the full denominator below. Success means **verified equivalent** (on
+the stated snapshots, with checked preconditions) **and measurably faster**
+(paired timings above the noise threshold).
 
-**Status:** `NOT_YET_EVALUABLE`. No LLM is integrated or called in this
-milestone. The poster milestone implements and demonstrates only the
-**verification and benchmarking method** on hand-written pairs labelled
-`MANUAL_REFERENCE_REWRITE`.
+**Secondary experiment (planned).** Given the primary results, does an
+uncertainty-aware gate that decides *when* to ask an LLM for a rewrite yield
+more verified runtime improvement, with fewer wasted calls and fewer slowdowns,
+than never rewriting, rewriting everything, or gating on PostgreSQL's own cost
+estimate or on a point prediction? This comparison depends on the primary
+experiment and on RQ1 predictions. It is not the primary research question.
+
+**Status:** `NOT_YET_EVALUABLE`. No LLM is integrated or called. The poster
+milestone implements and demonstrates only the **verification and benchmarking
+method**, on hand-written pairs labelled `MANUAL_REFERENCE_REWRITE`.
+
+## Manual results are not LLM results
+
+The manual reference results (September 23, 2026, SF 0.1) were: 4
+snapshot-equivalent cases, 2 faster and 2 slower, and 1 non-equivalent negative
+control rejected. They show that the harness measures and refuses correctly.
+They say **nothing** about LLM rewrite quality and must never be pooled with, or
+reported as, LLM outcomes. Every record carries `rewrite_source`
+(`MANUAL_REFERENCE_REWRITE` or the reserved `LLM_REWRITE`). Every RQ2 table is
+reported separately per source. The 25 manual pairs of the expanded release are
+collected as dataset keys and are `NOT_YET_VERIFIED`. Five of them are reserved
+for the RQ2 holdout.
 
 ## Full denominator (every stage is reported with counts)
 
@@ -57,7 +76,10 @@ study sets the recommendation threshold from the measured noise floor of the
 relevant runtime bin (the pilot's noise q-error is reported by the audit); the
 poster milestone uses a fixed, documented 1.10 threshold.
 
-## Planned policy comparison (RQ2 proper)
+## Secondary experiment: planned gating-policy comparison
+
+This experiment runs only after the primary RQ2 denominator exists for LLM
+candidates, and only on the RQ2-reserved holdout groups.
 
 | Policy | Rule |
 |---|---|

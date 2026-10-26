@@ -2,13 +2,27 @@
 
 The goal is to predict a SQL query's execution cost before it runs, and to recommend a cheaper rewrite only after checking that its results match and that it is faster.
 
-> **Current state: poster-evidence milestone.** This repository holds a
-> reproducible PostgreSQL 16 / TPC-H evidence pipeline with three parts: an
-> independent audit of the historical pilot, a small newly collected smoke
-> dataset, and a harness that verifies hand-written query rewrites. Large-scale
-> modelling, high-runtime detection and LLM-generated rewrites are **planned,
-> not implemented**. [Evidence status](#evidence-status) separates what has been
-> measured from what is planned.
+> **Current state: RQ1 v1 modeling and evaluation complete; RQ2 pending.**
+> This repository holds a reproducible PostgreSQL 16 / TPC-H evidence
+> pipeline:
+> - an independent audit of the historical pilot;
+> - a small smoke dataset;
+> - a harness that verifies hand-written query rewrites;
+> - the **expanded release**: 4,944 determined cases, collected on 2026-10-04.
+>
+> The release's full validation is **STOP at gate G-08**: no development case
+> reaches 10 s. On 2026-10-22, the single official **RQ1 v1** run (runtime
+> regression and 1 s high-runtime classification) ended `COMPLETE` at commit
+> `ad66662`. See [docs/rq1_results_v1.md](docs/rq1_results_v1.md).
+>
+> 10 s classification stays `NOT_YET_EVALUABLE`. LLM-generated rewrite results
+> (RQ2) are **pending**. [Evidence status](#evidence-status) separates what has
+> been measured from what is planned.
+>
+> New to the project? Start with [docs/team_handoff.md](docs/team_handoff.md)
+> and the setup guide for your system: Windows,
+> [docs/teammate_setup.md](docs/teammate_setup.md); macOS or Linux,
+> [docs/teammate_setup_posix.md](docs/teammate_setup_posix.md).
 
 ---
 
@@ -23,8 +37,10 @@ often break down on complex workloads. The project aims to:
    only after its results have been compared with the original's and it has
    been measured to be faster.
 
-This milestone builds the measurement and verification foundation for both.
-It does not yet train or deploy a production model, and it does not call an LLM.
+The repository builds the measurement and verification foundation for both.
+RQ1 v1 has trained and evaluated runtime and 1 s models under grouped
+cross-validation, and has saved unscored hand-off refits for integration.
+Nothing is deployed as a production service, and no LLM is called.
 
 ---
 
@@ -38,7 +54,8 @@ sources and are never pooled into one statistic.
 | **Historical reference pilot** | Collected earlier by the team on TPC-H SF 0.1 | 220 query instances, 22 templates, 660 measured runs | `reference_pilot/` (read-only, kept byte-for-byte) |
 | **Poster smoke dataset** | Newly collected; results previously reported on **September 23, 2026** | 30 modeling keys, 17 templates, 14 semantic groups, 90 measured executions | Raw evidence in `QCP_DATA_ROOT`, outside the repository |
 | **Manual rewrite verification** | Results previously reported on **September 23, 2026** | 4 snapshot-equivalent cases: 2 rewrites faster, 2 slower. 1 non-equivalent negative control, which the harness rejected | Raw evidence in `QCP_DATA_ROOT`; summary in `reports/poster/` (git-ignored) |
-| **Final study** | Planned; nothing collected | About 4,000–5,000 modeling keys across at least 150 groups | [docs/final_dataset_plan.md](docs/final_dataset_plan.md) |
+| **Expanded release (final study data)** | Collected on 2026-10-04 (UTC); audited 2026-10-21; full validation **STOP at G-08** (only the 10 s gate); not frozen | 4,944 determined cases (4,940 complete, 4 right-censored) in 199 semantic groups: 4,784 development cases and 160 reserved RQ2 cases | [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md); distributed as `expanded_release.zip` ([asset catalogue](docs/handoff_assets_v1.json)) |
+| **RQ1 v1 results** | Official run `COMPLETE` on 2026-10-22 (UTC) at commit `ad66662`; verifiable with the documented input, manifest and reproduction checks ([section 15](docs/rq1_results_v1.md#15-verification-and-available-evidence)) | 4,784 development cases; 6 regression and 6 classification models; 3 stored fold schemes; 8 unscored hand-off refits | [docs/rq1_results_v1.md](docs/rq1_results_v1.md); distributed as `rq1_results_review_20261022_100326_043.zip` |
 
 How to read these figures:
 
@@ -50,8 +67,15 @@ How to read these figures:
 * The pilot figures are the values recorded in `reference_pilot/output/`.
   `pilot-audit` recomputes them independently from the raw files. It lists every
   mismatch with a previously reported value and never overwrites one.
-* A previous run of the unit-test suite reported **142 passing tests**. The
-  suite was not re-run while this README was prepared.
+* The expanded-release figures come from its full validation report and were
+  re-verified in the audit of 2026-10-21. That audit rebuilt every derived file
+  byte-for-byte from the raw evidence at source checkpoint `972c00b` and ran the
+  unit-test suite: **239 passed**. (The poster milestone earlier reported 142
+  passing tests.)
+* The RQ1 v1 figures come from the official run's saved outputs, identified by
+  run id, source revision and output-manifest hash in
+  [docs/rq1_results_v1.md](docs/rq1_results_v1.md#16-run-identity-and-artifacts).
+  They are cross-validated results on the development cases only.
 * Several files (`POSTER_RUNBOOK.md`, `docs/`, `tests/fixtures/README.md`) say
   the code was written but not executed by its author. That describes how the
   code was written. The results above come from later manual runs.
@@ -69,6 +93,14 @@ The pipeline keeps what a model may see apart from what it must predict.
   configuration, and **D** is a plain `EXPLAIN` estimate, which does not run the
   query. `contract.py` rejects unregistered columns and any class-E field before
   a feature matrix is built.
+* **Planner cost is a permitted input.**
+  - PostgreSQL's estimated costs from a plain `EXPLAIN` are known before
+    execution.
+  - The RQ1 learned models use `est_total_cost_log` and `est_startup_cost_log`,
+    together with the other pre-execution features.
+  - RQ1 tests whether those additional features and learned relationships
+    improve on calibrated cost-only baselines. It does not test a model built
+    without planner information.
 * **Labels are measured with `EXPLAIN ANALYZE`.** Each smoke key gets one plain
   `EXPLAIN (SETTINGS, FORMAT JSON)`, one unmeasured probe, then three measured
   `EXPLAIN (ANALYZE, BUFFERS, WAL, TIMING OFF, SUMMARY ON, SETTINGS, FORMAT JSON)`
@@ -124,15 +156,17 @@ prove it. See [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol
 ├── pyproject.toml             Package metadata, dependencies, `qcp` entry point, pytest settings
 ├── docker-compose.yml         PostgreSQL 16 bench-db and evidence-db (127.0.0.1 only) and TPC-H tools
 ├── .env.example               Template for the git-ignored .env (placeholder values only)
-├── config/                    Smoke manifest definition, feature registry, claim registers, final-study plan
+├── config/                    Smoke and expanded-release specs, feature registry, claim registers, RQ1 input record
 ├── docker/tpch-tools/         Image that builds the pinned TPC-H dbgen and loads the data
 ├── docs/                      Architecture, data contract and dictionary, RQ1/RQ2 protocols, claim register
-├── notebooks/                 Poster-evidence notebook (committed without outputs)
+├── notebooks/                 Poster-evidence and expanded-release EDA notebooks (committed without outputs)
 ├── reference_docs/            Planning documents cited by the claim registers (read-only)
 ├── reference_pilot/           Historical pilot: scripts, raw outputs, validation files (read-only)
 ├── reports/                   Generated poster outputs (git-ignored except reports/README.md)
-├── scripts/powershell/        Numbered runbook scripts 01–07
-├── sql/evidence/              Evidence-database migrations V001–V007
+├── requirements/              RQ1 tested-environment constraints (rq1_constraints_v1.txt)
+├── scripts/powershell/        Numbered runbook scripts 01–09
+├── scripts/python/            Standalone helpers (cross-platform handoff-archive extractor)
+├── sql/evidence/              Evidence-database migrations V001–V008
 ├── src/query_cost_predictor/  Python package: CLI, collector, pilot audit, rewrite verification, reporting
 └── tests/                     Unit tests with synthetic fixtures only
 ```
@@ -159,6 +193,13 @@ From [pyproject.toml](pyproject.toml) and [POSTER_RUNBOOK.md](POSTER_RUNBOOK.md)
 Python dependencies are declared in `pyproject.toml`: numpy, scipy,
 scikit-learn, pandas, matplotlib, PyYAML and `psycopg[binary]` 3.2. The
 `notebook` extra adds JupyterLab and ipykernel; the `dev` extra adds pytest.
+
+The RQ1 study environment was Python 3.11.9 with scikit-learn 1.9.1, installed
+with `requirements/rq1_constraints_v1.txt` as constraints. An RQ1 evidence run
+refuses any other scikit-learn version. Offline RQ1 work (inspecting or
+reproducing results) needs neither Docker nor a database. Follow Part A of
+[docs/teammate_setup.md](docs/teammate_setup.md) on Windows, or
+[docs/teammate_setup_posix.md](docs/teammate_setup_posix.md) on macOS or Linux.
 
 ---
 
@@ -218,6 +259,13 @@ The package also installs it as `qcp`.
 
 * Raw evidence, manifests and derived datasets are written to `QCP_DATA_ROOT`,
   outside the repository. Raw evidence is append-only.
+* RQ1 runs write to `QCP_DATA_ROOT\results\rq1\rq1-modeling-v1\<run_id>\`. A
+  convenience copy of each report goes to `reports\rq1\`, which is
+  git-ignored. See [docs/rq1_run_guide.md](docs/rq1_run_guide.md).
+* The expanded dataset and the official RQ1 v1 results are distributed as two
+  ZIP files, never committed. Their names, sizes, SHA-256 values and
+  publication status are in
+  [docs/handoff_assets_v1.json](docs/handoff_assets_v1.json).
 * Poster tables, figures and validation reports go to `reports/poster/`, which
   is git-ignored.
 * The evidence database lives in a Docker volume. `docker compose down --volumes`
@@ -228,29 +276,67 @@ The package also installs it as `qcp`.
 
 ---
 
-## Planned work
+## Completed and remaining work
 
-None of the following has been collected or evaluated yet.
+The expanded dataset is collected (see [Evidence status](#evidence-status) and
+[docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md)).
+It holds 4,944 determined cases on TPC-H SF 0.1 and SF 1, from:
+- 22 TPC-H-derived templates;
+- 128 generated structural groups;
+- 24 point/range probes;
+- 25 manual rewrite pairs, five of them reserved for RQ2.
 
-* **Expanded dataset.** About 4,700 planned modeling keys across about 187
-  structural/semantic groups: TPC-H at SF 0.1 and SF 1, generated structural
-  families, point/range probes, an audited published workload (source and
-  license to be confirmed), and anti-pattern/rewrite families, five of them held
-  out entirely. See [docs/final_dataset_plan.md](docs/final_dataset_plan.md).
-* **Further model evaluation.** Grouped cross-validation on unseen query
-  structures, compared against raw and calibrated PostgreSQL cost baselines.
-  Candidates include Elastic Net, XGBoost or CatBoost, and a timeout-aware AFT
-  model. The random split serves only as a leakage diagnostic. See
+Its design is in [docs/expanded_release_spec.md](docs/expanded_release_spec.md),
+and the collection steps actually run are in
+[EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md).
+
+### RQ1 runtime regression (complete, v1)
+
+* **Design.** Six regression models were evaluated on the 4,784 development
+  cases: a constant baseline, a raw planner-cost ranking, two calibrated
+  plan-cost baselines, ridge and gradient boosting. Inputs are pinned by
+  [config/rq1_modeling_input_v1.json](config/rq1_modeling_input_v1.json).
+* **Folds.** The folds are the three schemes stored in `splits.csv`, never
+  regenerated:
+  - `fold_group` (primary): whole semantic groups held out;
+  - `fold_family` (robustness check): whole structure families held out;
+  - `fold_seen_template` (labelled diagnostic): whole query instances held out,
+    so templates are seen in training.
+* **Not in v1.** A random row-wise split is **deferred beyond v1**, and no
+  random-split numbers exist.
+* **References.** Results:
+  [docs/rq1_results_v1.md](docs/rq1_results_v1.md). Method:
   [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md).
-* **High-runtime detection.** Classifiers for queries at or above 1 s and
-  10 s, evaluated mainly by PR-AUC, recall and false-negative rate. This is not
-  yet evaluable with current evidence.
-* **LLM-generated rewrite evaluation (RQ2).** An uncertainty-aware gate decides
-  when to request an LLM rewrite. Every candidate then goes through the same
-  verification harness, and the full denominator is reported from generated
-  candidates to recommended ones. See
-  [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md).
-* **Deferred:** API, dashboard and CI.
+
+### High-runtime detection
+
+* **1 s (complete, v1).** There are 393 development positives in 106 groups,
+  all at SF 1. The classifier is evaluated mainly by average precision (AP),
+  with recall and false-negative rate at a predeclared 0.5 threshold.
+  - SF 0.1 has no positives, so detection performance there is not
+    established.
+  - Good ranking does not make the probabilities reliable. See the scope and
+    calibration notes in
+    [section 7](docs/rq1_results_v1.md#7-high-runtime-classification-at-1-s-primary-fold_group).
+* **10 s.** It remains `NOT_YET_EVALUABLE` (gate G-08) and is not trained,
+  reported or claimed.
+
+### Still open
+
+* **LLM-generated rewrite evaluation (RQ2): pending.**
+  - Primary question: do LLM-assisted rewrites preserve SQL semantics and lower
+    measured runtime?
+  - Every candidate goes through the same verification harness, and the full
+    denominator is reported, from generated candidates to recommended ones.
+  - A secondary experiment compares uncertainty-aware gating policies.
+  - Manual reference results are never pooled with LLM results.
+  - The 25 manual expanded-release pairs remain `NOT_YET_VERIFIED`.
+  - See [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md).
+* **Integration and reporting.** Model integration, the presentation of
+  predictions, and the API, dashboard and CI are not started.
+
+Owners, acceptance criteria and dependencies are in
+[docs/team_handoff.md](docs/team_handoff.md).
 
 ---
 
@@ -264,9 +350,24 @@ None of the following has been collected or evaluated yet.
 | [docs/data_dictionary.md](docs/data_dictionary.md) | Field definitions |
 | [docs/poster_evidence_scope.md](docs/poster_evidence_scope.md) | What the milestone covers and excludes |
 | [docs/poster_claim_register.md](docs/poster_claim_register.md) | Evidence labels and permitted poster claims |
-| [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md) | Planned prediction evaluation |
+| [docs/rq1_results_v1.md](docs/rq1_results_v1.md) | **RQ1 v1 results**: a scientific summary of the official run, with run identity and artifacts |
+| [docs/teammate_setup.md](docs/teammate_setup.md) | Windows PowerShell setup: offline results and reproduction (Part A); database collection and RQ2 execution (Part B) |
+| [docs/teammate_setup_posix.md](docs/teammate_setup_posix.md) | macOS/Linux offline setup: verification, extraction, input check, run verification, reproduction checks |
+| [docs/pr2_review_response.md](docs/pr2_review_response.md) | Response to the PR #2 review: action, files, validation and pending items for each point |
+| [docs/proposal_poster_update_notes.md](docs/proposal_poster_update_notes.md) | Optional reference wording for the external proposal, overview and slides. Their updates are deferred and are not a merge prerequisite |
+| [docs/team_handoff.md](docs/team_handoff.md) | What is complete, what remains, owners, acceptance criteria, the model input/output contract |
+| [docs/handoff_assets_v1.json](docs/handoff_assets_v1.json) | Dataset and results assets: file names, sizes, SHA-256, study identity, publication status |
+| [docs/rq1_evaluation_protocol.md](docs/rq1_evaluation_protocol.md) | RQ1 evaluation protocol, fixed before the run. Its status table predates the official run |
+| [docs/rq1_run_guide.md](docs/rq1_run_guide.md) | How to run and verify the RQ1 study (official run complete) |
 | [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md) | Rewrite verification protocol |
-| [docs/final_dataset_plan.md](docs/final_dataset_plan.md) | Planned final dataset |
+| [docs/final_dataset_plan.md](docs/final_dataset_plan.md) | Earlier final-dataset plan (superseded for collection) |
+| [EXPANDED_DATASET_RUNBOOK.md](EXPANDED_DATASET_RUNBOOK.md) | Staged runbook for the expanded release (run 2026-10-03/04) |
+| [docs/expanded_release_spec.md](docs/expanded_release_spec.md) | Expanded release design, arithmetic, labels, splits, gates |
+| [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md) | Collected release: identities, hashes, audit findings, provenance limits |
+| [config/rq1_modeling_input_v1.json](config/rq1_modeling_input_v1.json) | Static RQ1 modeling-input record (pinned evidence and permitted scope) |
+| [docs/next_phase_audit.md](docs/next_phase_audit.md) | Audit of reuse, gaps, differences from the plan, risks |
+| [docs/query_workload_evidence_register.md](docs/query_workload_evidence_register.md) | Evidence behind each expensive-query family |
+| [docs/tuesday_technical_brief.md](docs/tuesday_technical_brief.md) | Short brief on observed results |
 
 ---
 

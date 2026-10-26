@@ -169,7 +169,16 @@ version, filename, sha256, applied_at (C, provenance).
   `est_max_node_rows_log`, `est_join_count`, `est_scan_count`,
   `est_subplan_count`, `est_relation_count`, `est_workers_planned`,
   `est_parallel_aware_count`, `est_hashed_aggregate_count`, and 29 node-type
-  counts `est_n_<category>`; plus the raw baseline input `est_total_cost`.
+  counts `est_n_<category>`. These 44 class-D model features, the 23 class-A
+  features, `snap_scale_factor` and `cfg_work_mem_kb` make up the 69-column
+  learned-model allowlist (`config/rq1_modeling_input_v1.json`, exact names and
+  order).
+* **Separate baseline input:** the raw `est_total_cost` (`estimates.csv`) is a
+  registered class-D pre-execution field, used only by the calibrated cost
+  baselines as ln(`est_total_cost`). It is **outside** the learned-model
+  allowlist; the learned models see `est_total_cost_log` (log1p) instead.
+  Keeping it out preserves the declared 69-column feature contract. It is not a
+  leakage issue: the value is available before execution.
 
 ## Derived smoke files (`QCP_DATA_ROOT/derived/poster_smoke/<manifest>/<label_version>/<inputs>/`)
 
@@ -188,3 +197,32 @@ version, filename, sha256, applied_at (C, provenance).
 assignments, out-of-fold predictions, claim check), `pilot_metrics.csv` (per
 model × split × scope, with keys, groups and keys per group), `pilot_data_quality.csv`,
 `pilot_claim_check.md`, `figures/pilot/*.png`.
+
+## Expanded release (`config/expanded_release_v1.yaml`; migration `V008`)
+
+`V008` adds no table or column. It allows `collection_session.session_kind =
+'expanded_collection'` (which requires a manifest) and `dataset_release.release_kind =
+'expanded_release'`.
+
+Derived files: `QCP_DATA_ROOT/derived/expanded/<manifest>/expanded-label-v1/<inputs>/`
+
+| File | Content |
+|---|---|
+| `keys.csv` | smoke key columns + release annotations + `in_sample` |
+| `executions.csv` | as for the smoke release (E) |
+| `labels.csv` | smoke label columns + release annotations + `observation_status`, `statement_censor_bound_ms`, `exec_censor_lower_bound_ms`, `censor_bound_basis`, `hr_1s_class`, `hr_10s_class`, `failure_class`, `first_error_sqlstate`, `estimate_planning_time_ms` (E/D; never features) |
+| `estimates.csv`, `features.csv` | as for the smoke release; same A-D feature set |
+| `splits.csv` | `split_role`, `fold_group` (primary), `fold_family` (stricter), `fold_seen_template` (diagnostic only) |
+| `derived_manifest.json` | inputs, outputs, counts, frozen thresholds, censoring rule |
+
+| Column | Class | Role | Meaning |
+|---|---|---|---|
+| component | A | group_key | tpch_derived, structural, probe, rewrite |
+| structure_family | A | group_key | coarse family (join path for generated groups) |
+| output_shape, index_variant, parameter_regime | A | annotation | design annotations; actual selectivity and plan are measured |
+| split_role, fold_group, fold_family, fold_seen_template, in_sample | C | split_control | never predictors |
+| observation_status | E | label | complete, right_censored, failed, incomplete, not_attempted |
+| statement_censor_bound_ms / exec_censor_lower_bound_ms | E | label | statement-level bound (= timeout) / execution-time bound used by the label |
+| hr_1s_class, hr_10s_class | E | label | positive, negative, indeterminate, unlabeled (frozen thresholds) |
+| failure_class, first_error_sqlstate | E | diagnostic | why a key failed; never a positive |
+| estimate_planning_time_ms | D | diagnostic | plain-EXPLAIN planning time; bounds censoring; never a feature |
