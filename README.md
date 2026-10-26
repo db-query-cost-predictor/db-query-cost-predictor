@@ -370,7 +370,3 @@ Owners, acceptance criteria and dependencies are in
 | [docs/tuesday_technical_brief.md](docs/tuesday_technical_brief.md) | Short brief on observed results |
 
 ---
-
-## License
-
-MIT. See [LICENSE](LICENSE).
