@@ -1,0 +1,12 @@
+{
+  "version": "rq2-assets-v1",
+  "measurement_identity": "c3c7b0e3f04e506ada4f106403a95fafa03ab5516ceba46ad93602636f1ed24c",
+  "evidence": {
+    "filename": "RQ2_Final_Evidence_20261106.zip",
+    "bytes": 6397506,
+    "sha256": "a0642e61640a5074c08262f4530d4e4c46accd6025ef2ac4463f5ba61b0e542f",
+    "location": null,
+    "publication_status": "TEAM_DISTRIBUTION_LOCATION_PENDING"
+  },
+  "scope": "Closed Q06-Q20 study only; pilot, development and post-study engineering checks excluded"
+}

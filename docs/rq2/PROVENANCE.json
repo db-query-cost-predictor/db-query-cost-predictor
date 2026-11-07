@@ -1,0 +1,145 @@
+{
+  "engineering_release": "1.0.1",
+  "measurement_identity": "c3c7b0e3f04e506ada4f106403a95fafa03ab5516ceba46ad93602636f1ed24c",
+  "scope": "Post-study extraction/refactor, not the byte-identical implementation used to measure the final study. Original source snapshot remains in the separate evidence archive.",
+  "adapted_modules": {
+    "decisions.py": {
+      "measurement_source": "rq2_v2/decisions.py",
+      "measurement_source_sha256": "8ba864f59a3782eed5e364b98a8479b92c738ba7c0c4625a780913e8b27ca0a0",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "timing.py": {
+      "measurement_source": "rq2_v2/timing.py",
+      "measurement_source_sha256": "284449b9b6635d9e1340ecbbb5a7041476444cea7de9de4b63b92ce03998374d",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "scheduler.py": {
+      "measurement_source": "rq2_v2/scheduler.py",
+      "measurement_source_sha256": "c049e1c29fbcac4a7406113f3ac3911b72fb6a03ae5ca0acd236eb4b45324ec0",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "journal.py": {
+      "measurement_source": "rq2_v2/journal.py",
+      "measurement_source_sha256": "b0c161d9ca11040160ea58cc81a959786a12f0949a9e28fc56204e5233fb8e22",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "storage.py": {
+      "measurement_source": "rq2_v2/storage.py",
+      "measurement_source_sha256": "cbe9e9d74c33e0166cc3c610b166235bc19cf735bd033061e7023b1756dd3d06",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "context.py": {
+      "measurement_source": "rq2_v2/context.py",
+      "measurement_source_sha256": "1e61aef48e3423386b0f572639b32395bae402b0cf5680d65ca5aec551fa3f31",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "prompts.py": {
+      "measurement_source": "rq2_v2/prompts.py",
+      "measurement_source_sha256": "da9bd8b0d263ce6a8a87508fca7abc497e5c96b2e19be1147d6dea736da0ae7d",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "fixtures.py": {
+      "measurement_source": "rq2_v2/fixtures.py",
+      "measurement_source_sha256": "511e3be16f78c35080214513e4e57d75571e27a76134b945ff0dfcf32193bd12",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "fixture_registry.py": {
+      "measurement_source": "rq2_v2/fixture_registry.py",
+      "measurement_source_sha256": "e43cd22b5e28ad6ba9d18ae2eef0c72ed385eced60da5605206a0bc1dc2809c8",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "verification.py": {
+      "measurement_source": "rq2_v2/verification.py",
+      "measurement_source_sha256": "0c03598f65043f12b576e465b5416aa755fad18ee6751af4430f7b0cef211f6d",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "provider.py": {
+      "measurement_source": "rq2_v2/provider.py",
+      "measurement_source_sha256": "0fbe9304b845bcfbdc461d904bd9db45e2371a7c21862061d92f060152b5fd15",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "environment.py": {
+      "measurement_source": "rq2_v2/environment.py",
+      "measurement_source_sha256": "24df0a541ce5bece6c5ebf128658d46474f79c88cb0d0666af381158b286a3fe",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "safety.py": {
+      "measurement_source": "safety.py",
+      "measurement_source_sha256": "458e8906503a06e69b435a8ded4025c8a40d46c719e6bd8e69b6b883962e2185",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "hashing.py": {
+      "measurement_source": "hashing.py",
+      "measurement_source_sha256": "9756f8ddb476c26472db657eca60f8de572676b203e1ceb3748b764b6feaffc6",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "sqltext.py": {
+      "measurement_source": "sqltext.py",
+      "measurement_source_sha256": "5460485c850765bea5de1e1baa50451eb9e70867ae8fa62487d3347b09c640f9",
+      "adaptation": "Import namespace and documentation; reject unsupported Unicode-escaped identifiers in engineering release 1.0.1"
+    },
+    "comparison.py": {
+      "measurement_source": "rewrite_verify.py",
+      "measurement_source_sha256": "711493538f1b9a5b496b83491b122d2edc8a7c49497afbe12c7a3716cd5b519e",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "plans.py": {
+      "measurement_source": "plans.py",
+      "measurement_source_sha256": "ce5d1817e04c8cb0c9c265712b4f1eebd730a212e97b84a6b840540efac9c57b",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "executor.py": {
+      "measurement_source": "executor.py",
+      "measurement_source_sha256": "dc17c312cf7396dc35598bd31e35e5f0cb0fb7669c27855e057e0740c3aecb3b",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "snapshot.py": {
+      "measurement_source": "snapshot.py",
+      "measurement_source_sha256": "2fb3bb04d4dcf047bcece175818ed5ffa177bc8d3f6b6c6010891db748d9e0e7",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "response.py": {
+      "measurement_source": "groq_provider.py",
+      "measurement_source_sha256": "4776c5b1bc1d4197ea3859af24e8f97d58bd8fb67d7890f484b5a0c5ca130086",
+      "adaptation": "Extracted provider contract; validate response shapes and duplicate fields in engineering release 1.0.1"
+    },
+    "host.py": {
+      "measurement_source": "rq2_v2/probes.py",
+      "measurement_source_sha256": "510e9c4c169f5a0e6926e3d320d2c7f1a279952cdd96b97d4d23d67c2a604897",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "protocol.py": {
+      "measurement_source": "expanded_rq2.py",
+      "measurement_source_sha256": "97dfd87d22c794492f12113ffc2e1c0e605646e050f31a1794afb4b366441cfb",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    },
+    "stages.py": {
+      "measurement_source": "rq2_v2/rehearsal.py",
+      "measurement_source_sha256": "1f22f84d74eb92b3a750398f3af8597fc35d9527eda6be9320137d01d7e8f55e",
+      "adaptation": "Import namespace, module documentation and explicitly documented extraction only"
+    }
+  },
+  "engineering_changes": [
+    "Standalone import namespace and minimal SQL/database primitives",
+    "Selected-query contract and registered-template guard",
+    "Generic journaled runner and live adapter",
+    "Explicit private credential loading",
+    "Single-writer database advisory lock",
+    "Session negative control and compact reports",
+    "Offline archive replay without historical imports",
+    "Reject Unicode-escaped identifiers before SQL execution",
+    "Validate provider response shapes and reject duplicate candidate JSON fields",
+    "Reject Windows device names and case-insensitive query-directory collisions"
+  ],
+  "validation_limits": "Historical results replay unchanged. Engineering checks include one fresh provider output correctly rejected and a separate handwritten control completing live timing. These checks are excluded from study results; independent teammate acceptance remains pending.",
+  "parent_engineering_release": {
+    "version": "1.0.0",
+    "archive_sha256": "48524b8c8ba21ac71abc002c07a68a08b1d27e9e2d1e5355f5adb71b5d1acf58"
+  },
+  "repository_integration": {
+    "base_commit": "ba311fdcb8f7b1803f019764f4e5db8123c654fe",
+    "layout": "src/rq2_pipeline, tests/rq2, docs/rq2, examples/rq2",
+    "runtime_changes": "Canonical LF line endings; no runtime logic change from reviewed standalone release 1.0.1",
+    "test_changes": "Scoped fixture directory, package-relative helper imports and repository-relative config path"
+  }
+}

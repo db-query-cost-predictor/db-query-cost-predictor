@@ -1,0 +1,514 @@
+{
+  "columns": [
+    {
+      "table": "customer",
+      "name": "c_custkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "customer",
+      "name": "c_name",
+      "type_sql": "character varying(25)",
+      "not_null": true
+    },
+    {
+      "table": "customer",
+      "name": "c_address",
+      "type_sql": "character varying(40)",
+      "not_null": true
+    },
+    {
+      "table": "customer",
+      "name": "c_nationkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "customer",
+      "name": "c_phone",
+      "type_sql": "character(15)",
+      "not_null": true
+    },
+    {
+      "table": "customer",
+      "name": "c_acctbal",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "customer",
+      "name": "c_mktsegment",
+      "type_sql": "character(10)",
+      "not_null": true
+    },
+    {
+      "table": "customer",
+      "name": "c_comment",
+      "type_sql": "character varying(117)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_orderkey",
+      "type_sql": "bigint",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_partkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_suppkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_linenumber",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_quantity",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_extendedprice",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_discount",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_tax",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_returnflag",
+      "type_sql": "character(1)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_linestatus",
+      "type_sql": "character(1)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_shipdate",
+      "type_sql": "date",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_commitdate",
+      "type_sql": "date",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_receiptdate",
+      "type_sql": "date",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_shipinstruct",
+      "type_sql": "character(25)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_shipmode",
+      "type_sql": "character(10)",
+      "not_null": true
+    },
+    {
+      "table": "lineitem",
+      "name": "l_comment",
+      "type_sql": "character varying(44)",
+      "not_null": true
+    },
+    {
+      "table": "nation",
+      "name": "n_nationkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "nation",
+      "name": "n_name",
+      "type_sql": "character(25)",
+      "not_null": true
+    },
+    {
+      "table": "nation",
+      "name": "n_regionkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "nation",
+      "name": "n_comment",
+      "type_sql": "character varying(152)",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_orderkey",
+      "type_sql": "bigint",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_custkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_orderstatus",
+      "type_sql": "character(1)",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_totalprice",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_orderdate",
+      "type_sql": "date",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_orderpriority",
+      "type_sql": "character(15)",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_clerk",
+      "type_sql": "character(15)",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_shippriority",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "orders",
+      "name": "o_comment",
+      "type_sql": "character varying(79)",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_partkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_name",
+      "type_sql": "character varying(55)",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_mfgr",
+      "type_sql": "character(25)",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_brand",
+      "type_sql": "character(10)",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_type",
+      "type_sql": "character varying(25)",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_size",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_container",
+      "type_sql": "character(10)",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_retailprice",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "part",
+      "name": "p_comment",
+      "type_sql": "character varying(23)",
+      "not_null": true
+    },
+    {
+      "table": "partsupp",
+      "name": "ps_partkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "partsupp",
+      "name": "ps_suppkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "partsupp",
+      "name": "ps_availqty",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "partsupp",
+      "name": "ps_supplycost",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "partsupp",
+      "name": "ps_comment",
+      "type_sql": "character varying(199)",
+      "not_null": true
+    },
+    {
+      "table": "region",
+      "name": "r_regionkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "region",
+      "name": "r_name",
+      "type_sql": "character(25)",
+      "not_null": true
+    },
+    {
+      "table": "region",
+      "name": "r_comment",
+      "type_sql": "character varying(152)",
+      "not_null": true
+    },
+    {
+      "table": "supplier",
+      "name": "s_suppkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "supplier",
+      "name": "s_name",
+      "type_sql": "character(25)",
+      "not_null": true
+    },
+    {
+      "table": "supplier",
+      "name": "s_address",
+      "type_sql": "character varying(40)",
+      "not_null": true
+    },
+    {
+      "table": "supplier",
+      "name": "s_nationkey",
+      "type_sql": "integer",
+      "not_null": true
+    },
+    {
+      "table": "supplier",
+      "name": "s_phone",
+      "type_sql": "character(15)",
+      "not_null": true
+    },
+    {
+      "table": "supplier",
+      "name": "s_acctbal",
+      "type_sql": "numeric(15,2)",
+      "not_null": true
+    },
+    {
+      "table": "supplier",
+      "name": "s_comment",
+      "type_sql": "character varying(101)",
+      "not_null": true
+    }
+  ],
+  "primary_keys": [
+    [
+      "customer",
+      [
+        "c_custkey"
+      ]
+    ],
+    [
+      "lineitem",
+      [
+        "l_orderkey",
+        "l_linenumber"
+      ]
+    ],
+    [
+      "nation",
+      [
+        "n_nationkey"
+      ]
+    ],
+    [
+      "orders",
+      [
+        "o_orderkey"
+      ]
+    ],
+    [
+      "part",
+      [
+        "p_partkey"
+      ]
+    ],
+    [
+      "partsupp",
+      [
+        "ps_partkey",
+        "ps_suppkey"
+      ]
+    ],
+    [
+      "region",
+      [
+        "r_regionkey"
+      ]
+    ],
+    [
+      "supplier",
+      [
+        "s_suppkey"
+      ]
+    ]
+  ],
+  "foreign_keys": [
+    {
+      "name": "customer_nation_fk",
+      "table": "customer",
+      "columns": [
+        "c_nationkey"
+      ],
+      "parent": "nation",
+      "parent_columns": [
+        "n_nationkey"
+      ]
+    },
+    {
+      "name": "lineitem_orders_fk",
+      "table": "lineitem",
+      "columns": [
+        "l_orderkey"
+      ],
+      "parent": "orders",
+      "parent_columns": [
+        "o_orderkey"
+      ]
+    },
+    {
+      "name": "lineitem_partsupp_fk",
+      "table": "lineitem",
+      "columns": [
+        "l_partkey",
+        "l_suppkey"
+      ],
+      "parent": "partsupp",
+      "parent_columns": [
+        "ps_partkey",
+        "ps_suppkey"
+      ]
+    },
+    {
+      "name": "nation_region_fk",
+      "table": "nation",
+      "columns": [
+        "n_regionkey"
+      ],
+      "parent": "region",
+      "parent_columns": [
+        "r_regionkey"
+      ]
+    },
+    {
+      "name": "orders_customer_fk",
+      "table": "orders",
+      "columns": [
+        "o_custkey"
+      ],
+      "parent": "customer",
+      "parent_columns": [
+        "c_custkey"
+      ]
+    },
+    {
+      "name": "partsupp_part_fk",
+      "table": "partsupp",
+      "columns": [
+        "ps_partkey"
+      ],
+      "parent": "part",
+      "parent_columns": [
+        "p_partkey"
+      ]
+    },
+    {
+      "name": "partsupp_supp_fk",
+      "table": "partsupp",
+      "columns": [
+        "ps_suppkey"
+      ],
+      "parent": "supplier",
+      "parent_columns": [
+        "s_suppkey"
+      ]
+    },
+    {
+      "name": "supplier_nation_fk",
+      "table": "supplier",
+      "columns": [
+        "s_nationkey"
+      ],
+      "parent": "nation",
+      "parent_columns": [
+        "n_nationkey"
+      ]
+    }
+  ]
+}

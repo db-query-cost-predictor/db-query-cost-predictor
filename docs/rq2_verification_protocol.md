@@ -1,5 +1,7 @@
 # RQ2 verification protocol
 
+**Version note (6 November 2026).** The document below records the historical manual-reference harness and earlier planning. The completed local LLM study uses [the final protocol](rq2/PROTOCOL.md), with its [results and scope](rq2/RESULTS.md). Its 11 A/A + 11 A/B sign-count rule replaces the earlier median/noise-band proposal for that study. The manual harness and its historical results are unchanged.
+
 **RQ2 (primary, planned).** Do LLM-assisted SQL rewrites preserve the query's
 semantics and lower its measured runtime? Every generated candidate is counted
 through the full denominator below. Success means **verified equivalent** (on
@@ -13,7 +15,7 @@ than never rewriting, rewriting everything, or gating on PostgreSQL's own cost
 estimate or on a point prediction? This comparison depends on the primary
 experiment and on RQ1 predictions. It is not the primary research question.
 
-**Status:** `NOT_YET_EVALUABLE`. No LLM is integrated or called. The poster
+**Historical status (poster milestone):** `NOT_YET_EVALUABLE`. No LLM was integrated or called in that milestone. The poster
 milestone implements and demonstrates only the **verification and benchmarking
 method**, on hand-written pairs labelled `MANUAL_REFERENCE_REWRITE`.
 

@@ -1,0 +1,4 @@
+# Tested RQ2 runtime and test dependencies.
+psycopg==3.2.13
+psycopg-binary==3.2.13
+pytest==9.1.1

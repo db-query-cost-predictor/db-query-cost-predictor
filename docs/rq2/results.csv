@@ -1,0 +1,61 @@
+query_id,query_type,database,configuration,status,verification_passed,original_median_ms,rewrite_median_ms,reason
+Q06,Date arithmetic,tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,26.285,1.463,At least nine pairs strictly exceed the primary runtime reduction
+Q06,Date arithmetic,tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,23.045,1.356,At least nine pairs strictly exceed the primary runtime reduction
+Q06,Date arithmetic,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,328.652,13.28,At least nine pairs strictly exceed the primary runtime reduction
+Q06,Date arithmetic,tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,420.894,16.592,At least nine pairs strictly exceed the primary runtime reduction
+Q07,Correlated aggregate,tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,88.825,56.248,At least nine pairs strictly exceed the primary runtime reduction
+Q07,Correlated aggregate,tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,61.258,49.855,At least nine pairs strictly exceed the primary runtime reduction
+Q07,Correlated aggregate,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,3730.896,456.538,At least nine pairs strictly exceed the primary runtime reduction
+Q07,Correlated aggregate,tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,3899.062,476.368,At least nine pairs strictly exceed the primary runtime reduction
+Q08,NOT IN subquery,tpch_sf0_1,C1_baseline,CONSISTENTLY_FASTER,True,5.912,5.586,At least nine strict improvements; minimum effect not established
+Q08,NOT IN subquery,tpch_sf0_1,C2_reduced_work_mem,CONSISTENTLY_SLOWER,True,6.214,7.367,At least nine strictly slower pairs; ties are not losses
+Q08,NOT IN subquery,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,161.797,111.352,At least nine pairs strictly exceed the primary runtime reduction
+Q08,NOT IN subquery,tpch_sf1,C2_reduced_work_mem,INCONCLUSIVE,False,,,original timeout during snapshot-result verification (statement limit 15000 ms); performance timing not started; SQLSTATE 57014
+Q09,Join elimination (original INNER JOIN),tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,8.234,5.247,At least nine pairs strictly exceed the primary runtime reduction
+Q09,Join elimination (original INNER JOIN),tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,9.828,5.262,At least nine pairs strictly exceed the primary runtime reduction
+Q09,Join elimination (original INNER JOIN),tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,118.291,64.407,At least nine pairs strictly exceed the primary runtime reduction
+Q09,Join elimination (original INNER JOIN),tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,70.285,42.786,At least nine pairs strictly exceed the primary runtime reduction
+Q10,Materialized CTE,tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,17.762,11.959,At least nine pairs strictly exceed the primary runtime reduction
+Q10,Materialized CTE,tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,34.38,18.207,At least nine pairs strictly exceed the primary runtime reduction
+Q10,Materialized CTE,tpch_sf1,C1_baseline,CONSISTENTLY_FASTER,True,304.165,266.483,At least nine strict improvements; minimum effect not established
+Q10,Materialized CTE,tpch_sf1,C2_reduced_work_mem,CONSISTENTLY_FASTER,True,318.987,268.918,At least nine strict improvements; minimum effect not established
+Q11,Date arithmetic,tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,21.928,1.267,At least nine pairs strictly exceed the primary runtime reduction
+Q11,Date arithmetic,tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,25.067,1.236,At least nine pairs strictly exceed the primary runtime reduction
+Q11,Date arithmetic,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,250.12,11.583,At least nine pairs strictly exceed the primary runtime reduction
+Q11,Date arithmetic,tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,335.526,12.285,At least nine pairs strictly exceed the primary runtime reduction
+Q12,Correlated aggregate,tpch_sf0_1,C1_baseline,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q12,Correlated aggregate,tpch_sf0_1,C2_reduced_work_mem,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q12,Correlated aggregate,tpch_sf1,C1_baseline,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q12,Correlated aggregate,tpch_sf1,C2_reduced_work_mem,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q13,NOT IN subquery,tpch_sf0_1,C1_baseline,CONSISTENTLY_FASTER,True,6.596,6.114,At least nine strict improvements; minimum effect not established
+Q13,NOT IN subquery,tpch_sf0_1,C2_reduced_work_mem,NO_CLEAR_DIFFERENCE,True,6.817,7.344,Neither direction has nine strict wins
+Q13,NOT IN subquery,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,190.507,136.778,At least nine pairs strictly exceed the primary runtime reduction
+Q13,NOT IN subquery,tpch_sf1,C2_reduced_work_mem,INCONCLUSIVE,False,,,original timeout during snapshot-result verification (statement limit 15000 ms); performance timing not started; SQLSTATE 57014
+Q14,Join elimination (original INNER JOIN),tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,8.471,5.437,At least nine pairs strictly exceed the primary runtime reduction
+Q14,Join elimination (original INNER JOIN),tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,10.374,5.713,At least nine pairs strictly exceed the primary runtime reduction
+Q14,Join elimination (original INNER JOIN),tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,121.726,65.335,At least nine pairs strictly exceed the primary runtime reduction
+Q14,Join elimination (original INNER JOIN),tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,75.851,46.821,At least nine pairs strictly exceed the primary runtime reduction
+Q15,Materialized CTE,tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,19.256,11.838,At least nine pairs strictly exceed the primary runtime reduction
+Q15,Materialized CTE,tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,30.062,18.044,At least nine pairs strictly exceed the primary runtime reduction
+Q15,Materialized CTE,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,404.289,245.657,At least nine pairs strictly exceed the primary runtime reduction
+Q15,Materialized CTE,tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,278.76,244.602,At least nine pairs strictly exceed the primary runtime reduction
+Q16,Date arithmetic,tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,20.647,1.356,At least nine pairs strictly exceed the primary runtime reduction
+Q16,Date arithmetic,tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,21.202,1.307,At least nine pairs strictly exceed the primary runtime reduction
+Q16,Date arithmetic,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,243.364,12.087,At least nine pairs strictly exceed the primary runtime reduction
+Q16,Date arithmetic,tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,253.79,11.441,At least nine pairs strictly exceed the primary runtime reduction
+Q17,Correlated aggregate,tpch_sf0_1,C1_baseline,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q17,Correlated aggregate,tpch_sf0_1,C2_reduced_work_mem,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q17,Correlated aggregate,tpch_sf1,C1_baseline,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q17,Correlated aggregate,tpch_sf1,C2_reduced_work_mem,FIXTURE_REJECTED,False,,,Failed semantic fixtures check
+Q18,NOT IN subquery,tpch_sf0_1,C1_baseline,CONSISTENTLY_FASTER,True,7.727,7.35,At least nine strict improvements; minimum effect not established
+Q18,NOT IN subquery,tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,8417.209,8.56,At least nine pairs strictly exceed the primary runtime reduction
+Q18,NOT IN subquery,tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,179.262,122.69,At least nine pairs strictly exceed the primary runtime reduction
+Q18,NOT IN subquery,tpch_sf1,C2_reduced_work_mem,INCONCLUSIVE,False,,,original timeout during snapshot-result verification (statement limit 15000 ms); performance timing not started; SQLSTATE 57014
+Q19,Join elimination (original INNER JOIN),tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,2.962,1.657,At least nine pairs strictly exceed the primary runtime reduction
+Q19,Join elimination (original INNER JOIN),tpch_sf0_1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,2.845,1.608,At least nine pairs strictly exceed the primary runtime reduction
+Q19,Join elimination (original INNER JOIN),tpch_sf1,C1_baseline,MEETS_PRIMARY_CRITERION,True,52.004,40.848,At least nine pairs strictly exceed the primary runtime reduction
+Q19,Join elimination (original INNER JOIN),tpch_sf1,C2_reduced_work_mem,MEETS_PRIMARY_CRITERION,True,49.742,35.592,At least nine pairs strictly exceed the primary runtime reduction
+Q20,Materialized CTE,tpch_sf0_1,C1_baseline,MEETS_PRIMARY_CRITERION,True,10.731,7.822,At least nine pairs strictly exceed the primary runtime reduction
+Q20,Materialized CTE,tpch_sf0_1,C2_reduced_work_mem,CONSISTENTLY_FASTER,True,16.256,14.396,At least nine strict improvements; minimum effect not established
+Q20,Materialized CTE,tpch_sf1,C1_baseline,CONSISTENTLY_FASTER,True,167.941,154.206,At least nine strict improvements; minimum effect not established
+Q20,Materialized CTE,tpch_sf1,C2_reduced_work_mem,CONSISTENTLY_FASTER,True,263.169,243.13,At least nine strict improvements; minimum effect not established

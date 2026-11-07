@@ -250,3 +250,8 @@ data/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Private RQ2 credentials and generated evaluation runs
+.env.*
+*.env
+runs/

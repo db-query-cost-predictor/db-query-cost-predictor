@@ -1,0 +1,56 @@
+{
+  "version": "rq2-pipeline-protocol-1",
+  "generation": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "prompt_version": "rq2-generation-v2",
+    "template_sha256": "466f15745ba03ee5255dc4737be2dc0136db808b073bb4ca2df527444e906a11",
+    "temperature": 0.2,
+    "reasoning_effort": "low",
+    "max_completion_tokens": 2048,
+    "max_calls_per_original": 1,
+    "automatic_feedback_or_retries": false
+  },
+  "fixture_registry": {
+    "version": "rq2-fixture-registry-v2"
+  },
+  "policy": {
+    "aa_pairs": 11,
+    "ab_pairs": 11,
+    "required_strict_wins": 9,
+    "primary_runtime_reduction_percent": 10,
+    "supplementary_runtime_reduction_percents": [
+      0,
+      5,
+      10,
+      15,
+      20
+    ],
+    "ties": "Retain eleven pairs; equal values count in neither direction",
+    "incomplete": "INCONCLUSIVE; no replacement pairs",
+    "aa_gate": "Block if nine pairs exceed the primary reduction in either direction",
+    "query_recommendation": "All four declared environments must pass"
+  },
+  "measurement": {
+    "databases": [
+      "tpch_sf0_1",
+      "tpch_sf1"
+    ],
+    "work_mem": [
+      "4MB",
+      "256kB"
+    ],
+    "jit": "off",
+    "statement_timeout_ms": 15000,
+    "warmups_per_form": 2,
+    "aa_pairs": 11,
+    "ab_pairs": 11
+  },
+  "host": {
+    "postgresql_version_num": 160015,
+    "container_nano_cpus": 2000000000,
+    "container_memory_bytes": 4294967296,
+    "power_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "require_ac": true
+  }
+}

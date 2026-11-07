@@ -1,0 +1,2195 @@
+{
+  "version": "rq2-final-freeze-v1",
+  "scope": "FINAL_EVALUATION_Q06_Q20",
+  "frozen_at": "2026-11-06T19:22:32.258442+00:00",
+  "config": {
+    "version": "rq2-final-protocol-v1",
+    "status": "FROZEN",
+    "generation": {
+      "prompt_version": "rq2-generation-v2",
+      "model": "openai/gpt-oss-120b",
+      "provider": "groq",
+      "max_calls_per_original": 1,
+      "automatic_feedback_or_retries": false,
+      "temperature": 0.2,
+      "reasoning_effort": "low",
+      "max_completion_tokens": 2048,
+      "response_fields": [
+        "sql",
+        "explanation"
+      ],
+      "template_sha256": "466f15745ba03ee5255dc4737be2dc0136db808b073bb4ca2df527444e906a11",
+      "record_response_fields": [
+        "model",
+        "system_fingerprint",
+        "id",
+        "usage",
+        "choices.finish_reason"
+      ],
+      "token_cap_review": {
+        "pilot_completion_tokens_min": 214,
+        "pilot_completion_tokens_max": 299,
+        "pilot_truncated_responses": 0,
+        "decision": "Retain 2048; pilot and v2 development responses completed without truncation",
+        "development_rehearsal": {
+          "completion_tokens_min": 287,
+          "completion_tokens_max": 479,
+          "truncated_responses": 0,
+          "decision": "Retain 2048 for the proposed final configuration based on all five v2 development responses"
+        }
+      },
+      "reproducibility_scope": "Recheck stored SQL outputs and replay decisions from stored observations; exact regeneration is not guaranteed"
+    },
+    "proposed_decision_policy": {
+      "aa_pairs": 11,
+      "ab_pairs": 11,
+      "required_strict_wins": 9,
+      "primary_runtime_reduction_percent": 10,
+      "supplementary_runtime_reduction_percents": [
+        0,
+        5,
+        10,
+        15,
+        20
+      ],
+      "ties": "Retain eleven pairs; equal values count in neither direction",
+      "incomplete": "INCONCLUSIVE; no replacement pairs",
+      "aa_gate": "Block if nine pairs exceed the primary reduction in either direction",
+      "query_recommendation": "All four declared environments must pass"
+    },
+    "proposed_environment": {
+      "databases": [
+        "tpch_sf0_1",
+        "tpch_sf1"
+      ],
+      "work_mem": [
+        "4MB",
+        "256kB"
+      ],
+      "jit": "off",
+      "statement_timeout_ms": 15000
+    },
+    "decisions_pending": [],
+    "query_selection": {
+      "development_original_ids": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05"
+      ],
+      "evaluation_original_ids": [
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13",
+        "Q14",
+        "Q15",
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q19",
+        "Q20"
+      ],
+      "evaluation_originals": 15,
+      "planned_environment_cases": 60,
+      "disclosure": "Pilot-informed method; all five families were inspected. These are new instances within seen families, not unseen schemas or workloads."
+    },
+    "measurement_schedule": {
+      "warmups_original": 2,
+      "aa_pairs": 11,
+      "warmups_candidate_after_aa": 2,
+      "ab_pairs": 11,
+      "pair_order": "Zero-based even pairs A_THEN_B; odd pairs B_THEN_A; actual order and pair index are required observations",
+      "environment_order": [
+        "tpch_sf0_1/C1_baseline",
+        "tpch_sf0_1/C2_reduced_work_mem",
+        "tpch_sf1/C1_baseline",
+        "tpch_sf1/C2_reduced_work_mem"
+      ],
+      "fresh_connection_per_environment_case": true,
+      "concurrent_benchmarks": false,
+      "interruption": "Mark a started partial case INCONCLUSIVE; resume only unstarted cases; preserve all attempts"
+    },
+    "fixture_registry": {
+      "version": "rq2-fixture-registry-v2",
+      "validated_fixture_count": 22,
+      "catalog_sha256": "8a1b3dd559fc2349c2258d7caf3e66014cec8b6139a1e6e7449e405627b51a2d",
+      "schema_assertions_per_fixture": 24,
+      "handwritten_mutation_controls": 17,
+      "coverage_statement": "Agreement on finite schema-validated fixtures, not semantic proof"
+    },
+    "diagnostics": {
+      "exactly_nine_primary_wins_including_pair_zero": {
+        "enabled": true,
+        "affects_acceptance": false,
+        "purpose": "Report potential first-pair sensitivity without changing the declared schedule"
+      }
+    },
+    "execution_journal": {
+      "append_only": true,
+      "single_writer": true,
+      "fsync_start_before_execution": true,
+      "recover_started_as": "INCONCLUSIVE",
+      "rerun_started_items": false,
+      "hash_chain": true
+    },
+    "environment_guard": {
+      "required_for_final_measurement": "AC_POWER",
+      "capture_fields": [
+        "PostgreSQL version and catalog identity",
+        "Docker Desktop and engine versions",
+        "Engine CPU/memory and container CPU/memory/swap limits",
+        "Container image identity",
+        "Windows power scheme, overlay mode and AC/battery state"
+      ],
+      "on_change": "STOP_STUDY_AND_PRESERVE_EVIDENCE",
+      "integration_status": "Development runner checks full environment and snapshot before/after timing cases, effective settings before each case, and power before each measured execution; transient changes between probes may not be detected"
+    },
+    "predeclared_limitations": {
+      "predictable_timeout": "The original NOT IN family timed out at SF1/256kB in pilot and rehearsal. Further timeouts are expected, not assumed. Retain all planned cases, the 15000 ms limit, and the all-four recommendation rule; do not extend or impute times.",
+      "runtime_scope": "Instrumented PostgreSQL execution time, not API/planning/end-to-end time",
+      "development_noise_context": {
+        "complete_pairs": 209,
+        "primary_effect_either_direction": 48,
+        "largest_directional_case_count": 4,
+        "scope": "DEVELOPMENT_Q01_Q05_ONLY_NOT_FINAL_DENOMINATOR",
+        "definition": "100*B < 90*A or 100*A < 90*B; primary effect in either direction",
+        "interpretation": "Descriptive, not a statistical test; within-case pairs need not be independent"
+      },
+      "power": "Retain Balanced on AC, as in the rehearsal; hold scheme and overlay identity constant",
+      "generalization": "New instances within five already-seen families and the same schema; no unseen-family/schema or general-equivalence claim",
+      "privacy": "Host executable paths are supplied locally at execution time and excluded from this identity; no redaction of hashed fields is needed",
+      "funnel_units": "Generation and response validity per original query; subsequent gates per environment case"
+    }
+  },
+  "queries": [
+    {
+      "query_instance_id": "qi_1d9b5608e280494c4159f237a9ae82b13974fb22dc1809466f7a91cff97dca46",
+      "semantic_group_id": "sg_x1_rw_rw04_date_arithmetic",
+      "query_type": "Date arithmetic",
+      "parameters": {
+        "days": 11,
+        "start_date": "1996-12-25"
+      },
+      "sql": "SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue\nFROM lineitem\nWHERE l_shipdate + 11 BETWEEN DATE '1996-12-25' AND DATE '1996-12-25' + 6",
+      "original_sha256": "c620896153a6700f59b5800510604dbad5a64370af2807e5c9ee5f7183e02481",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_5db972dc2fb24f58c1c597101822b7e2c851b422140c425268de2ee6e84b6656",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_a70ad3112ef052798f41525e4073ffe8833643de536327980264504e92b40aba",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_3571168c4cbf57e738ea4baccabfc877584d4630f8fbc0408adc27ef4c9fcbb9",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_0df304bec1193514a916bc2dc72c629528678996098554dc2b00ff81efc96af2",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "l_shipdate_date_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_shipdate' AND data_type = 'date' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q06"
+    },
+    {
+      "query_instance_id": "qi_720bff12001e7a6b2c59e6bd9ca59785fbd6fc25a4618c5e818ae147545b33bf",
+      "semantic_group_id": "sg_x1_rw_rw10_correlated_sum_unindexed",
+      "query_type": "Correlated aggregate",
+      "parameters": {
+        "nation_key": 14
+      },
+      "sql": "SELECT s.s_suppkey,\n       (SELECT sum(l.l_quantity) FROM lineitem l WHERE l.l_suppkey = s.s_suppkey) AS supplied_qty\nFROM supplier s\nWHERE s.s_nationkey = 14",
+      "original_sha256": "ddd0382b09471ca3d77ebe1a734028f2723db4d17069ccfe406ec6f85726609d",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_c844e35d0b0d010aa942f2f1e188562515c074f9d1c34287ccce049fd63db8af",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_dde83db1544e5662dc6582591a4cc64e428008381cd7ec8658b08fa89a211b3c",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_53902f6ad3ceebda9643abb77b21f54823540ec3399c40a5eb9a774f7e9edaff",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_fb37214730bebebf02f84f2971975f1e9a8c969ec5ad76b5d8cd1c4315e8f4a7",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "supplier_primary_key",
+          "sql": "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.supplier'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (s_suppkey)'"
+        }
+      ],
+      "id": "Q07"
+    },
+    {
+      "query_instance_id": "qi_99bda0c7ec813a0e5f539b8b115aceb4c0ab088b550cc9abb956d7dd30765a86",
+      "semantic_group_id": "sg_x1_rw_rw12_not_in_to_not_exists",
+      "query_type": "NOT IN subquery",
+      "parameters": {
+        "days": 235,
+        "start_date": "1996-03-10"
+      },
+      "sql": "SELECT count(*) AS n_customers\nFROM customer c\nWHERE c.c_custkey NOT IN (SELECT o.o_custkey FROM orders o\n                          WHERE o.o_orderdate >= DATE '1996-03-10' AND o.o_orderdate < DATE '1996-03-10' + 235)",
+      "original_sha256": "899e94b9b1028b8e8b5a511c3e3bf0381c2b069c92966ff01b2de0263c62d7b8",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_cf87488b1fcc764b83e777b0ef129a88678bfe099688b70ce44806060093bc45",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_025ecbcf1572da4074752358231fc575f15f31579557a865e4716a08ae0d090f",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_9ac0682aa091c2a5d299eb2e9ec975ae1f07ee7b9949aff741b0b19d60547a9e",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_f42325f7c2b0de92a55d03c3617741eb8e3178f529100d5f243d01f2da29c68b",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "o_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"
+        },
+        {
+          "name": "c_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'customer' AND column_name = 'c_custkey' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q08"
+    },
+    {
+      "query_instance_id": "qi_1e787ed983e7fb011c3388014f19259316a6ca7ead156a949f78696b206bdb62",
+      "semantic_group_id": "sg_x1_rw_rw21_inner_join_elimination",
+      "query_type": "Inner join",
+      "parameters": {
+        "days": 295,
+        "start_date": "1997-05-07"
+      },
+      "sql": "SELECT count(*) AS n_orders, avg(o.o_totalprice) AS avg_price, max(o.o_shippriority) AS max_priority\nFROM orders o\nJOIN customer c ON c.c_custkey = o.o_custkey\nWHERE o.o_orderdate >= DATE '1997-05-07' AND o.o_orderdate < DATE '1997-05-07' + 295",
+      "original_sha256": "374d4a57699236d6fbb5985c9322c582cb9b7b6a10a0f5de8ebe9a70f32df221",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_acd41eddff67ac541045676f05e30352eed62325331648f410f797c7ece2ade0",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_8bef09977a08a083354097f6441a741a31e4f5491fcdae89cc1461204b8c5989",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_895f8f683c49303dc4becef13ba47199074f2d6daf13007af2a8e8281b93155e",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_d1d46192bcd05b073ecfd20f3f9b1500abbbe3dbb429e424a870fac94bd9e917",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "orders_customer_foreign_key",
+          "sql": "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.orders'::regclass AND contype = 'f' AND confrelid = 'public.customer'::regclass"
+        },
+        {
+          "name": "o_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q09"
+    },
+    {
+      "query_instance_id": "qi_63323253d93456b25b93b2476a03fe5e38b1bb6a12b1548960bc70431770f24c",
+      "semantic_group_id": "sg_x1_rw_rw23_cte_materialized",
+      "query_type": "Materialized CTE",
+      "parameters": {
+        "days": 132,
+        "quantity": 14,
+        "start_date": "1993-12-29"
+      },
+      "sql": "WITH recent AS MATERIALIZED (\n    SELECT l_orderkey, l_quantity, l_extendedprice\n    FROM lineitem\n    WHERE l_shipdate >= DATE '1993-12-29' AND l_shipdate < DATE '1993-12-29' + 132\n)\nSELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue\nFROM recent\nWHERE l_quantity >= 14",
+      "original_sha256": "e3c249c32f16f58d45407ba15e34ea6c64ed5b335db8f410ccd9fd9d6a19af7b",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_a57300b9e4d7d1bed9621eaa051b875f8cfecdb55c6d97aaff72bc355fa62620",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_631619b1ce49d6e9bc1b4aa2187a18f56023baf11055d8bb72dca321404cb92f",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_8a3281a98f318acd3caadf8d58a51a9db1f823a66f0f01420bd6d6c52580e0c1",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_6498955575424b6f4912eed65620624755fa94b8fb8add0f6373874685d0a304",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [],
+      "id": "Q10"
+    },
+    {
+      "query_instance_id": "qi_b0db11668c9fcb8dbe6207ffcceb114ddca1fbd65667f612ee04e2ecc5836bce",
+      "semantic_group_id": "sg_x1_rw_rw04_date_arithmetic",
+      "query_type": "Date arithmetic",
+      "parameters": {
+        "days": 13,
+        "start_date": "1993-11-30"
+      },
+      "sql": "SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue\nFROM lineitem\nWHERE l_shipdate + 13 BETWEEN DATE '1993-11-30' AND DATE '1993-11-30' + 6",
+      "original_sha256": "a5efaf89313d1ceff4bf98a456ce698db95afde5c923758c446931585a89fcbc",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_1df83da7e54d84f38f66bea18ce306f367466237083ac2b1c8f0989c1e689c07",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_d407ac7742780546cef7c1966daa2816b447d0954e98aa351d7e9bc06531f8b8",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_e8fa09635fe10a45d6a063d0019073b1c3bf0d8a1e7026f2ebfafeda524574e3",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_8eb4187c80778f17579316c00257a76f3e3a27f015b4335528ab00a3eef3061a",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "l_shipdate_date_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_shipdate' AND data_type = 'date' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q11"
+    },
+    {
+      "query_instance_id": "qi_3845fc481c327565a4c977088e6280c98d2e7d712c68e579b78c6865594ca92a",
+      "semantic_group_id": "sg_x1_rw_rw10_correlated_sum_unindexed",
+      "query_type": "Correlated aggregate",
+      "parameters": {
+        "nation_key": 19
+      },
+      "sql": "SELECT s.s_suppkey,\n       (SELECT sum(l.l_quantity) FROM lineitem l WHERE l.l_suppkey = s.s_suppkey) AS supplied_qty\nFROM supplier s\nWHERE s.s_nationkey = 19",
+      "original_sha256": "b7fa225a9d27d272d893f087ca4de11f8f947ac547fdda42472a78d40b5b15d9",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_e0b289dc3656f207ff75e86897584f0cd4e1f3bfd939ead437d1380678147ac8",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_eb28ff0c67e23d94541fb37d6b52ef70d83d5608bf85e7e0caafa3afb663cb68",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_1cf4b77574baa190605fde9b2da597a243b89ac1e4a8891374d90041b1a073ab",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_0658289d65e7a3997ebbd85dfaa06fd92e7f3d323a73033c4d5f64334f8603c4",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "supplier_primary_key",
+          "sql": "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.supplier'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (s_suppkey)'"
+        }
+      ],
+      "id": "Q12"
+    },
+    {
+      "query_instance_id": "qi_0d29405f7442a3120af45f0afb979855a1de9e232b4f138439b1b02163cb03c5",
+      "semantic_group_id": "sg_x1_rw_rw12_not_in_to_not_exists",
+      "query_type": "NOT IN subquery",
+      "parameters": {
+        "days": 268,
+        "start_date": "1996-09-04"
+      },
+      "sql": "SELECT count(*) AS n_customers\nFROM customer c\nWHERE c.c_custkey NOT IN (SELECT o.o_custkey FROM orders o\n                          WHERE o.o_orderdate >= DATE '1996-09-04' AND o.o_orderdate < DATE '1996-09-04' + 268)",
+      "original_sha256": "ac39db53576dfaca12bb22688279048d5d7c8df76e875a5ce681cdd34b0d5bfc",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_477124a77e16f78b61a0037de4f6e77b1016dd27ccf47f46d3d83056462d3036",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_75eb15a11abf75ebf31657763fbf2cd378a73cf093ef0b0ed780a8b6f883e3d8",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_daf7baa937272404f722f797f0fea0d09b4cd18d584af639cc9442cac51daad9",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_95386754412e319033abb04581357d061fb1147e314b94d37a76a7f6b7b259fa",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "o_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"
+        },
+        {
+          "name": "c_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'customer' AND column_name = 'c_custkey' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q13"
+    },
+    {
+      "query_instance_id": "qi_212dd89d03bf1309a5985f85572258b4d13392094e07697881da8860ff15a34f",
+      "semantic_group_id": "sg_x1_rw_rw21_inner_join_elimination",
+      "query_type": "Inner join",
+      "parameters": {
+        "days": 323,
+        "start_date": "1995-09-09"
+      },
+      "sql": "SELECT count(*) AS n_orders, avg(o.o_totalprice) AS avg_price, max(o.o_shippriority) AS max_priority\nFROM orders o\nJOIN customer c ON c.c_custkey = o.o_custkey\nWHERE o.o_orderdate >= DATE '1995-09-09' AND o.o_orderdate < DATE '1995-09-09' + 323",
+      "original_sha256": "c07868a5552008141b319f25c81ca8ea2b0d4b47cacb5c6824f2d3a79782e80d",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_538a2f5d47fea7381b66da13f2748187550d2d84121588382213e73e4736d0bd",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_a3e550667c46ce12c004b8c66f1723fb17186470152f7a23e7fdd8d313e83744",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_ec43b13339986d7761cb2ca6f1c67c3cd0d71bd4ae7d5bc73ae2e5a02b031b9f",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_9cbca435ed5c3ccf0c1ae4a48a75717534fa7b532e82d23a4a5c0ae36aaa6936",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "orders_customer_foreign_key",
+          "sql": "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.orders'::regclass AND contype = 'f' AND confrelid = 'public.customer'::regclass"
+        },
+        {
+          "name": "o_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q14"
+    },
+    {
+      "query_instance_id": "qi_d6000c6624c5d3d04a60cfdb84f0d9861e719ca5b4dd67dc6ad7f858f1cab357",
+      "semantic_group_id": "sg_x1_rw_rw23_cte_materialized",
+      "query_type": "Materialized CTE",
+      "parameters": {
+        "days": 147,
+        "quantity": 26,
+        "start_date": "1995-08-14"
+      },
+      "sql": "WITH recent AS MATERIALIZED (\n    SELECT l_orderkey, l_quantity, l_extendedprice\n    FROM lineitem\n    WHERE l_shipdate >= DATE '1995-08-14' AND l_shipdate < DATE '1995-08-14' + 147\n)\nSELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue\nFROM recent\nWHERE l_quantity >= 26",
+      "original_sha256": "b0c121b29bdbf0991270dad2bc165989245583867d13ed5199a2baf0dd02a39d",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_3b053f5649429b5744406bc70d5aa2e878b3477da03b75eaaac33b0c6335efa5",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_9b55d543b9b63b40c20050caa79508704a83cf7678e7cb8e9c28e008b8ceab00",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_7571724abecde6f25bd3d1b37248158af0d84a9c61e5bd86c93af844f18940ea",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_d0b03ebed6fcc28b67ffaee8c7a620c6a961a0305833e22397d1f141d7d866eb",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [],
+      "id": "Q15"
+    },
+    {
+      "query_instance_id": "qi_479e29ee77acc4c0f8a440a1d104db56b032bcfd006ab41028438e186a3610c1",
+      "semantic_group_id": "sg_x1_rw_rw04_date_arithmetic",
+      "query_type": "Date arithmetic",
+      "parameters": {
+        "days": 7,
+        "start_date": "1995-12-14"
+      },
+      "sql": "SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue\nFROM lineitem\nWHERE l_shipdate + 7 BETWEEN DATE '1995-12-14' AND DATE '1995-12-14' + 6",
+      "original_sha256": "6dad1bd987e5195215ef227a429ccb4bbe8a2808f67e672d15bf28412edbfa66",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_a26735b90da5fafff45463db4454fe173594144960675337fa495dfc1e723b74",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_a9d96494ce71e1295a51713d56b73875d4bc73613fa615f1ae6b8234c97f1c34",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_4ea55176c480fe7e0f6066c7e559c0457cbc93c29cda995cf3b76b767052f8c6",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_2e332f7872d0e9f3da110b3667a2720110f9b22b2c2aece0fe6bd25a06286da7",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "l_shipdate_date_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'lineitem' AND column_name = 'l_shipdate' AND data_type = 'date' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q16"
+    },
+    {
+      "query_instance_id": "qi_16867ab812b520d6401a1ed7f8d1abad5b2e43258366967fe7952936552567a3",
+      "semantic_group_id": "sg_x1_rw_rw10_correlated_sum_unindexed",
+      "query_type": "Correlated aggregate",
+      "parameters": {
+        "nation_key": 2
+      },
+      "sql": "SELECT s.s_suppkey,\n       (SELECT sum(l.l_quantity) FROM lineitem l WHERE l.l_suppkey = s.s_suppkey) AS supplied_qty\nFROM supplier s\nWHERE s.s_nationkey = 2",
+      "original_sha256": "39f1b3c6f6e49f069b6f4913059de19e2ac9826e25d76e738518ec0361680ec9",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_34e6b0cbc965b889f587f1a86f754b69152aa23beb81ab08f7f842a6d73c988b",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_ab06590d8e6840a27564bd1090a477778d5058563de552efaca956689a80c524",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_6dabab07747e7ff8fcaf2b160c9be7d5d34086ec6e60d46e6587a795a348d6d8",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_2e5b4bcbe8d518e927e80e427b82040795e60ad03be21d3fad53f9b844cfaf1f",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "supplier_primary_key",
+          "sql": "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.supplier'::regclass AND contype = 'p' AND pg_get_constraintdef(oid) = 'PRIMARY KEY (s_suppkey)'"
+        }
+      ],
+      "id": "Q17"
+    },
+    {
+      "query_instance_id": "qi_ee9e0723f99d7f88eef9694bc5fa8dc0adc4c15aef4ddb4d3f8173223221eb06",
+      "semantic_group_id": "sg_x1_rw_rw12_not_in_to_not_exists",
+      "query_type": "NOT IN subquery",
+      "parameters": {
+        "days": 353,
+        "start_date": "1994-03-07"
+      },
+      "sql": "SELECT count(*) AS n_customers\nFROM customer c\nWHERE c.c_custkey NOT IN (SELECT o.o_custkey FROM orders o\n                          WHERE o.o_orderdate >= DATE '1994-03-07' AND o.o_orderdate < DATE '1994-03-07' + 353)",
+      "original_sha256": "3b06916d2a4c7d38c160631a6730f518e8f6f28729e0cb859fa885e23fb91981",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_381a824039e718c67bc9a7ebc9249752f533a037fc5069e1671fb160b6cd0403",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_ee01bd7bc9470ac70510c6bf65b135931380eac50f836ecaf6dbc96118a832fe",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_00734f8a389d7cba14a9a1d42554cf9275593c4cb3caafea0adfd4eaaf928526",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_708c827616a2e451b5c02cef4c258efc8436b3f1832db91e21fa8b5913b2286b",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "o_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"
+        },
+        {
+          "name": "c_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'customer' AND column_name = 'c_custkey' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q18"
+    },
+    {
+      "query_instance_id": "qi_2fb5dcee95daeea36347afc68e55c93cfe49bba2ff15425aa3481369b94e345b",
+      "semantic_group_id": "sg_x1_rw_rw21_inner_join_elimination",
+      "query_type": "Inner join",
+      "parameters": {
+        "days": 44,
+        "start_date": "1997-10-10"
+      },
+      "sql": "SELECT count(*) AS n_orders, avg(o.o_totalprice) AS avg_price, max(o.o_shippriority) AS max_priority\nFROM orders o\nJOIN customer c ON c.c_custkey = o.o_custkey\nWHERE o.o_orderdate >= DATE '1997-10-10' AND o.o_orderdate < DATE '1997-10-10' + 44",
+      "original_sha256": "c5572b5018fac5c884cdb8f8db29aceeeafd1e2e9ecfd5c7db1457c59993450b",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_dba86a01a66f7c496d2d0f38b75b330dc8878888f8423fd90d681f06a1f34a7a",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_3e18f8c6bab3d2eeb508617a7e7aecd407d63941a02e81dcb35a6784aa824add",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_3c273184227787faab5ade1dbdb6e3240dec9fb49c11f0d9c1bc5af957b51ed3",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_0c6def98c56a50c1e33c94d56ed650cca266269a2b1d9b34fe213f0f30ae6168",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [
+        {
+          "name": "orders_customer_foreign_key",
+          "sql": "SELECT count(*) = 1 FROM pg_constraint WHERE conrelid = 'public.orders'::regclass AND contype = 'f' AND confrelid = 'public.customer'::regclass"
+        },
+        {
+          "name": "o_custkey_not_null",
+          "sql": "SELECT count(*) = 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'o_custkey' AND is_nullable = 'NO'"
+        }
+      ],
+      "id": "Q19"
+    },
+    {
+      "query_instance_id": "qi_4adc1d0e48240ef25567424b32cd75cffc0fd75914e8c6ca80e3475eae8ca5ff",
+      "semantic_group_id": "sg_x1_rw_rw23_cte_materialized",
+      "query_type": "Materialized CTE",
+      "parameters": {
+        "days": 79,
+        "quantity": 10,
+        "start_date": "1994-12-26"
+      },
+      "sql": "WITH recent AS MATERIALIZED (\n    SELECT l_orderkey, l_quantity, l_extendedprice\n    FROM lineitem\n    WHERE l_shipdate >= DATE '1994-12-26' AND l_shipdate < DATE '1994-12-26' + 79\n)\nSELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue\nFROM recent\nWHERE l_quantity >= 10",
+      "original_sha256": "a778ae23fd931495dcc4fa9ab00ac6f8e7d030c1691e813b91744afcf77ab092",
+      "ordering_required": false,
+      "cases": [
+        {
+          "modeling_key": "mk_d4c7225774ba7d4c0fc8599a31d55917bce247fd65f1cbef9a127531dd078ec2",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_ff8a0a65575e057ea3d29dd2f2de7c794f38d9e394ca0f76d4b6ee22615b5818",
+          "database": "tpch_sf0_1",
+          "snapshot_id": "snap_3cab8f4f044e93bec7be5074672059d30abddc63c2d900bc64fd8ea0a9222318",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        },
+        {
+          "modeling_key": "mk_467c3dc84c8a93b86be6e197ecea45bc1845e6e3b65a37846d2e1fbbb0d20176",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_3ca59db0ef4a9bf48e7a404f77778944e38e74015c5867ba7389e77cc345215f",
+          "configuration_name": "C1_baseline"
+        },
+        {
+          "modeling_key": "mk_4b9f224f1ec649726351a09d7f893ca7ff8b50f92712e57f35fe8bb52c5c3bdc",
+          "database": "tpch_sf1",
+          "snapshot_id": "snap_15891e0ba1d0a98600400059a4ee39d2c6ec20047005e47418acb8b9392b01a0",
+          "config_id": "cfg_7e07a9698586c440e17f62ee01dd5c2fdd75bb8ed8a49d5f1d6bd9037da9934a",
+          "configuration_name": "C2_reduced_work_mem"
+        }
+      ],
+      "preconditions": [],
+      "id": "Q20"
+    }
+  ],
+  "queue_sha256": "95f11bac18b3979b441d94cdc36c2d251b7862770d66d3f8fe0a7d16d281b37a",
+  "template_sha256": "466f15745ba03ee5255dc4737be2dc0136db808b073bb4ca2df527444e906a11",
+  "fixture_registry_version": "rq2-fixture-registry-v2",
+  "source_sha256": {
+    "__init__.py": "112453a2300e8c1941ae5e900ddf70215e608525e1db3fe3bc567d7e2b1d30c5",
+    "__main__.py": "8ff982fbb72ead6bf8d546c4926e2eb7a9c39acf2fa609f151ff195b6e53ba71",
+    "claims.py": "cb63be9434a2a367bbfac8be34b9623355ec22a902d994e6adae6eb7d01acbc8",
+    "cli.py": "47bb47da182caa71fcdd55d9636f528177983b75105c5143f7324ef101a18f5b",
+    "config.py": "775f4ab37b18bd8296f94ae179ae4d172d29d72ec384e6b9d6e5e319f51d6a8b",
+    "contract.py": "5b1091aa6ef2654f2bb1bc803a52c954fcc5e67faa43eae5a6444f211941bc2f",
+    "db.py": "f24df9070d252c281aca84d40e337da170f7573ea7330767e7e309cb47dd16c1",
+    "dbinit.py": "115f994ccd14093505688afd93f9c35b698efc3515db696bc35a370067a25bbb",
+    "envfile.py": "65ef17efdb216fcb7e63328f269cadfe5ea8e509342ae7468e5f906d52534b79",
+    "errors.py": "f84b0999ff2d16a8030d3beab328a6c1327245e0384493e36c25442c68051869",
+    "evidence.py": "2f3b236bbef34397a6ca1a5204dfc29c7dec1d527cddc7f8731199fc7053164b",
+    "evidence_store.py": "d499a4b999b044999b21dc2cc6850f6f135f3b8b888afca3ecf8201fcdc81a1e",
+    "executor.py": "dc17c312cf7396dc35598bd31e35e5f0cb0fb7669c27855e057e0740c3aecb3b",
+    "expanded_rq2.py": "97dfd87d22c794492f12113ffc2e1c0e605646e050f31a1794afb4b366441cfb",
+    "final_plan.py": "86f587d4194a6a53cfc94396d601e8e6cc064b872c6d6b6edb58013fb0f34768",
+    "groq_provider.py": "4776c5b1bc1d4197ea3859af24e8f97d58bd8fb67d7890f484b5a0c5ca130086",
+    "hashing.py": "9756f8ddb476c26472db657eca60f8de572676b203e1ceb3748b764b6feaffc6",
+    "labels.py": "25a7f1d51db49b625906684d4d371c92da7cb9e4b98fb74132c9bf72ceaf0667",
+    "llm_experiment.py": "b03d510260b05a294e6fb15d3d2b94e8a075dc737c347f1289286e9b787fe13a",
+    "metrics.py": "34f067e25265ec2338cb236654d2e4f07adf862d218f140ab032d761a4237368",
+    "paths.py": "13c71e60c851bdb8ec6d8e366e9344d726b369d511aa5ff00064cf1f5c5e223c",
+    "pilot_audit.py": "4a67887dc143aa4946cffb6eaa0ede21041e19d295819a05a08be499c24a05ec",
+    "plans.py": "ce5d1817e04c8cb0c9c265712b4f1eebd730a212e97b84a6b840540efac9c57b",
+    "reporting/__init__.py": "f2f6eb7270cd4c153e7d1569939048ef55516e9c998fc2af7af28529833b5a5a",
+    "reporting/analysis.py": "afe51be888c0cf0073c34aa426d6bf83cb4fec957b3191aefe575b39163ad2b6",
+    "reporting/builder.py": "ad97b587e3ccb6028623a8ca173edeb37319f0b19666764106ae46fa2ad38a46",
+    "reporting/figures.py": "068fc252bbd95d4c99d98d5afe8340f3a947d7d64dcb73a36cec3c03905af55a",
+    "reporting/loaders.py": "1529bf122020e8131eb4816b51be976a7b3c6cd422bfbd85a4e771bbb631664b",
+    "reporting/pilot_figures.py": "fe93a3eb4ea7d40b658d368c6a9675d53b64d06def528ccf9835619c75863569",
+    "rewrite_agent.py": "982e72f56298f3b278858c5b29a6df3d9b0f1e00d42672a1b619295eeca257b8",
+    "rewrite_verify.py": "711493538f1b9a5b496b83491b122d2edc8a7c49497afbe12c7a3716cd5b519e",
+    "rq2_v2/__init__.py": "32f779e5cc308854d0d018e987710e31682c4f6718ddd0e9970d2fcb0b1a5e5a",
+    "rq2_v2/context.py": "1e61aef48e3423386b0f572639b32395bae402b0cf5680d65ca5aec551fa3f31",
+    "rq2_v2/decisions.py": "8ba864f59a3782eed5e364b98a8479b92c738ba7c0c4625a780913e8b27ca0a0",
+    "rq2_v2/environment.py": "24df0a541ce5bece6c5ebf128658d46474f79c88cb0d0666af381158b286a3fe",
+    "rq2_v2/final_study.py": "84c73471d68d5a25f99d7ee3fe24b3e51e0ebbf126fbb6655be86c06d99baf8c",
+    "rq2_v2/fixture_registry.py": "e43cd22b5e28ad6ba9d18ae2eef0c72ed385eced60da5605206a0bc1dc2809c8",
+    "rq2_v2/fixtures.py": "511e3be16f78c35080214513e4e57d75571e27a76134b945ff0dfcf32193bd12",
+    "rq2_v2/journal.py": "b0c161d9ca11040160ea58cc81a959786a12f0949a9e28fc56204e5233fb8e22",
+    "rq2_v2/mutation_controls.py": "2a2fc2e80002621773691c6ed033e64c90e06a52d8eeb1aa1437045721854a05",
+    "rq2_v2/probes.py": "510e9c4c169f5a0e6926e3d320d2c7f1a279952cdd96b97d4d23d67c2a604897",
+    "rq2_v2/prompts.py": "da9bd8b0d263ce6a8a87508fca7abc497e5c96b2e19be1147d6dea736da0ae7d",
+    "rq2_v2/provider.py": "0fbe9304b845bcfbdc461d904bd9db45e2371a7c21862061d92f060152b5fd15",
+    "rq2_v2/rehearsal.py": "1f22f84d74eb92b3a750398f3af8597fc35d9527eda6be9320137d01d7e8f55e",
+    "rq2_v2/report_evidence.py": "8a6444bb2b5c35261f21e292b9844f93e7d02ed8e2b8410a0d8141667afe9e8e",
+    "rq2_v2/report_export.py": "b85dc1d998228c41e0e6c7894a5c07c529528e994ad5cda1556b0bf8f92f2996",
+    "rq2_v2/report_html.py": "ac802eb93e2d353cccd0af1ec3901095ef1cce9566d3d5e8cae1e02fc665d6b3",
+    "rq2_v2/reporting.py": "72c2611f5de6be42b3aa3c571882a80d880d9037dbae8630044ec6baa86a9d76",
+    "rq2_v2/scheduler.py": "c049e1c29fbcac4a7406113f3ac3911b72fb6a03ae5ca0acd236eb4b45324ec0",
+    "rq2_v2/storage.py": "cbe9e9d74c33e0166cc3c610b166235bc19cf735bd033061e7023b1756dd3d06",
+    "rq2_v2/timing.py": "284449b9b6635d9e1340ecbbb5a7041476444cea7de9de4b63b92ce03998374d",
+    "rq2_v2/verification.py": "0c03598f65043f12b576e465b5416aa755fad18ee6751af4430f7b0cef211f6d",
+    "safety.py": "458e8906503a06e69b435a8ded4025c8a40d46c719e6bd8e69b6b883962e2185",
+    "semantic_guard.py": "4c8106864a357d8144d6ef28e71dd6fa72ebcd1741873d3710e66b8e616eb39c",
+    "smoke_collector.py": "2ef4b05aa0e287aa6f1ed4310fa3857ef5bc2eefc6fd4b596650d6995471d67a",
+    "smoke_derive.py": "afa9b6cd2de70bd2e34504e2265a9fab71e45a490eef8655c695d1e6cf4dc633",
+    "smoke_manifest.py": "9b8704c8bf79bdb910b23e507ff95203ae537facb32218aa50f4105899a1ec75",
+    "smoke_validate.py": "3b09323d42ca6d90f2a2baeb4d010c7773c489a221d085a0cf6934dced0d6c43",
+    "snapshot.py": "2fb3bb04d4dcf047bcece175818ed5ffa177bc8d3f6b6c6010891db748d9e0e7",
+    "splits.py": "51b71eeeaf7d10f9a4e299b23a82a31ed3f76dbe094cbff01f865a65c752fe1c",
+    "sqltext.py": "5460485c850765bea5de1e1baa50451eb9e70867ae8fa62487d3347b09c640f9"
+  },
+  "environment": {
+    "captured_at": "2026-11-06T19:22:29.807571+00:00",
+    "postgresql": {
+      "version": "16.15 (Debian 16.15-1.pgdg13+2)",
+      "version_num": 160015,
+      "catalog_sha256": "8a1b3dd559fc2349c2258d7caf3e66014cec8b6139a1e6e7449e405627b51a2d"
+    },
+    "docker_engine": {
+      "NCPU": 14,
+      "MemTotal": 8061816832,
+      "ServerVersion": "29.8.1",
+      "OperatingSystem": "Docker Desktop (containerized)",
+      "KernelVersion": "6.18.54.1-microsoft-standard-WSL2"
+    },
+    "docker_desktop_version": "4.93.0.240920",
+    "container_image_id": "sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54",
+    "container_resource_limits": {
+      "Memory": 4294967296,
+      "MemorySwap": 8589934592,
+      "NanoCpus": 2000000000,
+      "CpuQuota": 0,
+      "CpuPeriod": 0,
+      "CpusetCpus": "",
+      "ShmSize": 1073741824
+    },
+    "windows_power": {
+      "active_power_scheme": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+      "effective_overlay_guid": "00000000-0000-0000-0000-000000000000",
+      "ac_line_status": 1,
+      "battery_saver_flag": 0
+    }
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "implementation": "CPython",
+    "psycopg": "3.2.13",
+    "psycopg_binary": "3.2.13"
+  },
+  "database_identities": {
+    "tpch_sf0_1": {
+      "snapshot_id": "snap_b04e02ded329fcbf7c1253e4886658b016a0d84daf95d460db6f45ecb6cf4ff2",
+      "identity": {
+        "workload": "tpch",
+        "database_name": "tpch_sf0_1",
+        "scale_factor": "0.1",
+        "server_version_num": 160015,
+        "schema_sha256": "ed5831d039fa2ca0b69822e4e62ba03d33b856461747435e297c45a8451d4500",
+        "index_manifest_sha256": "2ecfc0616be2e02c44ed41c0cb068a0f2bcfe50160547593fa23cc8488d51d6c",
+        "statistics_sha256": "3d5a6c889d3400421622972d915b43d7852cb2ba221508fe35ffdba33b80763e",
+        "data_sha256": "1cf040559eabf963e0366aead4173ed6048d935e8b4ea2d7d44af2754f5a3591"
+      },
+      "server_version": "16.15 (Debian 16.15-1.pgdg13+2)",
+      "indexes": [
+        [
+          "customer",
+          "customer_pkey",
+          "CREATE UNIQUE INDEX customer_pkey ON public.customer USING btree (c_custkey)"
+        ],
+        [
+          "customer",
+          "idx_customer_nation",
+          "CREATE INDEX idx_customer_nation ON public.customer USING btree (c_nationkey)"
+        ],
+        [
+          "lineitem",
+          "idx_lineitem_part_supp",
+          "CREATE INDEX idx_lineitem_part_supp ON public.lineitem USING btree (l_partkey, l_suppkey)"
+        ],
+        [
+          "lineitem",
+          "idx_lineitem_shipdate",
+          "CREATE INDEX idx_lineitem_shipdate ON public.lineitem USING btree (l_shipdate)"
+        ],
+        [
+          "lineitem",
+          "lineitem_pkey",
+          "CREATE UNIQUE INDEX lineitem_pkey ON public.lineitem USING btree (l_orderkey, l_linenumber)"
+        ],
+        [
+          "nation",
+          "nation_pkey",
+          "CREATE UNIQUE INDEX nation_pkey ON public.nation USING btree (n_nationkey)"
+        ],
+        [
+          "orders",
+          "idx_orders_customer",
+          "CREATE INDEX idx_orders_customer ON public.orders USING btree (o_custkey)"
+        ],
+        [
+          "orders",
+          "idx_orders_date",
+          "CREATE INDEX idx_orders_date ON public.orders USING btree (o_orderdate)"
+        ],
+        [
+          "orders",
+          "orders_pkey",
+          "CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (o_orderkey)"
+        ],
+        [
+          "part",
+          "part_pkey",
+          "CREATE UNIQUE INDEX part_pkey ON public.part USING btree (p_partkey)"
+        ],
+        [
+          "partsupp",
+          "partsupp_pkey",
+          "CREATE UNIQUE INDEX partsupp_pkey ON public.partsupp USING btree (ps_partkey, ps_suppkey)"
+        ],
+        [
+          "region",
+          "region_pkey",
+          "CREATE UNIQUE INDEX region_pkey ON public.region USING btree (r_regionkey)"
+        ],
+        [
+          "supplier",
+          "idx_supplier_nation",
+          "CREATE INDEX idx_supplier_nation ON public.supplier USING btree (s_nationkey)"
+        ],
+        [
+          "supplier",
+          "supplier_pkey",
+          "CREATE UNIQUE INDEX supplier_pkey ON public.supplier USING btree (s_suppkey)"
+        ]
+      ],
+      "load_manifest": [
+        {
+          "table_name": "customer",
+          "row_count": 15000,
+          "sha256": "16ece524c820347cb1dead9c905b65156c755529a5a53bb13672c9358daade49",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "lineitem",
+          "row_count": 600572,
+          "sha256": "ee0a96ffebe62c1d8297b0ad389881330a425425efe8051263d63908f4eed48a",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "nation",
+          "row_count": 25,
+          "sha256": "7d47bc9397da331054fa92b8fb92e4c074004bad72dcbb893012093218dccf6c",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "orders",
+          "row_count": 150000,
+          "sha256": "8a4d2e3be83b68e45f29bb3bb9c42dacabec61819f8695e6b045a0c6a4cbb67b",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "part",
+          "row_count": 20000,
+          "sha256": "7beb0cf5013f9066bdbd4ddba886bce2bfc08a156c786de3cda1204cb4332e7b",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "partsupp",
+          "row_count": 80000,
+          "sha256": "0a3026c320ddbdf62ac5d0cf9ca6541bd82f0225aa3be6f9cd0f1dffe3857fc4",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "region",
+          "row_count": 5,
+          "sha256": "5a7c2fe9718db00ff5e5bc82a9ebfa8abc492cc75260d3c0ffb411974f235ab0",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "supplier",
+          "row_count": 1000,
+          "sha256": "3a83adcdf515ca1b15bfa60b5808b03d7432b19e8b778572a97f3d0d86e1ae39",
+          "scale_factor": "0.1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        }
+      ],
+      "row_counts": {
+        "region": 5,
+        "nation": 25,
+        "part": 20000,
+        "supplier": 1000,
+        "partsupp": 80000,
+        "customer": 15000,
+        "orders": 150000,
+        "lineitem": 600572
+      },
+      "checks": {
+        "expected_counts": true,
+        "manifest_counts": true,
+        "analyzed": true,
+        "autovacuum_disabled": true,
+        "validated_constraints": true
+      },
+      "passed": true
+    },
+    "tpch_sf1": {
+      "snapshot_id": "snap_b420f26d9464040081b14e6b15e6657f140fbf95fefd4a16565b6bfcab855257",
+      "identity": {
+        "workload": "tpch",
+        "database_name": "tpch_sf1",
+        "scale_factor": "1",
+        "server_version_num": 160015,
+        "schema_sha256": "ed5831d039fa2ca0b69822e4e62ba03d33b856461747435e297c45a8451d4500",
+        "index_manifest_sha256": "2ecfc0616be2e02c44ed41c0cb068a0f2bcfe50160547593fa23cc8488d51d6c",
+        "statistics_sha256": "83b6cea6d096d8aceeda7c5b40bbf3e2bd0ab12db8be7399d4972df3328bb5cb",
+        "data_sha256": "6de793104163d82ac81bd760f5be562c05ec927d7b6edde84cbac9dece453ff7"
+      },
+      "server_version": "16.15 (Debian 16.15-1.pgdg13+2)",
+      "indexes": [
+        [
+          "customer",
+          "customer_pkey",
+          "CREATE UNIQUE INDEX customer_pkey ON public.customer USING btree (c_custkey)"
+        ],
+        [
+          "customer",
+          "idx_customer_nation",
+          "CREATE INDEX idx_customer_nation ON public.customer USING btree (c_nationkey)"
+        ],
+        [
+          "lineitem",
+          "idx_lineitem_part_supp",
+          "CREATE INDEX idx_lineitem_part_supp ON public.lineitem USING btree (l_partkey, l_suppkey)"
+        ],
+        [
+          "lineitem",
+          "idx_lineitem_shipdate",
+          "CREATE INDEX idx_lineitem_shipdate ON public.lineitem USING btree (l_shipdate)"
+        ],
+        [
+          "lineitem",
+          "lineitem_pkey",
+          "CREATE UNIQUE INDEX lineitem_pkey ON public.lineitem USING btree (l_orderkey, l_linenumber)"
+        ],
+        [
+          "nation",
+          "nation_pkey",
+          "CREATE UNIQUE INDEX nation_pkey ON public.nation USING btree (n_nationkey)"
+        ],
+        [
+          "orders",
+          "idx_orders_customer",
+          "CREATE INDEX idx_orders_customer ON public.orders USING btree (o_custkey)"
+        ],
+        [
+          "orders",
+          "idx_orders_date",
+          "CREATE INDEX idx_orders_date ON public.orders USING btree (o_orderdate)"
+        ],
+        [
+          "orders",
+          "orders_pkey",
+          "CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (o_orderkey)"
+        ],
+        [
+          "part",
+          "part_pkey",
+          "CREATE UNIQUE INDEX part_pkey ON public.part USING btree (p_partkey)"
+        ],
+        [
+          "partsupp",
+          "partsupp_pkey",
+          "CREATE UNIQUE INDEX partsupp_pkey ON public.partsupp USING btree (ps_partkey, ps_suppkey)"
+        ],
+        [
+          "region",
+          "region_pkey",
+          "CREATE UNIQUE INDEX region_pkey ON public.region USING btree (r_regionkey)"
+        ],
+        [
+          "supplier",
+          "idx_supplier_nation",
+          "CREATE INDEX idx_supplier_nation ON public.supplier USING btree (s_nationkey)"
+        ],
+        [
+          "supplier",
+          "supplier_pkey",
+          "CREATE UNIQUE INDEX supplier_pkey ON public.supplier USING btree (s_suppkey)"
+        ]
+      ],
+      "load_manifest": [
+        {
+          "table_name": "customer",
+          "row_count": 150000,
+          "sha256": "a035a33a703d3a043ecf97746b4e3a7988316c1c04923fda63231a59d5e46092",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "lineitem",
+          "row_count": 6001215,
+          "sha256": "4feb529dfa255799bbf0243d2f2c5028375dfb684e592eb94775345602aa2728",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "nation",
+          "row_count": 25,
+          "sha256": "7d47bc9397da331054fa92b8fb92e4c074004bad72dcbb893012093218dccf6c",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "orders",
+          "row_count": 1500000,
+          "sha256": "3f111871419ea6f319fcc51c235d199b3edf16754c5e100be92927527e5f6c97",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "part",
+          "row_count": 200000,
+          "sha256": "cecd01146ae002aebe47e6b58bd81644df1d51d9c14da3425aea2b4976e02d60",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "partsupp",
+          "row_count": 800000,
+          "sha256": "3a68b7b7757cd3aacccb39c4bc092dc3edf3b7e0e7609a259c39238cae0be41e",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "region",
+          "row_count": 5,
+          "sha256": "5a7c2fe9718db00ff5e5bc82a9ebfa8abc492cc75260d3c0ffb411974f235ab0",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        },
+        {
+          "table_name": "supplier",
+          "row_count": 10000,
+          "sha256": "f5699b5df22724f41bee9b8521798d8fc0cecd5beb0bd3bca96547ac58095547",
+          "scale_factor": "1",
+          "dbgen_repo": "https://github.com/electrum/tpch-dbgen.git",
+          "dbgen_commit": "32f1c1b92d1664dba542e927d23d86ffa57aa253"
+        }
+      ],
+      "row_counts": {
+        "region": 5,
+        "nation": 25,
+        "part": 200000,
+        "supplier": 10000,
+        "partsupp": 800000,
+        "customer": 150000,
+        "orders": 1500000,
+        "lineitem": 6001215
+      },
+      "checks": {
+        "expected_counts": true,
+        "manifest_counts": true,
+        "analyzed": true,
+        "autovacuum_disabled": true,
+        "validated_constraints": true
+      },
+      "passed": true
+    }
+  },
+  "effective_settings": {
+    "tpch_sf0_1/C1_baseline": {
+      "cpu_index_tuple_cost": {
+        "setting": "0.005",
+        "unit": ""
+      },
+      "cpu_operator_cost": {
+        "setting": "0.0025",
+        "unit": ""
+      },
+      "cpu_tuple_cost": {
+        "setting": "0.01",
+        "unit": ""
+      },
+      "default_statistics_target": {
+        "setting": "100",
+        "unit": ""
+      },
+      "default_transaction_read_only": {
+        "setting": "on",
+        "unit": ""
+      },
+      "effective_cache_size": {
+        "setting": "524288",
+        "unit": "8kB"
+      },
+      "effective_io_concurrency": {
+        "setting": "1",
+        "unit": ""
+      },
+      "enable_async_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_bitmapscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_gathermerge": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashagg": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashjoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_incremental_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexonlyscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_material": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_memoize": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_mergejoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_nestloop": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_hash": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partition_pruning": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partitionwise_aggregate": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_partitionwise_join": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_presorted_aggregate": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_seqscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_tidscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "from_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "geqo": {
+        "setting": "on",
+        "unit": ""
+      },
+      "geqo_threshold": {
+        "setting": "12",
+        "unit": ""
+      },
+      "hash_mem_multiplier": {
+        "setting": "2",
+        "unit": ""
+      },
+      "huge_pages": {
+        "setting": "try",
+        "unit": ""
+      },
+      "jit": {
+        "setting": "off",
+        "unit": ""
+      },
+      "join_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "maintenance_work_mem": {
+        "setting": "65536",
+        "unit": "kB"
+      },
+      "max_parallel_workers": {
+        "setting": "8",
+        "unit": ""
+      },
+      "max_parallel_workers_per_gather": {
+        "setting": "2",
+        "unit": ""
+      },
+      "max_worker_processes": {
+        "setting": "8",
+        "unit": ""
+      },
+      "min_parallel_index_scan_size": {
+        "setting": "64",
+        "unit": "8kB"
+      },
+      "min_parallel_table_scan_size": {
+        "setting": "1024",
+        "unit": "8kB"
+      },
+      "parallel_setup_cost": {
+        "setting": "1000",
+        "unit": ""
+      },
+      "parallel_tuple_cost": {
+        "setting": "0.1",
+        "unit": ""
+      },
+      "plan_cache_mode": {
+        "setting": "auto",
+        "unit": ""
+      },
+      "random_page_cost": {
+        "setting": "4",
+        "unit": ""
+      },
+      "seq_page_cost": {
+        "setting": "1",
+        "unit": ""
+      },
+      "server_version_num": {
+        "setting": "160015",
+        "unit": ""
+      },
+      "shared_buffers": {
+        "setting": "16384",
+        "unit": "8kB"
+      },
+      "temp_file_limit": {
+        "setting": "5242880",
+        "unit": "kB"
+      },
+      "track_io_timing": {
+        "setting": "on",
+        "unit": ""
+      },
+      "work_mem": {
+        "setting": "4096",
+        "unit": "kB"
+      }
+    },
+    "tpch_sf0_1/C2_reduced_work_mem": {
+      "cpu_index_tuple_cost": {
+        "setting": "0.005",
+        "unit": ""
+      },
+      "cpu_operator_cost": {
+        "setting": "0.0025",
+        "unit": ""
+      },
+      "cpu_tuple_cost": {
+        "setting": "0.01",
+        "unit": ""
+      },
+      "default_statistics_target": {
+        "setting": "100",
+        "unit": ""
+      },
+      "default_transaction_read_only": {
+        "setting": "on",
+        "unit": ""
+      },
+      "effective_cache_size": {
+        "setting": "524288",
+        "unit": "8kB"
+      },
+      "effective_io_concurrency": {
+        "setting": "1",
+        "unit": ""
+      },
+      "enable_async_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_bitmapscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_gathermerge": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashagg": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashjoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_incremental_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexonlyscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_material": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_memoize": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_mergejoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_nestloop": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_hash": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partition_pruning": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partitionwise_aggregate": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_partitionwise_join": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_presorted_aggregate": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_seqscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_tidscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "from_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "geqo": {
+        "setting": "on",
+        "unit": ""
+      },
+      "geqo_threshold": {
+        "setting": "12",
+        "unit": ""
+      },
+      "hash_mem_multiplier": {
+        "setting": "2",
+        "unit": ""
+      },
+      "huge_pages": {
+        "setting": "try",
+        "unit": ""
+      },
+      "jit": {
+        "setting": "off",
+        "unit": ""
+      },
+      "join_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "maintenance_work_mem": {
+        "setting": "65536",
+        "unit": "kB"
+      },
+      "max_parallel_workers": {
+        "setting": "8",
+        "unit": ""
+      },
+      "max_parallel_workers_per_gather": {
+        "setting": "2",
+        "unit": ""
+      },
+      "max_worker_processes": {
+        "setting": "8",
+        "unit": ""
+      },
+      "min_parallel_index_scan_size": {
+        "setting": "64",
+        "unit": "8kB"
+      },
+      "min_parallel_table_scan_size": {
+        "setting": "1024",
+        "unit": "8kB"
+      },
+      "parallel_setup_cost": {
+        "setting": "1000",
+        "unit": ""
+      },
+      "parallel_tuple_cost": {
+        "setting": "0.1",
+        "unit": ""
+      },
+      "plan_cache_mode": {
+        "setting": "auto",
+        "unit": ""
+      },
+      "random_page_cost": {
+        "setting": "4",
+        "unit": ""
+      },
+      "seq_page_cost": {
+        "setting": "1",
+        "unit": ""
+      },
+      "server_version_num": {
+        "setting": "160015",
+        "unit": ""
+      },
+      "shared_buffers": {
+        "setting": "16384",
+        "unit": "8kB"
+      },
+      "temp_file_limit": {
+        "setting": "5242880",
+        "unit": "kB"
+      },
+      "track_io_timing": {
+        "setting": "on",
+        "unit": ""
+      },
+      "work_mem": {
+        "setting": "256",
+        "unit": "kB"
+      }
+    },
+    "tpch_sf1/C1_baseline": {
+      "cpu_index_tuple_cost": {
+        "setting": "0.005",
+        "unit": ""
+      },
+      "cpu_operator_cost": {
+        "setting": "0.0025",
+        "unit": ""
+      },
+      "cpu_tuple_cost": {
+        "setting": "0.01",
+        "unit": ""
+      },
+      "default_statistics_target": {
+        "setting": "100",
+        "unit": ""
+      },
+      "default_transaction_read_only": {
+        "setting": "on",
+        "unit": ""
+      },
+      "effective_cache_size": {
+        "setting": "524288",
+        "unit": "8kB"
+      },
+      "effective_io_concurrency": {
+        "setting": "1",
+        "unit": ""
+      },
+      "enable_async_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_bitmapscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_gathermerge": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashagg": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashjoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_incremental_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexonlyscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_material": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_memoize": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_mergejoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_nestloop": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_hash": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partition_pruning": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partitionwise_aggregate": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_partitionwise_join": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_presorted_aggregate": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_seqscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_tidscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "from_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "geqo": {
+        "setting": "on",
+        "unit": ""
+      },
+      "geqo_threshold": {
+        "setting": "12",
+        "unit": ""
+      },
+      "hash_mem_multiplier": {
+        "setting": "2",
+        "unit": ""
+      },
+      "huge_pages": {
+        "setting": "try",
+        "unit": ""
+      },
+      "jit": {
+        "setting": "off",
+        "unit": ""
+      },
+      "join_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "maintenance_work_mem": {
+        "setting": "65536",
+        "unit": "kB"
+      },
+      "max_parallel_workers": {
+        "setting": "8",
+        "unit": ""
+      },
+      "max_parallel_workers_per_gather": {
+        "setting": "2",
+        "unit": ""
+      },
+      "max_worker_processes": {
+        "setting": "8",
+        "unit": ""
+      },
+      "min_parallel_index_scan_size": {
+        "setting": "64",
+        "unit": "8kB"
+      },
+      "min_parallel_table_scan_size": {
+        "setting": "1024",
+        "unit": "8kB"
+      },
+      "parallel_setup_cost": {
+        "setting": "1000",
+        "unit": ""
+      },
+      "parallel_tuple_cost": {
+        "setting": "0.1",
+        "unit": ""
+      },
+      "plan_cache_mode": {
+        "setting": "auto",
+        "unit": ""
+      },
+      "random_page_cost": {
+        "setting": "4",
+        "unit": ""
+      },
+      "seq_page_cost": {
+        "setting": "1",
+        "unit": ""
+      },
+      "server_version_num": {
+        "setting": "160015",
+        "unit": ""
+      },
+      "shared_buffers": {
+        "setting": "16384",
+        "unit": "8kB"
+      },
+      "temp_file_limit": {
+        "setting": "5242880",
+        "unit": "kB"
+      },
+      "track_io_timing": {
+        "setting": "on",
+        "unit": ""
+      },
+      "work_mem": {
+        "setting": "4096",
+        "unit": "kB"
+      }
+    },
+    "tpch_sf1/C2_reduced_work_mem": {
+      "cpu_index_tuple_cost": {
+        "setting": "0.005",
+        "unit": ""
+      },
+      "cpu_operator_cost": {
+        "setting": "0.0025",
+        "unit": ""
+      },
+      "cpu_tuple_cost": {
+        "setting": "0.01",
+        "unit": ""
+      },
+      "default_statistics_target": {
+        "setting": "100",
+        "unit": ""
+      },
+      "default_transaction_read_only": {
+        "setting": "on",
+        "unit": ""
+      },
+      "effective_cache_size": {
+        "setting": "524288",
+        "unit": "8kB"
+      },
+      "effective_io_concurrency": {
+        "setting": "1",
+        "unit": ""
+      },
+      "enable_async_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_bitmapscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_gathermerge": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashagg": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_hashjoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_incremental_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexonlyscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_indexscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_material": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_memoize": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_mergejoin": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_nestloop": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_append": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_parallel_hash": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partition_pruning": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_partitionwise_aggregate": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_partitionwise_join": {
+        "setting": "off",
+        "unit": ""
+      },
+      "enable_presorted_aggregate": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_seqscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_sort": {
+        "setting": "on",
+        "unit": ""
+      },
+      "enable_tidscan": {
+        "setting": "on",
+        "unit": ""
+      },
+      "from_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "geqo": {
+        "setting": "on",
+        "unit": ""
+      },
+      "geqo_threshold": {
+        "setting": "12",
+        "unit": ""
+      },
+      "hash_mem_multiplier": {
+        "setting": "2",
+        "unit": ""
+      },
+      "huge_pages": {
+        "setting": "try",
+        "unit": ""
+      },
+      "jit": {
+        "setting": "off",
+        "unit": ""
+      },
+      "join_collapse_limit": {
+        "setting": "8",
+        "unit": ""
+      },
+      "maintenance_work_mem": {
+        "setting": "65536",
+        "unit": "kB"
+      },
+      "max_parallel_workers": {
+        "setting": "8",
+        "unit": ""
+      },
+      "max_parallel_workers_per_gather": {
+        "setting": "2",
+        "unit": ""
+      },
+      "max_worker_processes": {
+        "setting": "8",
+        "unit": ""
+      },
+      "min_parallel_index_scan_size": {
+        "setting": "64",
+        "unit": "8kB"
+      },
+      "min_parallel_table_scan_size": {
+        "setting": "1024",
+        "unit": "8kB"
+      },
+      "parallel_setup_cost": {
+        "setting": "1000",
+        "unit": ""
+      },
+      "parallel_tuple_cost": {
+        "setting": "0.1",
+        "unit": ""
+      },
+      "plan_cache_mode": {
+        "setting": "auto",
+        "unit": ""
+      },
+      "random_page_cost": {
+        "setting": "4",
+        "unit": ""
+      },
+      "seq_page_cost": {
+        "setting": "1",
+        "unit": ""
+      },
+      "server_version_num": {
+        "setting": "160015",
+        "unit": ""
+      },
+      "shared_buffers": {
+        "setting": "16384",
+        "unit": "8kB"
+      },
+      "temp_file_limit": {
+        "setting": "5242880",
+        "unit": "kB"
+      },
+      "track_io_timing": {
+        "setting": "on",
+        "unit": ""
+      },
+      "work_mem": {
+        "setting": "256",
+        "unit": "kB"
+      }
+    }
+  },
+  "lineage": {
+    "source_dataset_archive_sha256": "f4bc90bc74e02579ece9cbbdafb4b9b792f655d90742de143d5a5f1d60e0291a",
+    "query_selection": "Q06-Q20 of the pre-existing reserved-original queue, three parameter instances per already-seen family; no manual references in prompts"
+  },
+  "probe_cadence": "Full environment/snapshot/settings before starting or resuming; full environment/snapshot before and after each timing case; power before each measured execution. Transient changes between probes may not be detected.",
+  "host_binding_policy": "Executable paths and container selector supplied through local CLI arguments, never hashed or persisted in this identity",
+  "identity_sha256": "c3c7b0e3f04e506ada4f106403a95fafa03ab5516ceba46ad93602636f1ed24c"
+}

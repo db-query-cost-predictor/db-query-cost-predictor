@@ -1,0 +1,65 @@
+{
+  "version": "rq2-input-v1",
+  "queries": [
+    {
+      "id": "example-date-arithmetic",
+      "family": "date_arithmetic",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17
+      },
+      "sql": "SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue FROM lineitem WHERE l_shipdate + 17 BETWEEN DATE '1994-04-13' AND DATE '1994-04-13' + 6",
+      "selection": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "example-correlated-sum",
+      "family": "correlated_sum",
+      "parameters": {
+        "nation_key": 7
+      },
+      "sql": "SELECT s.s_suppkey, (SELECT sum(l.l_quantity) FROM lineitem l WHERE l.l_suppkey = s.s_suppkey) AS supplied_qty FROM supplier s WHERE s.s_nationkey = 7",
+      "selection": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "example-anti-subquery",
+      "family": "anti_subquery",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17
+      },
+      "sql": "SELECT count(*) AS n_customers FROM customer c WHERE c.c_custkey NOT IN (SELECT o.o_custkey FROM orders o WHERE o.o_orderdate >= DATE '1994-04-13' AND o.o_orderdate < DATE '1994-04-13' + 17)",
+      "selection": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "example-join-removal",
+      "family": "join_removal",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17
+      },
+      "sql": "SELECT count(*) AS n_orders, avg(o.o_totalprice) AS avg_price, max(o.o_shippriority) AS max_priority FROM orders o JOIN customer c ON c.c_custkey = o.o_custkey WHERE o.o_orderdate >= DATE '1994-04-13' AND o.o_orderdate < DATE '1994-04-13' + 17",
+      "selection": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "example-materialized-cte",
+      "family": "materialized_cte",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17,
+        "quantity": 4
+      },
+      "sql": "WITH recent AS MATERIALIZED (SELECT l_orderkey, l_quantity, l_extendedprice FROM lineitem WHERE l_shipdate >= DATE '1994-04-13' AND l_shipdate < DATE '1994-04-13' + 17) SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue FROM recent WHERE l_quantity >= 4",
+      "selection": {
+        "method": "manual"
+      }
+    }
+  ]
+}

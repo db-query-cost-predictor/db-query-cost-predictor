@@ -1,5 +1,7 @@
 # Team handoff
 
+**RQ2 update (6 November 2026):** the local LLM study and engineering runtime are complete; see [RQ2 handoff](rq2/README.md). PR #2 was merged on 26 October 2026. RQ1 study artifacts remain unchanged. Other-machine acceptance and integration require team confirmation.
+
 Status as of 2026-10-26, updated after the PR #2 review. This page records
 three things:
 - what is complete;
@@ -23,18 +25,17 @@ Setup instructions: [teammate_setup.md](teammate_setup.md) (Windows) and
 | **RQ1 modeling and evaluation v1.** Implemented in commits `501c937`, `dd58292`, `9c3c647` and `ad66662`; the single official run ended `COMPLETE` | Shreeyash Baranwal | [rq1_results_v1.md](rq1_results_v1.md); results asset |
 | Eight hand-off refits, labelled `REFIT_ON_ALL_DEVELOPMENT_NO_EVALUATION` (never scored) | Shreeyash Baranwal | `handoff/` in the results asset |
 | Reproducible verification paths: the input check, manifest verification, hand-off identity checks and reproduction comparisons, with the saved predictions, metric tables and calibration bins | Shreeyash Baranwal | [rq1_results_v1.md, section 15](rq1_results_v1.md#15-verification-and-available-evidence) |
-| Handoff documentation: this page, the Windows setup guide, the results summary and the asset catalogue | Shreeyash Baranwal | committed in `c32a247b4bbd80bbf2bbd0908e7b27dcab9bb1e9`; branch pushed; PR #2 open |
-| Review corrections for PR #2: the macOS/Linux guide, the cross-platform extraction helper with its tests, and the documentation clarifications | Shreeyash Baranwal | [pr2_review_response.md](pr2_review_response.md); this follow-up is **not yet committed** |
+| Handoff documentation: this page, the Windows setup guide, the results summary and the asset catalogue | Shreeyash Baranwal | Included in PR #2, merged on 2026-10-26 |
+| Review corrections for PR #2: the macOS/Linux guide, the cross-platform extraction helper with its tests, and the documentation clarifications | Shreeyash Baranwal | [pr2_review_response.md](pr2_review_response.md); included in the PR #2 merge |
 
 ### Remaining
 
 | Item | Status | Owner |
 |---|---|---|
-| Commit and push the review follow-up; merge PR #2 | the branch is pushed and PR #2 is open; the follow-up and the merge are **pending** | Shreeyash Baranwal |
 | Distribute the dataset and results assets, unchanged, with their hashes | pending | Data Engineer |
 | Fresh-machine acceptance of the setup guide | **not yet done on any other machine** | Data Engineer, then each teammate |
-| Database readiness for further experiments | not started | Data Engineer |
-| RQ2: LLM rewrite generation, semantic verification and evaluation | `NOT_YET_EVALUABLE`; not started. The 25 manual expanded-release pairs remain `NOT_YET_VERIFIED` | AI Engineer |
+| Database readiness for further experiments | Verified for the local RQ2 environment; readiness on other machines requires confirmation | Data Engineer |
+| RQ2: LLM rewrite generation, semantic verification and evaluation | Local study complete: 15 outputs / 60 cases; engineering runtime tested. Independent acceptance and integration pending. Manual expanded-release pairs remain separate | AI Engineer |
 | Model integration, presentation of predictions, application and reporting deliverables | not started | Backend/reporting owner |
 | Housekeeping: decide whether to migrate the tracked pilot data files under `reference_pilot/output/` (about 7.2 MB) out of normal Git tracking | not started; a separate change, not part of PR #2. See [pr2_review_response.md](pr2_review_response.md#h1-pilot-data-file) for the dependency checks needed first | Data Engineer, with the Data Scientist |
 
@@ -48,25 +49,12 @@ separately specified version:
 
 ## 2. Publication sequence
 
-As of 2026-10-26, steps 1 and 2 are partly done:
-- the handoff documentation is committed;
-- the branch is pushed;
-- PR #2 is open.
-
-The PR #2 review follow-up, the merge, distribution and acceptance remain.
-
-1. **Commit. Done for the handoff documentation**, in `c32a247`. The review
-   follow-up, described in [pr2_review_response.md](pr2_review_response.md),
-   is not yet committed. Shreeyash reviews and commits it.
-2. **Push and merge.** The branch `feat/expanded-query-dataset` is pushed, and
-   PR #2 into `main` is open. **Not merged yet.** Shreeyash pushes the
-   follow-up from PowerShell, then merges the pull request on GitHub.
-   - Merge with a **merge commit**, not squash or rebase. That keeps the
-     study revision `ad66662` in `main`'s history, so
-     `git switch --detach ad66662…` works from any clone.
-   - Optional: tag the study revision and push the tag:
-     `git tag rq1-v1-study ad666623822a4c5baa911cc29e410ed0abc9c14e`, then
-     `git push origin rq1-v1-study`.
+1. **Commit. Complete.** The handoff documentation and review follow-up are
+   included in PR #2.
+2. **Push and merge. Complete.** PR #2 was merged into `main` on
+   2026-10-26 as `db7b43f30e1d866d80d6cd930961fb52cb44e362`. The original
+   study revision `ad666623822a4c5baa911cc29e410ed0abc9c14e` remains in
+   history. This RQ2 change does not alter its artifacts.
 3. **Distribute. Pending.** Having the code on GitHub does not mean the ZIP
    files have been uploaded. Share `expanded_release.zip` and
    `rq1_results_review_20261022_100326_043.zip` unchanged, with the sizes and
@@ -94,8 +82,6 @@ After these steps, both the source and the assets can be found:
   - The dataset work that unblocked the team: collection, audit and packaging.
   - RQ1 modeling and evaluation v1, complete.
 * **Remaining.**
-  - Commit and push the PR #2 review follow-up, then merge PR #2 (steps 1
-    and 2 of the publication sequence).
   - **Deferred, and not a merge prerequisite:** wording updates to external
     documents (the proposal, the Overview PDF and the slides). The poster is
     already completed.
@@ -137,38 +123,21 @@ Prefer team-only access until both points are settled.
 
 ### AI Engineer
 
-Owns the remaining RQ2 rewrite generation, semantic verification and
-evaluation, under the existing
-[RQ2 verification protocol](rq2_verification_protocol.md). That protocol is
-unchanged by this handoff.
+Owns RQ2 candidate generation, correctness verification and paired runtime evaluation. The local study and engineering release are documented in [rq2/README.md](rq2/README.md).
 
-**Current state. RQ2 is not complete.**
-* RQ2 is `NOT_YET_EVALUABLE`, and no LLM is integrated. `LLM_REWRITE` is a
-  reserved label that has never been produced.
-* The verification harness (`rewrite_verify.py`, command `verify-rewrites`)
-  runs the stages in the protocol:
-  - safety checks;
-  - preconditions;
-  - an exact multiset result comparison;
-  - ordering checks;
-  - a paired, order-alternated benchmark and the recommendation rule.
+**Completed locally (6 November 2026):**
+- A fixed Groq generation request and one fresh output for each of Q06-Q20, from five previously inspected families; all 15 outputs and 60 environment cases are retained.
+- Read-only safety, schema preconditions, exact snapshot comparisons, 22 schema-valid fixture templates, paired A/A and A/B measurement, and full-funnel reporting.
+- Eight all-four primary passes; two NULL-to-zero outputs rejected by fixtures; three incomplete snapshot cases retained. Scope and sensitivity are in [the results](rq2/RESULTS.md).
+- Engineering release 1.0.1 with selected-query input, the CLI, tests and evidence replay. The frozen study source remains separate from this post-study refactor.
 
-  It currently reads **only** the hand-written pairs in
-  [`config/poster_smoke.yaml`](../config/poster_smoke.yaml). Its only results
-  so far are the 2026-09-23 manual reference run: 4 snapshot-equivalent cases
-  and a rejected negative control.
-* **The 25 manual rewrite pairs of the expanded release are dataset keys, not
-  verified rewrites.** Their status is `NOT_YET_VERIFIED`. Five are reserved
-  for the RQ2 holdout, which holds 160 cases in 5 rewrite groups and is never
-  used for training, preprocessing, calibration or tuning.
+The original manual harness and its reference outcomes are unchanged. The final LLM protocol changed from the earlier planning proposal: two warm-ups per form, eleven A/A plus eleven A/B pairs, and at least nine strict reductions above 10%, with an A/A gate. Q01-Q05 informed development and are excluded from final counts; this is not an unseen-family evaluation. No predictor-gating or prompt-effect comparison is claimed.
 
-| Task | Accept when | Depends on |
-|---|---|---|
-| **Candidate generation** (`LLM_REWRITE`) | Every LLM call is recorded: model, version, prompt, parameters and output. Every candidate enters the denominator. No prompt is tuned on the reserved holdout groups | can start now, offline |
-| **Verification** | The harness accepts candidate pairs beyond `poster_smoke.yaml`. This is new, reviewed code with unit tests on synthetic fixtures. Each pair goes through every protocol stage on every available snapshot. Every session's negative control comes out `NOT_EQUIVALENT` / `DO_NOT_RECOMMEND`. Equivalence is worded as "identical results as exact multisets on snapshot X", never "proven equivalent" | database readiness, for execution. Parsing and safety checks can start offline |
-| **Evaluation** | The full denominator is reported with a count at every stage: generated → executable → verification attempted → verified equivalent → faster → recommended. Failures stay in the denominator. Results are reported separately per `rewrite_source`; manual results are never pooled with LLM results. The speedup threshold follows the protocol and is recorded before timing | verification; database readiness |
-| **Manual pairs** (optional) | Any change from `NOT_YET_VERIFIED` comes only from a recorded harness run, labelled `MANUAL_REFERENCE_REWRITE` | database readiness; the harness loader |
-| **Secondary gating experiment** (later) | It runs only after the primary RQ2 denominator exists. Its policies are compared on the reserved holdout only | primary RQ2 results, plus RQ1 predictions for the holdout. v1 does not provide those predictions; they need a new RQ1 version from the Data Scientist |
+| Remaining task | Accept when | Depends on |
+| --- | --- | --- |
+| Independent setup acceptance | Another teammate installs the repository, validates examples and replays the stored final evidence with matching counts | Separate evidence archive and its recorded hash |
+| RQ1/backend integration | The backend supplies selected originals through [the input contract](rq2/CONTRACT.md) and consumes the recorded decisions without automatically deploying SQL | RQ1/backend owner; selected-query provenance |
+| Workflow overhead and secondary gating comparison | A separately agreed experiment records total generation/verification cost and compares selection policies | Primary results plus appropriate RQ1 holdout predictions; existing RQ1 v1 artifacts stay unchanged |
 
 ### Backend/reporting owner
 

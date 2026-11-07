@@ -1,0 +1,210 @@
+{
+  "purpose": "Synthetic template parameters, not collected outcomes or reserved-study results",
+  "queries": [
+    {
+      "id": "example-date-arithmetic",
+      "sql": "SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue FROM lineitem WHERE l_shipdate + 17 BETWEEN DATE '1994-04-13' AND DATE '1994-04-13' + 6",
+      "family": "date_arithmetic",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17
+      },
+      "query_type": "Date arithmetic",
+      "semantic_group_id": "sg_x1_rw_rw04_date_arithmetic",
+      "original_sha256": "63514a1e9f45b9b795383252c9d68a180c13da2d16c2a228265afba2d0f1aacf",
+      "ordering_required": false,
+      "preconditions": [],
+      "input_status": "SUPPORTED",
+      "input_reason": "Original matches a registered template",
+      "selection": {
+        "method": "manual"
+      },
+      "cases": [
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        }
+      ]
+    },
+    {
+      "id": "example-correlated-sum",
+      "sql": "SELECT s.s_suppkey, (SELECT sum(l.l_quantity) FROM lineitem l WHERE l.l_suppkey = s.s_suppkey) AS supplied_qty FROM supplier s WHERE s.s_nationkey = 7",
+      "family": "correlated_sum",
+      "parameters": {
+        "nation_key": 7
+      },
+      "query_type": "Correlated aggregate",
+      "semantic_group_id": "sg_x1_rw_rw10_correlated_sum_unindexed",
+      "original_sha256": "b1792432f810c1c726259d6f32d72ce00e0de200b977812626f52fdfb738cb05",
+      "ordering_required": false,
+      "preconditions": [],
+      "input_status": "SUPPORTED",
+      "input_reason": "Original matches a registered template",
+      "selection": {
+        "method": "manual"
+      },
+      "cases": [
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        }
+      ]
+    },
+    {
+      "id": "example-anti-subquery",
+      "sql": "SELECT count(*) AS n_customers FROM customer c WHERE c.c_custkey NOT IN (SELECT o.o_custkey FROM orders o WHERE o.o_orderdate >= DATE '1994-04-13' AND o.o_orderdate < DATE '1994-04-13' + 17)",
+      "family": "anti_subquery",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17
+      },
+      "query_type": "NOT IN subquery",
+      "semantic_group_id": "sg_x1_rw_rw12_not_in_to_not_exists",
+      "original_sha256": "553d78d376e77974394ec0788058370f8246ee4e2c36d477d9a3d135f3141734",
+      "ordering_required": false,
+      "preconditions": [],
+      "input_status": "SUPPORTED",
+      "input_reason": "Original matches a registered template",
+      "selection": {
+        "method": "manual"
+      },
+      "cases": [
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        }
+      ]
+    },
+    {
+      "id": "example-join-removal",
+      "sql": "SELECT count(*) AS n_orders, avg(o.o_totalprice) AS avg_price, max(o.o_shippriority) AS max_priority FROM orders o JOIN customer c ON c.c_custkey = o.o_custkey WHERE o.o_orderdate >= DATE '1994-04-13' AND o.o_orderdate < DATE '1994-04-13' + 17",
+      "family": "join_removal",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17
+      },
+      "query_type": "Join elimination (original INNER JOIN)",
+      "semantic_group_id": "sg_x1_rw_rw21_inner_join_elimination",
+      "original_sha256": "7132d7f43b0bca99c5e36c36c16470b727f04196e9b7770d4d6e5838a1bfd14a",
+      "ordering_required": false,
+      "preconditions": [],
+      "input_status": "SUPPORTED",
+      "input_reason": "Original matches a registered template",
+      "selection": {
+        "method": "manual"
+      },
+      "cases": [
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        }
+      ]
+    },
+    {
+      "id": "example-materialized-cte",
+      "sql": "WITH recent AS MATERIALIZED (SELECT l_orderkey, l_quantity, l_extendedprice FROM lineitem WHERE l_shipdate >= DATE '1994-04-13' AND l_shipdate < DATE '1994-04-13' + 17) SELECT count(*) AS n_lines, sum(l_extendedprice) AS revenue FROM recent WHERE l_quantity >= 4",
+      "family": "materialized_cte",
+      "parameters": {
+        "start_date": "1994-04-13",
+        "days": 17,
+        "quantity": 4
+      },
+      "query_type": "Materialized CTE",
+      "semantic_group_id": "sg_x1_rw_rw23_cte_materialized",
+      "original_sha256": "837facd2f9d936f4409ec4323ec4df024b800bb9a4aa783ee231793d63165158",
+      "ordering_required": false,
+      "preconditions": [],
+      "input_status": "SUPPORTED",
+      "input_reason": "Original matches a registered template",
+      "selection": {
+        "method": "manual"
+      },
+      "cases": [
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf0_1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C1_baseline",
+          "modeling_key": null
+        },
+        {
+          "database": "tpch_sf1",
+          "configuration_name": "C2_reduced_work_mem",
+          "modeling_key": null
+        }
+      ]
+    }
+  ]
+}

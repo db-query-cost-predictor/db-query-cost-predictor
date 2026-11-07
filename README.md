@@ -2,7 +2,7 @@
 
 The goal is to predict a SQL query's execution cost before it runs, and to recommend a cheaper rewrite only after checking that its results match and that it is faster.
 
-> **Current state: RQ1 v1 modeling and evaluation complete; RQ2 pending.**
+> **Current state: RQ1 v1 complete; local RQ2 study complete; integration pending.**
 > This repository holds a reproducible PostgreSQL 16 / TPC-H evidence
 > pipeline:
 > - an independent audit of the historical pilot;
@@ -15,8 +15,9 @@ The goal is to predict a SQL query's execution cost before it runs, and to recom
 > regression and 1 s high-runtime classification) ended `COMPLETE` at commit
 > `ad66662`. See [docs/rq1_results_v1.md](docs/rq1_results_v1.md).
 >
-> 10 s classification stays `NOT_YET_EVALUABLE`. LLM-generated rewrite results
-> (RQ2) are **pending**. [Evidence status](#evidence-status) separates what has
+> 10 s classification stays `NOT_YET_EVALUABLE`. The local LLM rewrite study
+> evaluated 15 outputs in 60 cases; 8 met its primary rule in all four environments.
+> See [RQ2 results and scope](docs/rq2/RESULTS.md). [Evidence status](#evidence-status) separates what has
 > been measured from what is planned.
 >
 > New to the project? Start with [docs/team_handoff.md](docs/team_handoff.md)
@@ -40,7 +41,9 @@ often break down on complex workloads. The project aims to:
 The repository builds the measurement and verification foundation for both.
 RQ1 v1 has trained and evaluated runtime and 1 s models under grouped
 cross-validation, and has saved unscored hand-off refits for integration.
-Nothing is deployed as a production service, and no LLM is called.
+Nothing is deployed as a production service. The optional `rq2-pipeline` CLI
+calls Groq for generation and verifies candidates on the prepared database;
+see [RQ2 setup and handoff](docs/rq2/README.md).
 
 ---
 
@@ -56,6 +59,8 @@ sources and are never pooled into one statistic.
 | **Manual rewrite verification** | Results previously reported on **September 23, 2026** | 4 snapshot-equivalent cases: 2 rewrites faster, 2 slower. 1 non-equivalent negative control, which the harness rejected | Raw evidence in `QCP_DATA_ROOT`; summary in `reports/poster/` (git-ignored) |
 | **Expanded release (final study data)** | Collected on 2026-10-04 (UTC); audited 2026-10-21; full validation **STOP at G-08** (only the 10 s gate); not frozen | 4,944 determined cases (4,940 complete, 4 right-censored) in 199 semantic groups: 4,784 development cases and 160 reserved RQ2 cases | [docs/expanded_collection_checkpoint.md](docs/expanded_collection_checkpoint.md); distributed as `expanded_release.zip` ([asset catalogue](docs/handoff_assets_v1.json)) |
 | **RQ1 v1 results** | Official run `COMPLETE` on 2026-10-22 (UTC) at commit `ad66662`; verifiable with the documented input, manifest and reproduction checks ([section 15](docs/rq1_results_v1.md#15-verification-and-available-evidence)) | 4,784 development cases; 6 regression and 6 classification models; 3 stored fold schemes; 8 unscored hand-off refits | [docs/rq1_results_v1.md](docs/rq1_results_v1.md); distributed as `rq1_results_review_20261022_100326_043.zip` |
+
+| **Local RQ2 study** | Closed final run on 2026-11-06 (UTC); separate from pilot, development and manual-reference outcomes | 15 fresh LLM outputs, 60 cases; 8 all-four primary passes, with a disclosed 6/15 withholding scenario | [results](docs/rq2/RESULTS.md); [separate evidence catalogue](docs/rq2/assets.json) |
 
 How to read these figures:
 
@@ -321,19 +326,22 @@ and the collection steps actually run are in
 * **10 s.** It remains `NOT_YET_EVALUABLE` (gate G-08) and is not trained,
   reported or claimed.
 
-### Still open
+### RQ2 rewriting: local study complete; integration pending
 
-* **LLM-generated rewrite evaluation (RQ2): pending.**
+* **LLM-generated rewrite evaluation (RQ2): local study complete.**
   - Primary question: do LLM-assisted rewrites preserve SQL semantics and lower
     measured runtime?
-  - Every candidate goes through the same verification harness, and the full
-    denominator is reported, from generated candidates to recommended ones.
+  - The `rq2-pipeline` CLI records generation, safety, schema, snapshot, fixture
+    and paired-timing outcomes. All 60 planned cases remain in the denominator.
+  - The final LLM protocol is in [docs/rq2/PROTOCOL.md](docs/rq2/PROTOCOL.md);
+    the historical manual harness retains its separate rules and results.
   - A secondary experiment compares uncertainty-aware gating policies.
   - Manual reference results are never pooled with LLM results.
   - The 25 manual expanded-release pairs remain `NOT_YET_VERIFIED`.
   - See [docs/rq2_verification_protocol.md](docs/rq2_verification_protocol.md).
-* **Integration and reporting.** Model integration, the presentation of
-  predictions, and the API, dashboard and CI are not started.
+* **Integration and reporting.** Predictor-gated selection, total workflow
+  overhead, independent RQ2 setup acceptance and application integration remain
+  open. The RQ2 CLI and reports are implemented; no HTTP service is included.
 
 Owners, acceptance criteria and dependencies are in
 [docs/team_handoff.md](docs/team_handoff.md).
@@ -344,6 +352,7 @@ Owners, acceptance criteria and dependencies are in
 
 | Document | Contents |
 |---|---|
+| [docs/rq2/README.md](docs/rq2/README.md) | RQ2 pipeline, results, final protocol, setup, evidence replay and integration contract |
 | [POSTER_RUNBOOK.md](POSTER_RUNBOOK.md) | Reproduction steps with pass/stop conditions |
 | [docs/architecture.md](docs/architecture.md) | Pipeline, components, roles and safety, code map |
 | [docs/data_contract.md](docs/data_contract.md) | Feature-availability classes and enforcement |

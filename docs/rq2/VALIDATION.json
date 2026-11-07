@@ -1,0 +1,147 @@
+{
+  "engineering_release": "1.0.1",
+  "standalone_validation": {
+    "status": "PASSED",
+    "engineering_release": "1.0.1",
+    "offline_unit_tests_passed": 200,
+    "new_security_regression_tests": 39,
+    "wheel_build": "PASSED",
+    "isolated_install_and_cli": "PASSED",
+    "live_execution_from_installed_wheel": "PASSED",
+    "historical_replay": {
+      "cases": 60,
+      "verified_raw_files": 3030,
+      "primary_all_four": 8,
+      "measurement_identity": "c3c7b0e3f04e506ada4f106403a95fafa03ab5516ceba46ad93602636f1ed24c"
+    },
+    "live_correctness_acceptance": {
+      "original_self_checks": 8,
+      "families": 5,
+      "negative_controls_rejected": 4,
+      "manual_null_to_zero_mutation": "FIXTURE_REJECTED"
+    },
+    "fresh_provider_smoke": {
+      "model_calls": 1,
+      "source": "LLM_REWRITE",
+      "served_model": "openai/gpt-oss-120b",
+      "finish_reason": "stop",
+      "case_status_counts": {
+        "NOT_EQUIVALENT": 4
+      },
+      "timing_executions": 0,
+      "scope": "Engineering rejection-path check; wrong date boundary; excluded from study results"
+    },
+    "live_timing_control": {
+      "model_calls": 0,
+      "source": "HANDWRITTEN_ENGINEERING_CONTROL",
+      "case_status_counts": {
+        "MEETS_PRIMARY_CRITERION": 4
+      },
+      "completed_cases": 4,
+      "aa_pairs": 44,
+      "ab_pairs": 44,
+      "paired_executions": 176,
+      "warmup_executions": 16,
+      "scope": "Handwritten engineering positive control, not LLM output; excluded from study results"
+    },
+    "historical_counts_changed": false,
+    "parent_release_unchanged": true,
+    "source_identity_matches_live_checks": true,
+    "independent_teammate_acceptance": "PENDING",
+    "evidence_archive": "RQ2_Final_Evidence_20261106.zip",
+    "evidence_archive_sha256": "a0642e61640a5074c08262f4530d4e4c46accd6025ef2ac4463f5ba61b0e542f",
+    "github_writes": 0,
+    "privacy_preflight": "PASSED",
+    "markdown_links_checked": 18
+  },
+  "repository_integration": {
+    "status": "PASSED",
+    "base_commit": "ba311fdcb8f7b1803f019764f4e5db8123c654fe",
+    "validation_date": "2026-11-07",
+    "timezone": "America/Chicago",
+    "full_default_suite": {
+      "tests": 813,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 812
+    },
+    "skip_reasons": [
+      "file symlinks need extra privileges on this machine"
+    ],
+    "rq2_component_tests": 200,
+    "existing_rq1_and_other_tests_modified": false,
+    "test_environment_note": "Short temporary paths avoid the existing Windows MAX_PATH refusal; production path checks remain unchanged",
+    "wheel_build": "PASSED",
+    "isolated_install": "PASSED",
+    "existing_qcp_cli": "PASSED",
+    "rq2_cli_validation": "PASSED",
+    "stored_evidence_replay": {
+      "cases": 60,
+      "verified_raw_files": 3030,
+      "primary_all_four": 8
+    },
+    "runtime_ast_identical_to_reviewed_standalone_release": true,
+    "runtime_source_sha256": {
+      "__init__.py": "0bb828e9ef9ba6d5fc067f85c89bfd3e6e27a2e54f6ff394ad7d12c5529cc280",
+      "__main__.py": "79ee6f134c5c5193377cf9b189cbdcc3e2095e49ba9cec310114441c15a917c4",
+      "backend.py": "83f658116e1783d955ec5e8ab713195d3b58abdb3229f265f75d786cea19939c",
+      "cli.py": "e56a9d2632a1e22ada0f11b79f4be0476e078c1d9635d06d715a532252735584",
+      "comparison.py": "64b9b8caa65c4bc9ea33a0c22ce3868c7b2a188e1a1edf7931dbe8b05e11dde0",
+      "context.py": "1e61aef48e3423386b0f572639b32395bae402b0cf5680d65ca5aec551fa3f31",
+      "contract.py": "6777eedf1af175a479fd78b4a31474d81ea650744d6a7000502524cfdeeabdde",
+      "credentials.py": "d69cfbe9e638fceaaeab457c86e7685fddd62af3ac4be288d269692361178d9a",
+      "database.py": "3968f7e31ad36043502aa1d12ca4e5519e87a85cc75ff3e62b36f38d2e832fba",
+      "decisions.py": "fbdaff70fcc5ea2997fda77d98b8fc5e3828f0760ff05443b10f5eecf38843bd",
+      "environment.py": "24df0a541ce5bece6c5ebf128658d46474f79c88cb0d0666af381158b286a3fe",
+      "executor.py": "e81b6d457210c1a6d5dbd6bbf7017459a9a5982bb93bf261912aaa8b68df016d",
+      "fixture_registry.py": "aff6e1e02aec5114e82742cc1f0452ce944083e626ba2ec1e045c411200d6dbb",
+      "fixtures.py": "4ee7e5f8430f179c95a8dfb4bae3ff001e00cd23b49cddd5c6d59f5524baa6cd",
+      "hashing.py": "22218282f4615325f59d03e0efeb536f3498152c13335e01ad16b5d89ef65385",
+      "host.py": "5541646a96d1a52912aeab7c1c1c09d34fa721bec7771e644266d46258d476e5",
+      "journal.py": "b0c161d9ca11040160ea58cc81a959786a12f0949a9e28fc56204e5233fb8e22",
+      "pipeline.json": "f48ca280c8d750b915bd0272b99c63544b33562281b648920681d9b6060c9408",
+      "pipeline.py": "1e4df801cc5a506d8ab7488ceca737bebf2c66ac52b44845f04957bdf4aaeb15",
+      "plans.py": "679dc00c0450179396936a20e3c26789b84caa0e817859269eb8e8a34b8a5c59",
+      "prompts.py": "cf43f175d7e8277ad483245f5e2c6cf9db11faada5e8cef4951770415471d456",
+      "protocol.py": "a001c806dfaf0c52b19627b421535aed7af49299be534c358da47e18d8d4c2c2",
+      "provider.py": "56c64c4b3bfb55e15334216e5e1fc30dca406ca78aa1ecf544bbecfd0febbfb4",
+      "replay.py": "c539998a8d5208aa45afcea6270cc11ff83a8a83c0cf0977094ca81fc511429f",
+      "reports.py": "439d3adf528b66499a4beb6024f8a83c1800307b22c78275920d74026d0ef788",
+      "response.py": "9f4fd12415d8d677071b550b1f05741d793d494605e6be60c38d92cba467750e",
+      "safety.py": "90805b0a6d7f2c346ccb29f7bde09414ec0f453f9661e828eb9c6502ae3d4523",
+      "scheduler.py": "af065a0d30c2b90c6c4eb1433259b3f6a1c36501e5f300680e1b6348941413ed",
+      "snapshot.py": "dd4c3a6fe20d0bbd0c9611f513431683fba9aa6cb7d6ecf23e2d4675f7c7abc4",
+      "sqltext.py": "5c7d16d4b8f9a96754f62689599b08228d9e9d7b4d62433ed727790f249e8a9b",
+      "stages.py": "4896f9c6099df09833e69a47546c31a721745c651c23ce4fd3aa50b014878f3e",
+      "storage.py": "8c337a4e8c2f46c722624e46ae82d1d3ab2f930908ae7ffa582364b37264dd5e",
+      "timing.py": "284449b9b6635d9e1340ecbbb5a7041476444cea7de9de4b63b92ce03998374d",
+      "verification.py": "2fd78914da5df6bd04d46b36f28374af75710c516404e99ba86200b27ba0858d"
+    },
+    "new_model_calls_during_repository_integration": 0,
+    "new_timings_during_repository_integration": 0,
+    "scope": "Repository integration and canonical LF line endings. Live provider and timing checks belong to the separately recorded standalone release validation."
+  },
+  "publication_preflight": {
+    "validation_date": "2026-11-08",
+    "full_default_suite": {
+      "tests": 813,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 812
+    },
+    "rq2_component_tests_passed": 200,
+    "test_environment": "CPython 3.12.10 on Windows; fresh short temporary path; default integration exclusions retained",
+    "installation_constraints": "Pip 25.0.1 accepted and installed the pinned RQ2 dependencies after replacing extras in constraints with separate psycopg and psycopg-binary pins. Dependency versions are unchanged.",
+    "example_input_validation": {
+      "supported_originals": 5,
+      "planned_environment_cases": 20,
+      "model_calls": 0,
+      "sql_executions": 0
+    },
+    "runtime_source_unchanged": true,
+    "historical_measurements_unchanged": true,
+    "private_files_excluded": true
+  }
+}

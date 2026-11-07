@@ -24,9 +24,13 @@ dev = ["pytest>=8.0"]
 
 [project.scripts]
 qcp = "query_cost_predictor.cli:main"
+rq2-pipeline = "rq2_pipeline.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+rq2_pipeline = ["pipeline.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
